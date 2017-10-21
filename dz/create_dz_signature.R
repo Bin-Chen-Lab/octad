@@ -11,10 +11,10 @@ cancers = data.frame(table(dz_phenotype$disease))
 
 if (!file.exists(dz)){dir.create(dz)}
 
-dz_expr_patient_reformat = sapply(colnames(dz_expr), function(x){
-  paste(unlist(strsplit(x, "\\.")), collapse = "-")
-})
-colnames(dz_expr) = dz_expr_patient_reformat
+#dz_expr_patient_reformat = sapply(colnames(dz_expr), function(x){
+#  paste(unlist(strsplit(x, "\\.")), collapse = "-")
+#})
+#colnames(dz_expr) = dz_expr_patient_reformat
 
 #find cancer sample expression
 dz_samples = dz_phenotype$sample_id[dz_phenotype$disease %in% dz]
