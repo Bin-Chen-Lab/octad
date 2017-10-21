@@ -1,6 +1,6 @@
 #given a cancer, find its tumor samples, search its normal samples, compute its signature, perform enrichment analysis of its signatures
 library(DESeq2)
-library(tximport)
+#library(tximport)
 library(pheatmap)
 
 
