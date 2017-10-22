@@ -2,7 +2,11 @@
 library(DESeq2)
 #library(tximport)
 library(pheatmap)
+library(BiocParallel)
 
+if (parallel_cores > 1 ){
+  register(MulticoreParam(parallel_cores))
+}
 
 dz_phenotype = read.csv("raw/treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv", sep = "\t", stringsAsFactors = F)
 load("raw/treehouse/dz_expr.RData")
@@ -71,7 +75,12 @@ coldata = data.frame(sample = colnames(counts) , condition= c(rep("tumor", ncol(
 dds <- DESeqDataSetFromMatrix(countData = round(counts),
                               colData = coldata,
                               design= ~ condition)
-dds <- DESeq(dds)
+
+if (parallel_cores > 1){
+  dds <- DESeq(dds, parallel = parallel_cores)
+}else{
+  dds <- DESeq(dds)
+}
 
 save(dds,file= paste0(dz, "/dds", ".RData"))
 rnms <- resultsNames(dds)

@@ -1,8 +1,9 @@
-#Open Therapeutic Discovery workspace
+#Open Cancer Therapeutic Discovery workspace
 
 setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
 dz = "medulloblastoma"
 site = NULL #"liver" #if site is null, will infer it later
+parallel_cores = 2
 
 #create disease signature
 print(paste("creating disease signature"))
