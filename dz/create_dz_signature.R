@@ -51,8 +51,8 @@ dz_tissue = 2^dz_tissue - 1
 ref_tissue = 2^ref_tissue -1
 
 #for test(only choose at most 30 samples); it takes time to run DESeq.
-dz_tissue = dz_tissue[, 1:min(30, ncol(dz_tissue))]
-ref_tissue = ref_tissue[, 1:min(30, ncol(ref_tissue))]
+#dz_tissue = dz_tissue[, 1:min(30, ncol(dz_tissue))]
+#ref_tissue = ref_tissue[, 1:min(30, ncol(ref_tissue))]
 #correlation is stronger while using log
 #mean(cor(dz_tissue, ref_tissue))
 
