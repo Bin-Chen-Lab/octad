@@ -20,6 +20,8 @@ if (!file.exists(dz)){dir.create(dz)}
 dz_samples = dz_phenotype$sample_id[dz_phenotype$disease %in% dz]
 dz_tissue = dz_expr[, colnames(dz_expr) %in%  dz_samples ] 
 
+if (ncol(dz_tissue) == 0) { stop() }
+
 #find normal sample expression
 if (length(site) == 0) {
   #find all gtex samples
