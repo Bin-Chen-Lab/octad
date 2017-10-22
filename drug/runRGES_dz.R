@@ -40,8 +40,8 @@ gene.list <- rownames(lincs_signatures)
 
 ##############
 #read disease signatures
-#dz_signature <- read.csv(paste0(dz, "/dz_sig_genes", ".csv") )
-dz_signature <- read.csv("~/Documents/stanford/breast/release_cmyc/data/myc/drug/dz_signature_lincs.txt", sep = "\t" )
+dz_signature <- read.csv(paste0(dz, "/dz_sig_genes", ".csv") )
+#dz_signature <- read.csv("~/Documents/stanford/breast/release_cmyc/data/myc/drug/dz_signature_lincs.txt", sep = "\t" )
 
 dz_signature <- dz_signature[dz_signature$GeneID %in% gene.list & abs(dz_signature$value) > 1 & dz_signature$padj < 0.005, ]
 #dz_signature$up_down = ifelse(dz_signature$logFC > 1, "up", "down")
