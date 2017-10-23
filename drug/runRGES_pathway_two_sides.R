@@ -1,6 +1,6 @@
 #an example of running RGES and summarizing RGES across multiple profiles.
 #make sure change the workspace and code directory
-setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
+#setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
 
 choose_fda_drugs <- FALSE
 
@@ -32,7 +32,7 @@ pathway_gene_set_down = read.delim(paste0("raw/geneset/", pathway_set_name, "_do
 
 if (!file.exists(paste0("pathway/", pathway_set_name))) {dir.create(paste0("pathway/", pathway_set_name))}
 
-for (pathway_id in 1:2){  #nrow(pathway_gene_set) nrow(pathway_gene_set_up
+for (pathway_id in 1:nrow(pathway_gene_set_up)){  #nrow(pathway_gene_set) nrow(pathway_gene_set_up
 pathways_up = unlist(strsplit(pathway_gene_set_up[pathway_id,1], "\t\t"))
 pathway_name_up = pathways_up[1]
 
