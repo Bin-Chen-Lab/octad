@@ -56,6 +56,7 @@ print(paste(pathway_id, pathway_name, length(pathway_genes_valid_up), length(pat
 if (length(pathway_genes_valid_up) <= 4 & length(pathway_genes_valid_down <= 4)){ next}
 
 if (!file.exists(paste0("pathway/", pathway_set_name, "/", pathway_id))) {dir.create(paste0("pathway/", pathway_set_name, "/", pathway_id))}
+if (file.exists(paste0("pathway/", pathway_set_name, "/", pathway_id, "/sRGES.csv"))) {next}
 
 output_path <- paste("pathway/", pathway_set_name, "/", pathway_id, "/all_lincs_score.csv", sep="")
 sRGES_output_path <- paste("pathway/", pathway_set_name, "/", pathway_id, "/sRGES.csv", sep="")
