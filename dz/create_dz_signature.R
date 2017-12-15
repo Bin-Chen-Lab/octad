@@ -24,8 +24,23 @@ if (!file.exists(dz)){dir.create(dz)}
 dz_samples = dz_phenotype$sample_id[dz_phenotype$disease %in% dz]
 dz_tissue = dz_expr[, colnames(dz_expr) %in%  dz_samples ] 
 
+#find subtype patient samples
+if (mutation_gene != "" & gdc_project_id != ""){
+  all_patients = queryGDC(id_mapping_gene_ensembl(mutation_gene), gdc_project_id)
+  dz_tissue_patient_id = sapply(colnames(dz_tissue), function(x) paste(unlist(strsplit(x, "-"))[1:3], collapse="-"))
+  dz_tissue = dz_tissue[, dz_tissue_patient_id %in% all_patients[all_patients$gene == 1, 1]]
+}
+
+
 if (ncol(dz_tissue) == 0) { stop() }
 
+#estimate purity
+#may need to use TPM instead of count
+if (remove_impure == T){
+  rownames(dz_tissue) = dz_expr$sample
+  purity = estimatePurity(dz_tissue)
+  dz_tissue = dz_tissue[, purity > 0.7]
+}
 #find normal sample expression
 if (length(site) == 0) {
   #find all gtex samples
