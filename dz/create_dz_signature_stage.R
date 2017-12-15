@@ -8,14 +8,14 @@ if (parallel_cores > 1 ){
   register(MulticoreParam(parallel_cores))
 }
 
-dz = "liver hepatocellular carcinoma"
+#dz = "liver hepatocellular carcinoma"
 dz_phenotype = read.csv("raw/treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv", sep = "\t", stringsAsFactors = F)
 load("raw/treehouse/clinvar.RData")
 #reformat clinvar stage data
 clinvar$stage = "others"
 clinvar$stage[clinvar$ajcc_pathologic_tumor_stage %in% c("Stage I", "Stage IA", "Stage IB")] = "Stage I"
 clinvar$stage[clinvar$ajcc_pathologic_tumor_stage %in% c("Stage II", "Stage IIA", "Stage IIB", "Stage IIC")] = "Stage II"
-clinvar$stage[clinvar$ajcc_pathologic_tumor_stage %in% c("Stage III", "Stage IIIA", "Stage IIIB", "Stage IIIC")] = "Stage III"
+clinvar$stage[clinvar$ajcc_pathologic_tumor_stage %in% c("Stage III", "Stage IIIA", "Stage IIIB", "Stage IIIC")] = "Stage II" #combine STAGE II and III in order to increase sample size
 
 load("raw/treehouse/dz_expr.RData")
 GTEX_phenotype =read.csv("raw/treehouse/GTEX_phenotype", sep="\t", stringsAsFactors = F)
@@ -64,6 +64,10 @@ coldata_1 = merge(coldata,
 rownames(coldata_1) = coldata_1$sample
 counts = counts[, colnames(counts) %in% coldata_1$sample]
 
+if (sum(coldata_1$condition == "Stage I") < 5 | sum(coldata_1$condition == "Stage II") < 5){
+  next
+}
+
 dds <- DESeqDataSetFromMatrix(countData = round(counts),
                               colData = coldata_1[colnames(counts), ],
                               design= ~ condition)
@@ -75,16 +79,6 @@ if (parallel_cores > 1){
 }
 
 save(dds,file= paste0(dz, "/dds", ".RData"))
-rnms <- resultsNames(dds)
-
-select <- order(rowMeans(counts(dds,normalized=TRUE)),
-                decreasing=TRUE)[1:50]
-df <- as.data.frame(colData(dds)[,c("condition")])
-rownames(df) = rownames(colData(dds))
-colnames(df) = c("type")
-ntd <- normTransform(dds)
-pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE,
-         cluster_cols=FALSE, annotation_col=df, file= paste0(dz, "/cluster_by_counts.pdf"))
 
 #take time to compute sampel-correlation
 'rld <- rlog(dds, blind=FALSE)
@@ -112,9 +106,20 @@ mapping = mapping[, c("GeneID", "Symbol")]
 
 dz_signature = merge(mapping, data.frame(Symbol = rownames(res), res), by = "Symbol")
 dz_signature = dz_signature[order(dz_signature$log2FoldChange), ]
-dz_signature = dz_signature[abs(dz_signature$log2FoldChange) > 2 & dz_signature$padj < 0.005, ]
+dz_signature = dz_signature[abs(dz_signature$log2FoldChange) > 1.5 & dz_signature$padj < 0.05 & !is.na(dz_signature$padj), ]
 dz_signature$value = dz_signature$log2FoldChange
 dz_signature$up_down = ifelse(dz_signature$value > 0, "up", "down")
 write.csv(dz_signature, paste0(dz, "/dz_sig_genes", ".csv")  )
 
+#valdiate signatures
+rnms <- resultsNames(dds)
+
+#select <- order(rowMeans(counts(dds,normalized=TRUE)),
+#                decreasing=TRUE)[1:50]
+df <- as.data.frame(colData(dds)[,c("condition")])
+rownames(df) = rownames(colData(dds))
+colnames(df) = c("type")
+ntd <- normTransform(dds)
+pheatmap(assay(ntd)[dz_signature$Symbol,], cluster_rows=FALSE, show_rownames=FALSE,
+         cluster_cols=FALSE, annotation_col=df, file= paste0(dz, "/cluster_by_counts.pdf"))
 
