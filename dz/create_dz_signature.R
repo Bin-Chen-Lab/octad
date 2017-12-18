@@ -87,6 +87,12 @@ rownames(counts) = as.character(dz_expr$sample)
   
 coldata = data.frame(sample = colnames(counts) , condition= c(rep("tumor", ncol(dz_tissue)), rep("normal", ncol(ref_tissue))) )
 
+#detect outliers and normalize counts across multiple studies
+#need to run the code manually and inspect plots carefully
+#need to choose outliers manually
+source("../code/dz/rna_seq_normalization.R")
+
+
 dds <- DESeqDataSetFromMatrix(countData = round(counts),
                               colData = coldata,
                               design= ~ condition)
