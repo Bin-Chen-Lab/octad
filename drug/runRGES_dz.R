@@ -11,8 +11,11 @@ library("ggplot2")
 fda_drugs = read.csv("raw/repurposing_drugs_20170327.txt", comment.char = "!", header=T, sep="\t")
 
 #load LINCS drug gene expression profiles
-load("raw/lincs_signatures_cmpd_landmark.RData")
-
+if (landmark == 1){
+  load("raw/lincs_signatures_cmpd_landmark.RData")
+}else{
+  load("raw/lincs_signatures_cmpd_landmark_GSE92742.RData")
+}
 #
 source(paste(code_dir, "core_functions.R",sep=""))
 
@@ -21,7 +24,6 @@ sRGES_output_path <- paste(dz, "/sRGES.csv", sep="")
 sRGES_output_path_drug <- paste(dz, "/sRGES_drug.csv", sep="")
 dz_sig_output_path <- paste(dz, "/dz_sig_used.csv", sep="")
 
-landmark <- 1
 lincs_sig_info <- read.csv("raw/lincs_sig_info.csv")
 if (choose_fda_drugs){
   lincs_sig_info <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(pert_iname) %in% tolower(fda_drugs$pert_iname))
@@ -43,7 +45,7 @@ gene.list <- rownames(lincs_signatures)
 dz_signature <- read.csv(paste0(dz, "/dz_sig_genes", ".csv") )
 #dz_signature <- read.csv("~/Documents/stanford/breast/release_cmyc/data/myc/drug/dz_signature_lincs.txt", sep = "\t" )
 
-dz_signature <- dz_signature[dz_signature$GeneID %in% gene.list & abs(dz_signature$value) > 1 & dz_signature$padj < 0.005, ]
+dz_signature <- dz_signature[dz_signature$GeneID %in% gene.list & abs(dz_signature$value) > dz_fc_threshold & dz_signature$padj < dz_p_threshold, ]
 #dz_signature$up_down = ifelse(dz_signature$logFC > 1, "up", "down")
 dz_genes_up <- subset(dz_signature,up_down=="up",select="GeneID")
 dz_genes_down <- subset(dz_signature,up_down=="down",select="GeneID")
@@ -67,11 +69,7 @@ count <- 0
 for (exp_id in sig.ids) {
   count <- count + 1
  # print(count)
-  if (landmark ==1){
-    cmap_exp_signature <- data.frame(gene.list,  rank(-1 * lincs_signatures[, as.character(exp_id)], ties.method="random"))    
-  }else{
-    cmap_exp_signature <- cbind(gene.list,  get.sigs(exp_id))    
-  }
+  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * lincs_signatures[, as.character(exp_id)], ties.method="random"))    
   colnames(cmap_exp_signature) <- c("ids","rank")
   dz_cmap_scores <- c(dz_cmap_scores, cmap_score_new(dz_genes_up,dz_genes_down,cmap_exp_signature))
 }
@@ -84,11 +82,7 @@ random_cmap_scores <- NULL
 for (expr_id in random_sig_ids){
   count <- count + 1
   #print(count)
-  if (landmark ==1){
-    cmap_exp_signature <- data.frame(gene.list,  rank(-1 * lincs_signatures[, as.character(exp_id)], ties.method="random"))    
-  }else{
-    cmap_exp_signature <- cbind(gene.list,  get.sigs(exp_id))    
-  }
+  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * lincs_signatures[, as.character(exp_id)], ties.method="random"))    
   colnames(cmap_exp_signature) <- c("ids","rank")
   
   random_input_signature_genes <- sample(gene.list, (nrow(dz_genes_up)+nrow(dz_genes_down)))
