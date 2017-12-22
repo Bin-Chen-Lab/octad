@@ -65,6 +65,5 @@ plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[x])
 plotPCA(set2, col=colors[x], cex=1.2)
 
 #output
-#counts = counts(set2) doesn't store normalized counts
-counts = set2@assayData$normalizedCounts
-
+counts = counts(set2)
+tmp<- set2@assayData$normalizedCounts
