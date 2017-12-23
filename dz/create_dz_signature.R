@@ -3,6 +3,8 @@ library(DESeq2)
 #library(tximport)
 library(pheatmap)
 library(BiocParallel)
+library(RColorBrewer)
+library(gplots)
 
 if (parallel_cores > 1 ){
   register(MulticoreParam(parallel_cores))
@@ -87,49 +89,144 @@ rownames(counts) = as.character(dz_expr$sample)
   
 coldata = data.frame(sample = colnames(counts) , condition= c(rep("tumor", ncol(dz_tissue)), rep("normal", ncol(ref_tissue))) )
 
+counts = round(counts)
+#hmm.. lots of odd counts?
+counts = counts[rowSums(counts) > 0 & rowMax(counts) < 1000000, ]
+
 #detect outliers and normalize counts across multiple studies
 #need to run the code manually and inspect plots carefully
 #need to choose outliers manually
-source("../code/dz/rna_seq_normalization.R")
+#source("../code/dz/rna_seq_normalization.R")
+counts = ruvseqEmpNorm(counts, coldata)
 
+x = DGEList(counts = counts, group = coldata$condition )
+x <- calcNormFactors(x, method = "TMM")
 
-dds <- DESeqDataSetFromMatrix(countData = round(counts),
-                              colData = coldata,
-                              design= ~ condition)
+cpm <- cpm(x)
+lcpm <- cpm(x, log=TRUE)
 
-if (parallel_cores > 1){
-  dds <- DESeq(dds, parallel = parallel_cores)
+#remove lowly expressed genes
+keep.exprs <- rowSums(cpm>1) >= min(table(coldata$condition))
+x <- x[keep.exprs,, keep.lib.sizes=FALSE]
+dim(x)
+
+if (DE_method == "edgeR"){
+
+  dgList <- x
+  sampleType = coldata$condition
+  
+  designMat <- model.matrix(~ sampleType)
+  
+  dgList <- estimateGLMCommonDisp(dgList,design=designMat)
+  dgList <- estimateGLMTrendedDisp(dgList,design=designMat)
+  dgList <- estimateGLMTagwiseDisp(dgList,design=designMat)
+  
+  #####calculating DE#####
+  fit <- glmFit(dgList,design = designMat)
+  lrt <- glmLRT(fit)
+  #head(lrt$table)
+  #colnames(lrt$table)
+  
+  res <- lrt$table
+  colnames(res) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
+  res$padj <- p.adjust(res$pvalue)
+  
+  #deciding for significant DE genes
+  #deGenes <- decideTestsDGE(lrt,p=0.005)
+  #deGenes <- row.names(lrt)[as.logical(deGenes)]
+  #plotSmear(lrt,de.tags = deGenes)
+  #abline(h=c(-1,1),col=2)
+}else if (DE_method == "limma"){
+
+  nsamples <- ncol(x)
+  col <- brewer.pal(nsamples, "Paired")
+  lcpm <- cpm(x, log=TRUE)
+  plot(density(lcpm[,1]), col=col[1], lwd=2, ylim=c(0,0.21), las=2, 
+       main="", xlab="")
+  title(main="B. Filtered data", xlab="Log-cpm")
+  abline(v=0, lty=3)
+  for (i in 2:nsamples){
+    den <- density(lcpm[,i])
+    lines(den$x, den$y, col=col[i], lwd=2)
+  }
+  
+  group = coldata$condition
+  col.group <- group
+  levels(col.group) <-  brewer.pal(nlevels(col.group), "Set1")
+  col.group <- as.character(col.group)
+  #plotMDS(lcpm, labels=coldata$condition, col=col.group)
+
+  ## ----design-----------------------------------------------------------------------------
+  design <- model.matrix(~0 + group)
+  colnames(design) <- gsub("group", "", colnames(design))
+  
+  contr.matrix <- makeContrasts(
+    TumorvsNon = tumor - normal, 
+    levels = colnames(design))
+  
+  v <- voom(x, design, plot=F)
+  vfit <- lmFit(v, design)
+  vfit <- contrasts.fit(vfit, contrasts=contr.matrix)
+  efit <- eBayes(vfit)
+  #plotSA(efit, main="Final model: Mean−variance trend")
+  
+  tfit <- treat(vfit, lfc=1)
+  dt <- decideTests(tfit)
+  summary(dt)
+  
+  tumorvsnormal <- topTreat(tfit, coef=1, n=Inf)
+  
+  tumorvsnormal.topgenes <- rownames(tumorvsnormal[1:50,])
+  mycol <- colorpanel(1000,"blue","white","red")
+  pdf( paste0(dz, "/limma_sig.pdf"))
+    heatmap.2(v$E[tumorvsnormal.topgenes,], scale="row",
+              labRow=tumorvsnormal.topgenes, labCol=group, 
+              col=mycol, trace="none", density.info="none", 
+              margin=c(8,6), lhei=c(2,10), dendrogram="column")
+  dev.off()
+    
+  res = tumorvsnormal
+  colnames(res) = c("log2FoldChange", "AveExpr", "t", "pvalue", "padj")
 }else{
-  dds <- DESeq(dds)
+
+  dds <- DESeqDataSetFromMatrix(countData = round(counts),
+                                colData = coldata,
+                                design= ~ condition)
+  
+  if (parallel_cores > 1){
+    dds <- DESeq(dds, parallel = parallel_cores)
+  }else{
+    dds <- DESeq(dds)
+  }
+  
+  save(dds,file= paste0(dz, "/dds", ".RData"))
+  rnms <- resultsNames(dds)
+  
+  select <- order(rowMeans(counts(dds,normalized=TRUE)),
+                  decreasing=TRUE)[1:50]
+  df <- as.data.frame(colData(dds)[,c("condition")])
+  rownames(df) = rownames(colData(dds))
+  colnames(df) = c("type")
+  ntd <- normTransform(dds)
+  pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE,
+           cluster_cols=FALSE, annotation_col=df, file= paste0(dz, "/cluster_by_counts.pdf"))
+  
+  #take time to compute sampel-correlation
+  'rld <- rlog(dds, blind=FALSE)
+  sampleDists <- dist(t(assay(rld)))
+  sampleDistMatrix <- as.matrix(sampleDists)
+  rownames(sampleDistMatrix) <- paste(rld$condition, rld$type, sep="-")
+  colnames(sampleDistMatrix) <- NULL
+  colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+  pheatmap(sampleDistMatrix,
+           clustering_distance_rows=sampleDists,
+           clustering_distance_cols=sampleDists,
+           col=colors, file= paste0(dz, "/cluster_by_co_correlation.pdf"))
+  '
+  
+  res <- results(dds, contrast=c("condition","tumor","normal"))
 }
-
-save(dds,file= paste0(dz, "/dds", ".RData"))
-rnms <- resultsNames(dds)
-
-select <- order(rowMeans(counts(dds,normalized=TRUE)),
-                decreasing=TRUE)[1:50]
-df <- as.data.frame(colData(dds)[,c("condition")])
-rownames(df) = rownames(colData(dds))
-colnames(df) = c("type")
-ntd <- normTransform(dds)
-pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE,
-         cluster_cols=FALSE, annotation_col=df, file= paste0(dz, "/cluster_by_counts.pdf"))
-
-#take time to compute sampel-correlation
-'rld <- rlog(dds, blind=FALSE)
-sampleDists <- dist(t(assay(rld)))
-sampleDistMatrix <- as.matrix(sampleDists)
-rownames(sampleDistMatrix) <- paste(rld$condition, rld$type, sep="-")
-colnames(sampleDistMatrix) <- NULL
-colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
-pheatmap(sampleDistMatrix,
-         clustering_distance_rows=sampleDists,
-         clustering_distance_cols=sampleDists,
-         col=colors, file= paste0(dz, "/cluster_by_co_correlation.pdf"))
-'
-
-res <- results(dds, contrast=c("condition","tumor","normal"))
-
+  
 #plotMA(res, ylim=c(-2,2))
 #plotCounts(dds, gene=which.min(res$padj), intgroup="condition")
 
@@ -146,4 +243,6 @@ dz_signature$value = dz_signature$log2FoldChange
 dz_signature$up_down = ifelse(dz_signature$value > 0, "up", "down")
 write.csv(dz_signature, paste0(dz, "/dz_sig_genes", ".csv")  )
 
+
+#comparing EdgeR, limma, deseq
 

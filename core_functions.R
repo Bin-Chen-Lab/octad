@@ -65,5 +65,39 @@ estimatePurity  <- function(expr_matrix){
   return(as.numeric(estimateScore[3, -c(1,2)]))
 }
 
-
+ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
+  set <- newSeqExpressionSet(round(counts),
+                             phenoData = data.frame(coldata,row.names= coldata$sample))
+  
+  design <- model.matrix(~ condition, data = pData(set))
+  y <- DGEList(counts=counts(set), group =  as.factor(coldata$condition))
+  y <- calcNormFactors(y, method="upperquartile")
+  y <- estimateGLMCommonDisp(y, design)
+  y <- estimateGLMTagwiseDisp(y, design)
+  
+  fit <- glmFit(y, design)
+  lrt <- glmLRT(fit, coef=2)
+  
+  top <- topTags(lrt, n=nrow(set))$table
+  n_topGenes = 5000
+  empirical <- rownames(set)[which(!(rownames(set) %in% rownames(top)[1:n_topGenes]))]
+  
+  set2 <- RUVg(set, empirical, k=1)
+  #pData(set2)
+  #plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[set2$condition])
+  #plotPCA(set2, col=colors[set2$condition], cex=0.5)
+  colors <- brewer.pal(3, "Set2")
+  
+  pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
+  plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[as.factor(coldata$condition)])
+  dev.off()
+  
+  pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
+  plotPCA(set2, col=colors[as.factor(coldata$condition)], cex=1.2)
+  dev.off()
+  
+  #output
+  return(set2@assayData$normalizedCounts)
+  
+}
 

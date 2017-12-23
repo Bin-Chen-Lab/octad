@@ -1,23 +1,42 @@
  #Open Cancer Therapeutic Discovery workspace
 
 setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
-dz = "gwas"
-gdc_project_id = "TCGA-LGG" #
-mutation_gene = "IDH1" #
-remove_impure = T
-landmark <- 0 #1 means using landmark genes only. otherwise, use the inferred ones.
+dz = "liver hepatocellular carcinoma" #diffuse intrinsic pontine glioma  atypical teratoid/rhabdoid tumor
 
-dz_fc_threshold = 0
+#select patient samples based on molecular features
+gdc_project_id = "" #
+mutation_gene = "" #
+
+#considering remove impure samples
+remove_impure = F
+
+#DE gene method
+DE_method = "limma" #deseq edger
+#use FDA drugs or all compounds
+choose_fda_drugs <- FALSE
+
+#choose the top genes from the disease signature in drug prediction
+max_gene_size <- 50
+landmark <- 1 #1 means using landmark genes only. otherwise, use the inferred ones.
+
+#dz signature fold change and p value
+dz_fc_threshold = 2
 dz_p_threshold = 0.05
 
 site = NULL #"liver" #if site is null, will infer it later
-parallel_cores = 2
+
+#parallel computing
+parallel_cores = 0
+
+#drug enrichment analysis type
+target_type = "chembl_targets" #sea_targets chembl_targets meshes
 
 #run core functions
 source("../code/core_functions.R")
 
 #create disease signature
 print(paste("creating disease signature"))
+#source("../code/dz/create_dz_signature.R")
 source("../code/dz/create_dz_signature.R")
 
 #run enrichment analysis of the disease signature
