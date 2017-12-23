@@ -2,6 +2,13 @@
 
 setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
 dz = "liver hepatocellular carcinoma" #diffuse intrinsic pontine glioma  atypical teratoid/rhabdoid tumor
+#setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
+#setwd("~/Documents/GitHub/OCTAD/")
+dz = "gwas"
+gdc_project_id = "TCGA-LGG" #
+mutation_gene = "IDH1" #
+remove_impure = T
+landmark <- 0 #1 means using landmark genes only. otherwise, use the inferred ones.
 
 #select patient samples based on molecular features
 gdc_project_id = "" #
@@ -30,13 +37,13 @@ parallel_cores = 0
 
 #drug enrichment analysis type
 target_type = "chembl_targets" #sea_targets chembl_targets meshes
+parallel_cores = 8
 
 #run core functions
-source("../code/core_functions.R")
+source("../code/dz/core_functions.R")
 
 #create disease signature
 print(paste("creating disease signature"))
-#source("../code/dz/create_dz_signature.R")
 source("../code/dz/create_dz_signature.R")
 
 #run enrichment analysis of the disease signature

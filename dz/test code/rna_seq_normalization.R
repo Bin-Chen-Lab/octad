@@ -18,7 +18,6 @@ library("RUVSeq")
 set <- newSeqExpressionSet(round(counts),
                            phenoData = data.frame(coldata,row.names= coldata$sample))
 
-x = as.factor(coldata$condition)
 #without normalization
 library(RColorBrewer)
 colors <- brewer.pal(3, "Set2")
@@ -36,7 +35,7 @@ plotRLE(set, outline=FALSE, ylim=c(-4, 4), col=colors[x])
 plotPCA(set, col=colors[x], cex=1.2)
 
 #
-'set0 <- betweenLaneNormalization(set, which="upper")
+set0 <- betweenLaneNormalization(set, which="upper")
 plotRLE(set0, outline=FALSE, ylim=c(-4, 4), col=colors[x])
 plotPCA(set0, col=colors[x], cex=1.2)
 
@@ -46,7 +45,6 @@ set1 <- RUVg(set, control.genes, k=1)
 pData(set1)
 plotRLE(set1, outline=FALSE, ylim=c(-4, 4), col=colors[x])
 plotPCA(set1, col=colors[x], cex=1.2)
-'
 
 ##emprical
 design <- model.matrix(~ condition, data = pData(set))
@@ -63,15 +61,9 @@ empirical <- rownames(set)[which(!(rownames(set) %in% rownames(top)[1:5000]))]
 
 set2 <- RUVg(set, empirical, k=1)
 pData(set2)
-pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
-  plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[x])
-dev.off()
-
-pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
-  plotPCA(set2, col=colors[x], cex=1.2)
-dev.off()
+plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[x])
+plotPCA(set2, col=colors[x], cex=1.2)
 
 #output
-#counts = counts(set2) doesn't store normalized counts
-counts = set2@assayData$normalizedCounts
-
+counts = counts(set2)
+tmp<- set2@assayData$normalizedCounts

@@ -2,14 +2,15 @@
 #oligo: only select IDH mutated vs IDH wild type
 
 library(DESeq2)
-library(tximport)
+#library(tximport)
 library(pheatmap)
 library(edgeR)
 dz = "glioma"
 site = NULL
 
-mapping = read.csv("raw/gene_info_hs.csv")
-mapping = mapping[, c("GeneID", "Symbol")]
+if (parallel_cores > 1 ){
+  register(MulticoreParam(parallel_cores))
+}
 
 dz_phenotype = read.csv("raw/treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv", sep = "\t", stringsAsFactors = F)
 load("raw/treehouse/dz_expr.RData")
