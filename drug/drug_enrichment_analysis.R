@@ -1,6 +1,5 @@
 library("GSVA")
 
-target_type = "chembl_targets" #sea_targets chembl_targets meshes
 load(paste0("raw/cmpd_sets_", target_type, ".RData"))
 cmpdSets = cmpd_sets$cmpd.sets
 names(cmpdSets) = cmpd_sets$cmpd.set.names
@@ -17,7 +16,7 @@ for (i in 1:random_times){
 rownames(rgess) = drug_pred$pert_iname
 rgess = cbind(rgess, drug_pred$sRGES)
 
-gsea_results = gsva(rgess, cmpdSets, method = "ssgsea",  parallel.sz=2)
+gsea_results = gsva(rgess, cmpdSets, method = "ssgsea",  parallel.sz=0)
 
 gsea_p = apply(gsea_results, 1, function(x){
   sum(x[1:random_times] > x[random_times+1])/random_times

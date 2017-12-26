@@ -1,7 +1,6 @@
 #an example of running RGES and summarizing RGES across multiple profiles.
 #make sure change the workspace and code directory
 
-choose_fda_drugs <- FALSE
 
 code_dir <- "../code/drug/"
 
@@ -53,8 +52,6 @@ dz_genes_down <- subset(dz_signature,up_down=="down",select="GeneID")
 
 
 #compute RGES
-#only choose the top 150 genes
-max_gene_size <- 150
 if (nrow(dz_genes_up) > max_gene_size){
   dz_genes_up <- data.frame(GeneID= dz_genes_up[1:max_gene_size,])
 }

@@ -27,7 +27,7 @@ gene.list <- rownames(lincs_signatures)
 
 #read pathways
 pathway_set_name = "GO_Cellular_Component_2017"
-pathway_gene_set = read.delim(paste0("raw/geneset/", pathway_set_name, ".txt"),  sep ="@", header=F, stringsAsFactors = F)
+pathway_gene_set = read.delim(paste0("raw/geneset/", pathway_set_name, ".txt"),  sep ="$", header=F, stringsAsFactors = F)
 
 if (!file.exists(paste0("pathway/", pathway_set_name))) {dir.create(paste0("pathway/", pathway_set_name))}
 
@@ -84,7 +84,7 @@ if (nrow(dz_genes_down) > max_gene_size){
   dz_genes_down <- data.frame(GeneID=dz_genes_down[1:max_gene_size,])
 }
 
-write.csv(rbind(dz_genes_up, dz_genes_down),  dz_sig_output_path)
+write.csv(rbind(data.frame(GeneID = dz_genes_up, up_down = "up"), data.frame(GeneID = dz_genes_down, up_down = "down")),  dz_sig_output_path)
 
 dz_cmap_scores <- NULL
 count <- 0
