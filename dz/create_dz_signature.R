@@ -10,12 +10,13 @@ if (parallel_cores > 1 ){
   register(MulticoreParam(parallel_cores))
 }
 
+if (!file.exists(dz)){dir.create(dz)}
+
+#load counts and clinical features
 dz_phenotype = read.csv("raw/treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv", sep = "\t", stringsAsFactors = F)
 load("raw/treehouse/dz_expr.RData")
 GTEX_phenotype =read.csv("raw/treehouse/GTEX_phenotype", sep="\t", stringsAsFactors = F)
 cancers = data.frame(table(dz_phenotype$disease))
-
-if (!file.exists(dz)){dir.create(dz)}
 
 #dz_expr_patient_reformat = sapply(colnames(dz_expr), function(x){
 #  paste(unlist(strsplit(x, "\\.")), collapse = "-")
@@ -39,10 +40,15 @@ if (ncol(dz_tissue) == 0) { stop() }
 #estimate purity
 #may need to use TPM instead of count
 if (remove_impure == T){
-  rownames(dz_tissue) = dz_expr$sample
-  purity = estimatePurity(dz_tissue)
-  dz_tissue = dz_tissue[, purity > 0.7]
+  sample_purity = read.csv("treehouse_sample_purity.csv", row.names = 1)
+  purity = sample_purity[colnames(dz_tissue),]
+  write.csv(purity, paste0(dz, "/dz_sample_purity.csv"))
+  dz_tissue = dz_tissue[, purity > 0.7 & !is.na(purity)]
 }
+
+#choose top correlated cell lines
+compute_tisse_cell_cor(colnames(dz_tissue))
+
 #find normal sample expression
 if (length(site) == 0) {
   #find all gtex samples
@@ -56,6 +62,11 @@ if (length(site) == 0) {
   normal_dz_cor_each = apply(normal_dz_cor, 1, median)
   
   GTEX_phenotype_cor = merge(GTEX_phenotype, data.frame(Sample = names(normal_dz_cor_each), cor = as.numeric(normal_dz_cor_each)), by = "Sample")
+
+  write.csv(GTEX_phenotype_cor, paste0(dz, "/GTEX_phenotype_cor.csv"))
+  
+  #visualize reference tissues
+  visualize_top_ref_tissue()
   
   reference_tissue_rank = aggregate(cor ~ body_site_detail..SMTSD., GTEX_phenotype_cor, median)
   reference_tissue_rank = reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
@@ -91,7 +102,7 @@ coldata = data.frame(sample = colnames(counts) , condition= c(rep("tumor", ncol(
 
 counts = round(counts)
 #hmm.. lots of odd counts?
-counts = counts[rowSums(counts) > 0 & rowMax(counts) < 1000000, ]
+counts = counts[rowSums(counts) > 0 & rowMax(counts) < 500000, ]
 
 #detect outliers and normalize counts across multiple studies
 #need to run the code manually and inspect plots carefully
@@ -109,6 +120,13 @@ lcpm <- cpm(x, log=TRUE)
 keep.exprs <- rowSums(cpm>1) >= min(table(coldata$condition))
 x <- x[keep.exprs,, keep.lib.sizes=FALSE]
 dim(x)
+
+pdf(paste0(dz, "/tissue_normal_mds.pdf"))
+  col.group = coldata$condition
+  levels(col.group) <-  brewer.pal(nlevels(col.group), "Set1")
+  col.group <- as.character(col.group)
+  plotMDS(x, labels = NULL,  pch = 21, col = col.group)
+dev.off()
 
 if (DE_method == "edgeR"){
 
