@@ -8,7 +8,7 @@ drug_pred = read.csv(paste0(dz, "/sRGES.csv"))
 #drug_pred = read.csv(paste0("~/Documents/stanford/tumor_cell_line/RGES_manuscript/release/data/LIHC/lincs_cancer_sRGES.csv"))
 
 #create a random set
-random_times = 1000
+random_times = 10
 rgess = matrix(NA, nrow = nrow(drug_pred), ncol = random_times)
 for (i in 1:random_times){
   rgess[, i] = sample(drug_pred$sRGES, nrow(rgess))
@@ -26,3 +26,13 @@ gsea_p = data.frame(target = names(gsea_p), p = gsea_p, padj = p.adjust(gsea_p))
 gsea_p = gsea_p[order(gsea_p$p), ]
 
 write.csv(gsea_p, paste0(dz, "/enriched_", target_type, ".csv"))
+
+
+#visualize the top one
+library(limma)
+top_target = gsea_p$target[1]
+drug_pred$rank = rank(-drug_pred$sRGES)
+target_drugs_score = drug_pred$rank[drug_pred$pert_iname %in% cmpdSets[[top_target]]]
+pdf(paste0(dz, "/top_enriched_top.pdf"))
+  barcodeplot(drug_pred$sRGES, target_drugs_score, main = top_target)
+dev.off()
