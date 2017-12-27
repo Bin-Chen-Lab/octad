@@ -119,10 +119,13 @@ lincs_drug_prediction_pairs$dose_bin <- ifelse(lincs_drug_prediction_pairs$pert_
 diff <- tapply(lincs_drug_prediction_pairs$cmap_diff, paste(lincs_drug_prediction_pairs$dose_bin, lincs_drug_prediction_pairs$pert_time.y), mean)
 
 #ignore weighting cell lines
-#lincs_cell_line_weight <- read.csv("lincs_cell_line_weight.csv")
-#pred <- merge(lincs_drug_prediction, lincs_cell_line_weight, by.x="cell_id", by.y="lincs_cell_id")
-pred <- lincs_drug_prediction
-pred$cor <- 1
+if (weight_cell_line){
+  lincs_cell_line_weight <- read.csv(paste0(dz, "/lincs_cell_lines_cor.csv"))
+  pred <- merge(lincs_drug_prediction, lincs_cell_line_weight, by ="cell_id")
+}else{
+  pred <- lincs_drug_prediction
+  pred$cor <- 1
+}
 pred$RGES <- sapply(1:nrow(pred), function(id){getsRGES(pred$cmap_score[id], pred$cor[id], pred$pert_dose[id], pred$pert_time[id], diff, max(pred$cor))})
 
 cmpd_freq <- table(pred$pert_iname)
