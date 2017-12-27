@@ -1,11 +1,14 @@
 library(curl)
 library(estimate)
+library(ggplot2)
+library("rrcov")
+library("RUVSeq")
 
 id_mapping <-function(id, input_format = "hgnc_symbol", output_format = "ensembl_gene_id"){
   #ensembl_gene_id ensembl_transcript_id hgnc_symbol entrezgene
   library(biomaRt)
   
-  ensembl = useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+  ensembl <- useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
   id_mapped <- getBM(attributes=c(input_format, output_format), filters =
                        input_format, values =id, mart = ensembl)
   return(id_mapped[1,2]) #only return the first hit
@@ -13,7 +16,7 @@ id_mapping <-function(id, input_format = "hgnc_symbol", output_format = "ensembl
 
 id_mapping_gene_ensembl <-function(id){
   #ensembl_gene_id ensembl_transcript_id hgnc_symbol entrezgene
-  mapping = read.csv("raw/gencode.v23.annotation.gene.probeMap.csv", stringsAsFactors = F)
+  mapping <- read.csv("raw/gencode.v23.annotation.gene.probeMap.csv", stringsAsFactors = F)
   return(mapping$ensembl[mapping$gene == id][1])
 }
 
@@ -50,7 +53,7 @@ queryGDC <- function(GENE, PROJECT){
 estimatePurity  <- function(expr_matrix){
   #expr_matrix: with gene symbols as row names and samples as colnames
   #return purity score
-  samples = data.frame(NAME = rownames(expr_matrix), Description = NA,  expr_matrix)
+  samples <- data.frame(NAME = rownames(expr_matrix), Description = NA,  expr_matrix)
   write("", file = "temp_samples.gct")
   write(paste(nrow(samples), "\t", ncol(samples) -2), file = "temp_samples.gct", append = T)
   write("", file = "temp_samples.gct", append = T)
@@ -60,7 +63,7 @@ estimatePurity  <- function(expr_matrix){
   out.file <- "temp_samples_output.gct"
   estimateScore(in.file, out.file)
   
-  estimateScore = read.delim(out.file, sep = "\t", skip = 3)
+  estimateScore <- read.delim(out.file, sep = "\t", skip = 3)
   
   return(as.numeric(estimateScore[3, -c(1,2)]))
 }
@@ -79,7 +82,7 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
   lrt <- glmLRT(fit, coef=2)
   
   top <- topTags(lrt, n=nrow(set))$table
-  n_topGenes = 5000
+  n_topGenes <- 10000 #5000: assume there are 5000 signficant genes?
   empirical <- rownames(set)[which(!(rownames(set) %in% rownames(top)[1:n_topGenes]))]
   
   set2 <- RUVg(set, empirical, k=1)
@@ -92,7 +95,7 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
     plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[as.factor(coldata$condition)])
   dev.off()
   
-  pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
+  pdf(paste0(dz, "/normalized_RNA_Seq_PCA.pdf"))
     plotPCA(set2, col=colors[as.factor(coldata$condition)], cex=1.2)
   dev.off()
   
@@ -101,13 +104,13 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
   
 }
 
-compute_tisse_cell_cor <- function(dz_tissue_samples){
+compute_tissue_cell_cor <- function(dz_tissue_samples){
   load("tissue_cell_line_cor.RData")
-  tumor_cell_cor = tissue_cell_line_cor[, colnames(tissue_cell_line_cor) %in% dz_tissue_samples]
+  tumor_cell_cor <- tissue_cell_line_cor[, colnames(tissue_cell_line_cor) %in% dz_tissue_samples]
   #order based on median cor
-  tumor_cell_cor_merged = apply(tumor_cell_cor, 1, median)
-  top_cell_lines = names(head(sort(tumor_cell_cor_merged, decreasing = T), 15))
-  tumor_cell_cor = tumor_cell_cor[top_cell_lines, ]
+  tumor_cell_cor_merged <- apply(tumor_cell_cor, 1, median)
+  top_cell_lines <- names(head(sort(tumor_cell_cor_merged, decreasing = T), 15))
+  tumor_cell_cor <- tumor_cell_cor[top_cell_lines, ]
   #tumor_cell_cor$tumor_type_name = factor(tumor_cell_cor$tumor_type_name, levels = tumor_cell_cor_merged$tumor_type_name)
   
   pdf(paste0(dz, "/top_cell_lines.pdf"))
@@ -116,23 +119,43 @@ compute_tisse_cell_cor <- function(dz_tissue_samples){
   dev.off()
 }
 
-visualize_top_ref_tissue <- function(){
-  tissue_ref_cor = read.csv(paste0(dz, "/GTEX_phenotype_cor.csv"))
-
-  reference_tissue_rank = aggregate(cor ~ body_site_detail..SMTSD., tissue_ref_cor, median)
-  reference_tissue_rank = reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
+compute_tissue_lincs_cell_cor <- function(dz_tissue_samples){
+  load("tissue_cell_line_cor.RData")
+  ccle_mapping <- read.csv("raw/ccle_lincs_mapping.csv")
   
-  top_refs =  reference_tissue_rank[1:10, 1]
-  
-  tissue_ref_cor = tissue_ref_cor[tissue_ref_cor$body_site_detail..SMTSD. %in% tumor_cell_cor, ]
+  tumor_cell_cor <- tissue_cell_line_cor[rownames(tissue_cell_line_cor) %in% ccle_mapping$CCLE.name, colnames(tissue_cell_line_cor) %in% dz_tissue_samples]
   
   #order based on median cor
-  tissue_ref_cor$ref = factor(tissue_ref_cor$body_site_detail..SMTSD., levels = top_refs)
+  tumor_cell_cor_merged <- apply(tumor_cell_cor, 1, median)
+  top_cell_lines <- names(head(sort(tumor_cell_cor_merged, decreasing = T), length(tumor_cell_cor_merged)))
+  tumor_cell_cor <- tumor_cell_cor[top_cell_lines, ]
+  #tumor_cell_cor$tumor_type_name = factor(tumor_cell_cor$tumor_type_name, levels = tumor_cell_cor_merged$tumor_type_name)
+  
+  write.csv(tumor_cell_cor, paste0(dz, "/lincs_cell_lines_cor.csv"))
+  pdf(paste0(dz, "/lincs_cell_lines_cor.pdf"), width = 30)
+   par(mar=c(12,4.1,4.1,2.1))
+    boxplot(t(tumor_cell_cor), las=2, cex.axis=0.6)
+  dev.off()
+}
+
+
+visualize_top_ref_tissue <- function(){
+  tissue_ref_cor <- read.csv(paste0(dz, "/GTEX_phenotype_cor.csv"))
+
+  reference_tissue_rank <- aggregate(cor ~ body_site_detail..SMTSD., tissue_ref_cor, median)
+  reference_tissue_rank <- reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
+  
+  top_refs <-  reference_tissue_rank[1:10, 1]
+  
+  tissue_ref_cor <- tissue_ref_cor[tissue_ref_cor$body_site_detail..SMTSD. %in% top_refs, ]
+  
+  #order based on median cor
+  tissue_ref_cor$ref <- factor(tissue_ref_cor$body_site_detail..SMTSD., levels = top_refs)
   
   pdf(paste0(dz, "/top_reference_tissues.pdf"))
     p <- ggplot(tissue_ref_cor, aes(ref, cor))
     print(p +   geom_boxplot(outlier.colour = "grey", notch=F, outlier.shape = NA) + geom_jitter() +   
             ylab("correlation") +
             xlab("") +  theme(axis.text.x = element_text(angle = 45, hjust = 1)))
-    dev.off()  
+  dev.off()  
 }
