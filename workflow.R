@@ -1,46 +1,42 @@
  #Open Cancer Therapeutic Discovery workspace
 
 setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
-dz = "liver hepatocellular carcinoma" #diffuse intrinsic pontine glioma  atypical teratoid/rhabdoid tumor
-#setwd("~/Documents/stanford/tumor_cell_line/pipeline/data")
-#setwd("~/Documents/GitHub/OCTAD/")
-dz = "gwas"
-gdc_project_id = "TCGA-LGG" #
-mutation_gene = "IDH1" #
-remove_impure = T
-landmark <- 0 #1 means using landmark genes only. otherwise, use the inferred ones.
+
+#dz name is defined in treehouse phenotype data
+##diffuse intrinsic pontine glioma  atypical teratoid/rhabdoid tumor
+dz = "liver hepatocellular carcinoma" 
 
 #select patient samples based on molecular features
-gdc_project_id = "" #
-mutation_gene = "" #
+gdc_project_id = "" #TCGA-LGG
+mutation_gene = "" #IDH1
 
 #considering remove impure samples
-remove_impure = F
+remove_impure = T
 
 #DE gene method
-DE_method = "limma" #deseq edger
+DE_method = "deseq" #deseq edger limma
+
 #use FDA drugs or all compounds
-choose_fda_drugs <- FALSE
+choose_fda_drugs <- F
 
 #choose the top genes from the disease signature in drug prediction
 max_gene_size <- 50
 landmark <- 1 #1 means using landmark genes only. otherwise, use the inferred ones.
 
 #dz signature fold change and p value
-dz_fc_threshold = 2
-dz_p_threshold = 0.05
+dz_fc_threshold = 1.5
+dz_p_threshold = 0.001
 
 site = NULL #"liver" #if site is null, will infer it later
 
 #parallel computing
-parallel_cores = 0
+parallel_cores = 2
 
 #drug enrichment analysis type
 target_type = "chembl_targets" #sea_targets chembl_targets meshes
-parallel_cores = 8
 
 #run core functions
-source("../code/dz/core_functions.R")
+source("../code/core_functions.R")
 
 #create disease signature
 print(paste("creating disease signature"))
@@ -57,6 +53,9 @@ source("../code/drug/runRGES_dz.R")
 #run enrichment of drug hits
 print(paste("running compound set enrichment analysis"))
 source("../code/drug/drug_enrichment_analysis.R")
+#visualize drugs of interest
+source("../code/drug/visualize_drug_hits.R")
+source("../code/drug/evaluate_drug_hits.R")
 
 #run target predictions
 print(paste("running target predictions"))
