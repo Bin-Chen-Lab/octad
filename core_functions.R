@@ -71,7 +71,7 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
   
   design <- model.matrix(~ condition, data = pData(set))
   y <- DGEList(counts=counts(set), group =  as.factor(coldata$condition))
-  y <- calcNormFactors(y, method="upperquartile")
+  y <- calcNormFactors(y, method="TMM") #upperquartile generate Inf in the LGG case
   y <- estimateGLMCommonDisp(y, design)
   y <- estimateGLMTagwiseDisp(y, design)
   
@@ -89,11 +89,11 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
   colors <- brewer.pal(3, "Set2")
   
   pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
-  plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[as.factor(coldata$condition)])
+    plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[as.factor(coldata$condition)])
   dev.off()
   
   pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
-  plotPCA(set2, col=colors[as.factor(coldata$condition)], cex=1.2)
+    plotPCA(set2, col=colors[as.factor(coldata$condition)], cex=1.2)
   dev.off()
   
   #output
@@ -101,3 +101,38 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
   
 }
 
+compute_tisse_cell_cor <- function(dz_tissue_samples){
+  load("tissue_cell_line_cor.RData")
+  tumor_cell_cor = tissue_cell_line_cor[, colnames(tissue_cell_line_cor) %in% dz_tissue_samples]
+  #order based on median cor
+  tumor_cell_cor_merged = apply(tumor_cell_cor, 1, median)
+  top_cell_lines = names(head(sort(tumor_cell_cor_merged, decreasing = T), 15))
+  tumor_cell_cor = tumor_cell_cor[top_cell_lines, ]
+  #tumor_cell_cor$tumor_type_name = factor(tumor_cell_cor$tumor_type_name, levels = tumor_cell_cor_merged$tumor_type_name)
+  
+  pdf(paste0(dz, "/top_cell_lines.pdf"))
+    par(mar=c(12,4.1,4.1,2.1))
+    boxplot(t(tumor_cell_cor), las=2, cex.axis=0.5)
+  dev.off()
+}
+
+visualize_top_ref_tissue <- function(){
+  tissue_ref_cor = read.csv(paste0(dz, "/GTEX_phenotype_cor.csv"))
+
+  reference_tissue_rank = aggregate(cor ~ body_site_detail..SMTSD., tissue_ref_cor, median)
+  reference_tissue_rank = reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
+  
+  top_refs =  reference_tissue_rank[1:10, 1]
+  
+  tissue_ref_cor = tissue_ref_cor[tissue_ref_cor$body_site_detail..SMTSD. %in% tumor_cell_cor, ]
+  
+  #order based on median cor
+  tissue_ref_cor$ref = factor(tissue_ref_cor$body_site_detail..SMTSD., levels = top_refs)
+  
+  pdf(paste0(dz, "/top_reference_tissues.pdf"))
+    p <- ggplot(tissue_ref_cor, aes(ref, cor))
+    print(p +   geom_boxplot(outlier.colour = "grey", notch=F, outlier.shape = NA) + geom_jitter() +   
+            ylab("correlation") +
+            xlab("") +  theme(axis.text.x = element_text(angle = 45, hjust = 1)))
+    dev.off()  
+}
