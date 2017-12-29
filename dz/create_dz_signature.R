@@ -5,6 +5,7 @@ library(pheatmap)
 library(BiocParallel)
 library(RColorBrewer)
 library(gplots)
+library(Glimma)
 
 if (parallel_cores > 1 ){
   register(MulticoreParam(parallel_cores))
@@ -35,7 +36,24 @@ if (mutation_gene != "" & gdc_project_id != ""){
 }
 
 
-if (ncol(dz_tissue) == 0) { stop() }
+if (ncol(dz_tissue) < 4) { stop("few disease tissue samples") }
+
+
+#outlier detection;
+pdf(paste0(dz, "/tissue_mds.pdf"))
+  x <-DGEList(counts = round(2^dz_tissue - 1) )
+  x <- calcNormFactors(x, method = "TMM")
+  lcpm <- cpm(x, log=TRUE)
+  pca <- prcomp(t(lcpm))
+  plot(pca$x, pch = 20)
+dev.off()
+
+if (remove_outlier == T){
+  #refer to https://www.biostars.org/p/281767/
+  pc1_z_score = as.numeric(scale(pca$x[,1]))
+  outliers = rownames(pca$x)[abs(pc1_z_score) > 3] #
+  dz_tissue = dz_tissue[, !colnames(dz_tissue) %in% outliers]
+}
 
 #estimate purity
 #may need to use TPM instead of count
@@ -47,7 +65,7 @@ if (remove_impure == T){
     hist(purity, xlab = "purity")
   dev.off()  
   
-  dz_tissue <-dz_tissue[, purity > 0.7 & !is.na(purity)]
+  dz_tissue <-dz_tissue[, purity > purity_cutoff & !is.na(purity)]
 }
 
 #choose top correlated cell lines
@@ -80,12 +98,17 @@ if (length(site) == 0) {
   site <-reference_tissue_rank$body_site_detail..SMTSD.[1]
 }
 
-ref_samples <-GTEX_phenotype$Sample[tolower(GTEX_phenotype$body_site_detail..SMTSD.) %in% tolower(site)]
-ref_tissue <-dz_expr[, colnames(dz_expr) %in%  ref_samples ] 
+#some normal tissue samples from the best site are not correlated. E.g., in colon ad , Colon - Transverse is the best site, but clearly it has two subgroups
+ref_samples <-intersect(GTEX_phenotype$Sample[tolower(GTEX_phenotype$body_site_detail..SMTSD.) %in% tolower(site)],
+                        GTEX_phenotype_cor$Sample[GTEX_phenotype_cor$cor > ref_tissue_cor_cutoff])
+
+if (length(ref_samples) < 4) { stop("few reference tissue samples ") }
+
+ref_tissue <- dz_expr[, colnames(dz_expr) %in%  ref_samples ] 
 
 #log2(norm_count+1)
-dz_tissue <-2^dz_tissue - 1
-ref_tissue <-2^ref_tissue -1
+dz_tissue <- 2^dz_tissue - 1
+ref_tissue <- 2^ref_tissue -1
 
 #for test(only choose at most 30 samples); it takes time to run DESeq.
 #dz_tissue = dz_tissue[, 1:min(30, ncol(dz_tissue))]
@@ -133,6 +156,10 @@ pdf(paste0(dz, "/tissue_normal_mds.pdf"))
   col.group <- as.character(col.group)
   plotMDS(x, labels = NULL,  pch = 20, col = col.group)
 dev.off()
+
+#interactive plot
+#glMDSPlot(x, labels = colnames(x), groups=x$samples, col = col.group, launch=TRUE)
+
 
 if (DE_method == "edgeR"){
 
