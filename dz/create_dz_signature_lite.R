@@ -6,7 +6,7 @@ library(pheatmap)
 library(BiocParallel)
 library(RColorBrewer)
 library(gplots)
-library(Glimma)
+#library(Glimma)
 
 if (parallel_cores > 1 ){
   register(MulticoreParam(parallel_cores))
