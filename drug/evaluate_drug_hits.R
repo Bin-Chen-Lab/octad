@@ -3,12 +3,12 @@
 library("ROCR")
 library("GSVA")
 library("colorRamps")
-hcc_drugs <- read.csv("raw/validation//hcc_drugs.csv", stringsAsFactors = F)
+dz_drugs <- read.csv(paste0("raw/validation/", dz, "_drugs.csv"), stringsAsFactors = F)
 
 database <- "lincs"
 sRGES = read.csv(paste0(dz, "/sRGES.csv"))
 sRGES$drug <- 0
-sRGES$drug[tolower(sRGES$pert_iname) %in% tolower(hcc_drugs$drug)] = 1
+sRGES$drug[tolower(sRGES$pert_iname) %in% tolower(dz_drugs$Var1)] = 1
 
 pred.roc=prediction(sRGES$sRGES,sRGES$drug)
 performance(pred.roc,"auc")
@@ -16,9 +16,9 @@ performance(pred.roc,"auc")
 sRGES <- sRGES[order(sRGES$sRGES), ]
 sRGES[sRGES$drug == 1, ]
 
-geneSets <- list(hcc = sRGES[sRGES$drug == 1, "pert_iname"])
+geneSets <- list(dz = sRGES[sRGES$drug == 1, "pert_iname"])
 
-times <- 100
+times <- 1000
 ranks <- matrix(NA, nrow = nrow(sRGES), ncol = times)
 ranks[,1] <- rank(sRGES$sRGES)
 rownames(ranks) <- sRGES$pert_iname
@@ -29,7 +29,9 @@ for (i in 2:times){
 
 gsea_results <- gsva(ranks, geneSets, method = "ssgsea")
 
-sum(gsea_results[1, -1] < gsea_results[1,1])/length(gsea_results[1, -1])
+print(paste("enriched p value", sum(gsea_results[1, -1] < gsea_results[1,1])/length(gsea_results[1, -1])))
+
+enriched_p = sum(gsea_results[1, -1] < gsea_results[1,1])/length(gsea_results[1, -1])
 
 par(mar=c(12, 1, 1, 1))
 
@@ -50,6 +52,6 @@ pdf( paste0(dz, "/enrichment_", database, "_drugs.pdf", sep=""))
   for (drug_pos in drugs_pos){
     abline(v = drug_pos)
   }
-  #text(-50, 1, "aa")
+  text(0.1, 0.1, "aaaaaa")
 dev.off()
 

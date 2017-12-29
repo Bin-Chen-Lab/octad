@@ -1,6 +1,8 @@
 #visualize reversal
 library(pheatmap)
 library("gplots")
+library("ggplot2")
+library("RColorBrewer")
 
 #CMAP score output
 output_path <- paste(dz, "/all_lincs_score.csv", sep="")

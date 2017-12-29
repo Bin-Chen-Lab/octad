@@ -114,8 +114,8 @@ compute_tissue_cell_cor <- function(dz_tissue_samples){
   #tumor_cell_cor$tumor_type_name = factor(tumor_cell_cor$tumor_type_name, levels = tumor_cell_cor_merged$tumor_type_name)
   
   pdf(paste0(dz, "/top_cell_lines.pdf"))
-    par(mar=c(12,4.1,4.1,2.1))
-    boxplot(t(tumor_cell_cor), las=2, cex.axis=0.5)
+    par(mar=c(15,4.1,1.1,2.1))
+    boxplot(t(tumor_cell_cor), las=2, cex.axis=1)
   dev.off()
 }
 
@@ -127,11 +127,16 @@ compute_tissue_lincs_cell_cor <- function(dz_tissue_samples){
   
   #order based on median cor
   tumor_cell_cor_merged <- apply(tumor_cell_cor, 1, median)
-  top_cell_lines <- names(head(sort(tumor_cell_cor_merged, decreasing = T), length(tumor_cell_cor_merged)))
+  tumor_cell_cor_merged <- merge(data.frame(tumor_cell_cor_merged), ccle_mapping[, c("ccle_cell_line_name", "CCLE.name")], by.x = 0, by.y = "CCLE.name")
+  names(tumor_cell_cor_merged) = c("CCLE_name", "cor", "cell_id")
+  write.csv(tumor_cell_cor_merged, paste0(dz, "/lincs_cell_lines_cor.csv"))
+  
+  tumor_cell_cor_merged <- tumor_cell_cor_merged[order(tumor_cell_cor_merged$cor, decreasing = T),]
+  top_cell_lines <- tumor_cell_cor_merged$CCLE_name
   tumor_cell_cor <- tumor_cell_cor[top_cell_lines, ]
   #tumor_cell_cor$tumor_type_name = factor(tumor_cell_cor$tumor_type_name, levels = tumor_cell_cor_merged$tumor_type_name)
   
-  write.csv(tumor_cell_cor, paste0(dz, "/lincs_cell_lines_cor.csv"))
+
   pdf(paste0(dz, "/lincs_cell_lines_cor.pdf"), width = 30)
    par(mar=c(12,4.1,4.1,2.1))
     boxplot(t(tumor_cell_cor), las=2, cex.axis=0.6)
@@ -152,10 +157,14 @@ visualize_top_ref_tissue <- function(){
   #order based on median cor
   tissue_ref_cor$ref <- factor(tissue_ref_cor$body_site_detail..SMTSD., levels = top_refs)
   
+  #margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")
   pdf(paste0(dz, "/top_reference_tissues.pdf"))
+    par(mar=c(12,4.1,4.1,2.1))
     p <- ggplot(tissue_ref_cor, aes(ref, cor))
-    print(p +   geom_boxplot(outlier.colour = "grey", notch=F, outlier.shape = NA) + geom_jitter() +   
+    print(p +   geom_boxplot(outlier.colour = "grey", notch=F, outlier.shape = NA) + geom_jitter() + theme_bw() + 
             ylab("correlation") +
-            xlab("") +  theme(axis.text.x = element_text(angle = 45, hjust = 1)))
+            xlab("") +  theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 12),
+                              axis.text.y = element_text(size = 15), axis.title = element_text(size = 20), plot.margin = margin(l=35))
+    ) 
   dev.off()  
 }

@@ -1,5 +1,6 @@
 #given a cancer, find its tumor samples, search its normal samples, compute its signature, perform enrichment analysis of its signatures
 library(DESeq2)
+library(edgeR)
 #library(tximport)
 library(pheatmap)
 library(BiocParallel)
@@ -40,18 +41,23 @@ if (ncol(dz_tissue) < 4) { stop("few disease tissue samples") }
 
 
 #outlier detection;
-pdf(paste0(dz, "/tissue_mds.pdf"))
+if (remove_outlier == T){
   x <-DGEList(counts = round(2^dz_tissue - 1) )
   x <- calcNormFactors(x, method = "TMM")
   lcpm <- cpm(x, log=TRUE)
   pca <- prcomp(t(lcpm))
-  plot(pca$x, pch = 20)
-dev.off()
-
-if (remove_outlier == T){
-  #refer to https://www.biostars.org/p/281767/
+  #plot(pca$x, pch = 20)
   pc1_z_score = as.numeric(scale(pca$x[,1]))
+  pc2_z_score = as.numeric(scale(pca$x[,2]))
+  
   outliers = rownames(pca$x)[abs(pc1_z_score) > 3] #
+  col.group = rep("black", length(pc1_z_score))
+  col.group[rownames(pca$x) %in% outliers] = "red"
+  pdf(paste0(dz, "/tissue_mds.pdf"))
+    plot(pc1_z_score, pc2_z_score, xlab = "PC1", ylab = "PC2", col = col.group, pch = 20, cex.lab = 1.5, cex.axis = 1.5)
+  dev.off()
+
+  #refer to https://www.biostars.org/p/281767/
   dz_tissue = dz_tissue[, !colnames(dz_tissue) %in% outliers]
 }
 
@@ -62,7 +68,8 @@ if (remove_impure == T){
   purity <-sample_purity[colnames(dz_tissue),]
   write.csv(purity, paste0(dz, "/dz_sample_purity.csv"))
   pdf(paste0(dz, "/tumor_purity.pdf"))
-    hist(purity, xlab = "purity")
+    hist(purity, xlab = "purity", cex.lab = 1.5, cex.axis = 1.5, col = "black", main = "")
+    abline(v = purity_cutoff, col = "red")
   dev.off()  
   
   dz_tissue <-dz_tissue[, purity > purity_cutoff & !is.na(purity)]
@@ -135,7 +142,9 @@ counts <-round(counts)
 #need to run the code manually and inspect plots carefully
 #need to choose outliers manually
 #source("../code/dz/rna_seq_normalization.R") replaced by the function ruvseqEmpNorm
-counts <-ruvseqEmpNorm(counts, coldata)
+if (normalize_samples == T){
+  counts <-ruvseqEmpNorm(counts, coldata)
+}
 
 save(counts, file = paste0(dz, "/counts.RData"))
 
@@ -151,10 +160,14 @@ x <- x[keep.exprs,, keep.lib.sizes=FALSE]
 dim(x)
 
 pdf(paste0(dz, "/tissue_normal_mds.pdf"))
-  col.group <-coldata$condition
-  levels(col.group) <-  brewer.pal(nlevels(col.group), "Set1")
-  col.group <- as.character(col.group)
-  plotMDS(x, labels = NULL,  pch = 20, col = col.group)
+  #col.group <-coldata$condition
+  #levels(col.group) <-  brewer.pal(nlevels(col.group), "Set1")
+  #col.group <- as.character(col.group)
+  
+  col.sample <- c("purple","orange")[coldata$condition]
+  
+  plotMDS(x, labels = NULL,  pch = 20, col = col.sample)
+  legend("topleft",fill=c("purple","orange"),legend=levels(coldata$condition))
 dev.off()
 
 #interactive plot

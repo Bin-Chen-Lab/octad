@@ -19,8 +19,11 @@ remove_outlier = T
 remove_impure = T
 purity_cutoff = 0.7
 
+#normalize disease and normal samples from different studies using RUVSeq
+normalize_samples = T
+
 #DE gene method
-DE_method = "edgeR" #deseq edger limma
+DE_method = "limma" #deseq edgeR limma
 
 #dz signature fold change and p value
 dz_fc_threshold = 1.5
@@ -39,7 +42,7 @@ weight_cell_line <- F
 parallel_cores = 2
 
 #drug enrichment analysis type
-target_type = "chembl_targets" #sea_targets chembl_targets meshes
+target_type = "meshes" #sea_targets chembl_targets meshes
 
 #run core functions
 source("../code/core_functions.R")
@@ -58,10 +61,10 @@ source("../code/drug/runRGES_dz.R")
 
 #run enrichment of drug hits
 print(paste("running compound set enrichment analysis"))
-#source("../code/drug/drug_enrichment_analysis.R")
+source("../code/drug/drug_enrichment_analysis.R")
 #visualize drugs of interest
-#source("../code/drug/visualize_drug_hits.R")
-#source("../code/drug/evaluate_drug_hits.R")
+source("../code/drug/visualize_drug_hits.R")
+source("../code/drug/evaluate_drug_hits.R")
 
 #run target predictions
 print(paste("running target predictions"))
