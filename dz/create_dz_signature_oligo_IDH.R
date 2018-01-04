@@ -12,9 +12,12 @@ if (parallel_cores > 1 ){
   register(MulticoreParam(parallel_cores))
 }
 
-dz_phenotype = read.csv("raw/treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv", sep = "\t", stringsAsFactors = F)
-load("raw/treehouse/dz_expr.RData")
-GTEX_phenotype =read.csv("raw/treehouse/GTEX_phenotype", sep="\t", stringsAsFactors = F)
+dz_phenotype <-read.csv(paste0(dataFolder,
+                               "treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv"), 
+                        sep = "\t", 
+                        stringsAsFactors = F)
+load(paste0(dataFolder,"treehouse/dz_expr.RData"))
+GTEX_phenotype =read.csv(paste0(dataFolder,"treehouse/GTEX_phenotype"), sep="\t", stringsAsFactors = F)
 cancers = data.frame(table(dz_phenotype$disease))
 
 if (!file.exists(dz)){dir.create(dz)}
@@ -24,6 +27,8 @@ IDH200 = read.csv("~/Downloads/LGG_IDH200.tsv", sep="\t", stringsAsFactors = F)
 IDH300 = read.csv("~/Downloads/LGG_IDH300.tsv", sep="\t", stringsAsFactors = F)
 IDH400 = read.csv("~/Downloads/LGG_IDH400.tsv", sep="\t", stringsAsFactors = F)
 IDH1 = rbind(IDH100, IDH200, IDH300, IDH400)
+rm(IDH100,IDH200,IDH300,IDH400)
+#IDH1_caseID <- IDH1$Case.ID
 
 dz_expr_patient_reformat = sapply(colnames(dz_expr), function(x){
   paste(unlist(strsplit(x, "\\.")), collapse = "-")

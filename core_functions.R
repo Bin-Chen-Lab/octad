@@ -16,15 +16,20 @@ id_mapping <-function(id, input_format = "hgnc_symbol", output_format = "ensembl
 
 id_mapping_gene_ensembl <-function(id){
   #ensembl_gene_id ensembl_transcript_id hgnc_symbol entrezgene
-  mapping <- read.csv("raw/gencode.v23.annotation.gene.probeMap.csv", stringsAsFactors = F)
+  #mapping <- read.csv("~/Documents/GitHub/OCTAD/raw/gencode.v23.annotation.gene.probeMap.csv", stringsAsFactors = F)
+  mapping <- read.csv(paste0(dataFolder,'raw/gencode.v23.annotation.gene.probeMap.csv'),stringsAsFactors = F)
   return(mapping$ensembl[mapping$gene == id][1])
 }
 
+####GDC API Function####
+#Queries GDC website returns the 0 , 1 for genes matching mutation gene or projects
 queryGDC <- function(GENE, PROJECT){
-#### GENE in ENSG format (e.g. ENSG00000138413)
-#### PROJECT from TCGA (e.g. TCGA-LGG)
+
   
-  ## retrieve all IDs with mutated GENE 
+  ## examples
+  #GENE = id_mapping_gene_ensembl('IDH2')
+  #PROJECT = 'TCGA-LGG'
+  
   all_gene<-curl_fetch_memory(paste0("https://api.gdc.cancer.gov/analysis/top_mutated_cases_by_gene?fields=submitter_id&pretty=true&filters=%7B%22op%22%3A%22and%22%2C%22content%22%3A%5B%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22genes.gene_id%22%2C%22value%22%3A%5B%22", GENE, "%22%5D%7D%7D%5D%7D&format=tsv&size=100000"))
   all_gene.df=read.table(text = rawToChar(all_gene$content), sep = '\t', header = TRUE)    
   all_gene.df$submitter_id=as.character(all_gene.df$submitter_id)
@@ -39,6 +44,7 @@ queryGDC <- function(GENE, PROJECT){
   colnames(combined)[1]="submitter_id"
   
   # add in gene info
+  # is 1 
   combined$gene=0
   combined[which(combined$submitter_id %in% all_gene.df$submitter_id),"gene"]=1
   
@@ -91,11 +97,11 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
   #plotPCA(set2, col=colors[set2$condition], cex=0.5)
   colors <- brewer.pal(3, "Set2")
   
-  pdf(paste0(dz, "/normalized_RNA_Seq_RLE.pdf"))
+  pdf(paste0(outputFolder, "/normalized_RNA_Seq_RLE.pdf"))
     plotRLE(set2, outline=FALSE, ylim=c(-4, 4), col=colors[as.factor(coldata$condition)])
   dev.off()
   
-  pdf(paste0(dz, "/normalized_RNA_Seq_PCA.pdf"))
+  pdf(paste0(outputFolder, "/normalized_RNA_Seq_PCA.pdf"))
     plotPCA(set2, col=colors[as.factor(coldata$condition)], cex=1.2)
   dev.off()
   
@@ -105,7 +111,7 @@ ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
 }
 
 compute_tissue_cell_cor <- function(dz_tissue_samples){
-  load("tissue_cell_line_cor.RData")
+  load(paste0(dataFolder,"tissue_cell_line_cor.RData"))
   tumor_cell_cor <- tissue_cell_line_cor[, colnames(tissue_cell_line_cor) %in% dz_tissue_samples]
   #order based on median cor
   tumor_cell_cor_merged <- apply(tumor_cell_cor, 1, median)
@@ -113,15 +119,15 @@ compute_tissue_cell_cor <- function(dz_tissue_samples){
   tumor_cell_cor <- tumor_cell_cor[top_cell_lines, ]
   #tumor_cell_cor$tumor_type_name = factor(tumor_cell_cor$tumor_type_name, levels = tumor_cell_cor_merged$tumor_type_name)
   
-  pdf(paste0(dz, "/top_cell_lines.pdf"))
+  pdf(paste0(outputFolder, "/top_cell_lines.pdf"))
     par(mar=c(15,4.1,1.1,2.1))
     boxplot(t(tumor_cell_cor), las=2, cex.axis=1)
   dev.off()
 }
 
 compute_tissue_lincs_cell_cor <- function(dz_tissue_samples){
-  load("tissue_cell_line_cor.RData")
-  ccle_mapping <- read.csv("raw/ccle_lincs_mapping.csv")
+  load(paste0(dataFolder,"tissue_cell_line_cor.RData"))
+  ccle_mapping <- read.csv(paste0(dataFolder,"raw/ccle_lincs_mapping.csv"))
   
   tumor_cell_cor <- tissue_cell_line_cor[rownames(tissue_cell_line_cor) %in% ccle_mapping$CCLE.name, colnames(tissue_cell_line_cor) %in% dz_tissue_samples]
   
@@ -129,7 +135,7 @@ compute_tissue_lincs_cell_cor <- function(dz_tissue_samples){
   tumor_cell_cor_merged <- apply(tumor_cell_cor, 1, median)
   tumor_cell_cor_merged <- merge(data.frame(tumor_cell_cor_merged), ccle_mapping[, c("ccle_cell_line_name", "CCLE.name")], by.x = 0, by.y = "CCLE.name")
   names(tumor_cell_cor_merged) = c("CCLE_name", "cor", "cell_id")
-  write.csv(tumor_cell_cor_merged, paste0(dz, "/lincs_cell_lines_cor.csv"))
+  write.csv(tumor_cell_cor_merged, paste0(outputFolder, "/lincs_cell_lines_cor.csv"))
   
   tumor_cell_cor_merged <- tumor_cell_cor_merged[order(tumor_cell_cor_merged$cor, decreasing = T),]
   top_cell_lines <- tumor_cell_cor_merged$CCLE_name
@@ -137,7 +143,7 @@ compute_tissue_lincs_cell_cor <- function(dz_tissue_samples){
   #tumor_cell_cor$tumor_type_name = factor(tumor_cell_cor$tumor_type_name, levels = tumor_cell_cor_merged$tumor_type_name)
   
 
-  pdf(paste0(dz, "/lincs_cell_lines_cor.pdf"), width = 30)
+  pdf(paste0(outputFolder, "/lincs_cell_lines_cor.pdf"), width = 30)
    par(mar=c(12,4.1,4.1,2.1))
     boxplot(t(tumor_cell_cor), las=2, cex.axis=0.6)
   dev.off()
@@ -145,7 +151,7 @@ compute_tissue_lincs_cell_cor <- function(dz_tissue_samples){
 
 
 visualize_top_ref_tissue <- function(){
-  tissue_ref_cor <- read.csv(paste0(dz, "/GTEX_phenotype_cor.csv"))
+  tissue_ref_cor <- read.csv(paste0(outputFolder, "/GTEX_phenotype_cor.csv"))
 
   reference_tissue_rank <- aggregate(cor ~ body_site_detail..SMTSD., tissue_ref_cor, median)
   reference_tissue_rank <- reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
@@ -158,7 +164,7 @@ visualize_top_ref_tissue <- function(){
   tissue_ref_cor$ref <- factor(tissue_ref_cor$body_site_detail..SMTSD., levels = top_refs)
   
   #margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")
-  pdf(paste0(dz, "/top_reference_tissues.pdf"))
+  pdf(paste0(outputFolder, "/top_reference_tissues.pdf"))
     par(mar=c(12,4.1,4.1,2.1))
     p <- ggplot(tissue_ref_cor, aes(ref, cor))
     print(p +   geom_boxplot(outlier.colour = "grey", notch=F, outlier.shape = NA) + geom_jitter() + theme_bw() + 

@@ -1,3 +1,6 @@
+####TODO####
+#move API code to core functions
+
 db.list <- c( "KEGG_2016",  "GO_Biological_Process_2017", "GO_Cellular_Component_2017") #"WikiPathways_2016" "Biocarta_2016", "ChEA_2016",
 
 
@@ -98,25 +101,21 @@ mungeResponseContent <- function(response.content) {
 
 
 ###example
-dz_signature =  read.csv(paste0(dz, "/dz_sig_genes", ".csv"))
+#dz_signature =  read.csv(paste0(dz, "/dz_sig_genes", ".csv"))
+dz_signature = read.csv(paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv"))
 
 up.genes = dz_signature$Symbol[dz_signature$log2FoldChange > 0]
-if (length(up.genes)>5){
 databases = db.list
 fdr.cutoff = 0.25
 up.gene.res = enrichGeneList(up.genes[1:min(300, length(up.genes))], databases, fdr.cutoff)
 up.gene.res = up.gene.res[order(up.gene.res$database, up.gene.res$p), ]
 
-write.csv(up.gene.res, paste0(dz, "/dz_up_sig_genes_enriched", ".csv"))
-}
+write.csv(up.gene.res, paste0(outputFolder, "/dz_up_sig_genes_enriched", ".csv"))
 
-if (length(down.genes)>5){
 down.genes = dz_signature$Symbol[dz_signature$log2FoldChange < 0]
 databases = db.list
 fdr.cutoff = 0.25
 down.gene.res = enrichGeneList(down.genes[1:min(300, length(down.genes))], databases, fdr.cutoff)
 down.gene.res = down.gene.res[order(down.gene.res$database, down.gene.res$p), ]
 
-write.csv(down.gene.res, paste0(dz, "/dz_down_sig_genes_enriched", ".csv"))
-}
-
+write.csv(down.gene.res, paste0(outputFolder, "/dz_down_sig_genes_enriched", ".csv"))

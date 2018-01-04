@@ -2,28 +2,29 @@
 #make sure change the workspace and code directory
 
 
-code_dir <- "../code/drug/"
+#code_dir <- "../code/drug/"
 
 library("plyr")
 library("ggplot2")
 
-fda_drugs = read.csv("raw/repurposing_drugs_20170327.txt", comment.char = "!", header=T, sep="\t")
+fda_drugs = read.csv(paste0(dataFolder,"raw/repurposing_drugs_20170327.txt"), comment.char = "!", header=T, sep="\t")
+
 
 #load LINCS drug gene expression profiles
 if (landmark == 1){
-  load("raw/lincs_signatures_cmpd_landmark.RData")
+  load(paste0(dataFolder,"raw/lincs_signatures_cmpd_landmark.RData"))
 }else{
-  load("raw/lincs_signatures_cmpd_landmark_GSE92742.RData")
+  load(paste0(dataFolder,"raw/lincs_signatures_cmpd_landmark_GSE92742.RData"))
 }
-#
-source(paste(code_dir, "core_functions.R",sep=""))
 
-output_path <- paste(dz, "/all_lincs_score.csv", sep="")
-sRGES_output_path <- paste(dz, "/sRGES.csv", sep="")
-sRGES_output_path_drug <- paste(dz, "/sRGES_drug.csv", sep="")
-dz_sig_output_path <- paste(dz, "/dz_sig_used.csv", sep="")
+source("drug/core_functions.R")
 
-lincs_sig_info <- read.csv("raw/lincs_sig_info.csv")
+output_path <- paste0(outputFolder, "/all_lincs_score.csv")
+sRGES_output_path <- paste0(outputFolder, "/sRGES.csv")
+sRGES_output_path_drug <- paste0(outputFolder, "/sRGES_drug.csv")
+dz_sig_output_path <- paste0(outputFolder, "/dz_sig_used.csv")
+
+lincs_sig_info <- read.csv(paste0(dataFolder,"raw/lincs_sig_info.csv"))
 if (choose_fda_drugs){
   lincs_sig_info <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(pert_iname) %in% tolower(fda_drugs$pert_iname))
 }else{
@@ -41,7 +42,7 @@ gene.list <- rownames(lincs_signatures)
 
 ##############
 #read disease signatures
-dz_signature <- read.csv(paste0(dz, "/dz_sig_genes", ".csv") )
+dz_signature <- read.csv(paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv"))
 #dz_signature <- read.csv("~/Documents/stanford/breast/release_cmyc/data/myc/drug/dz_signature_lincs.txt", sep = "\t" )
 
 dz_signature <- dz_signature[dz_signature$GeneID %in% gene.list & abs(dz_signature$value) > dz_fc_threshold & dz_signature$padj < dz_p_threshold, ]
@@ -63,6 +64,7 @@ write.csv(rbind(dz_genes_up, dz_genes_down),  dz_sig_output_path)
 
 dz_cmap_scores <- NULL
 count <- 0
+  ####no such thing as cmap_score_new
 for (exp_id in sig.ids) {
   count <- count + 1
  # print(count)
@@ -120,7 +122,7 @@ diff <- tapply(lincs_drug_prediction_pairs$cmap_diff, paste(lincs_drug_predictio
 
 #ignore weighting cell lines
 if (weight_cell_line){
-  lincs_cell_line_weight <- read.csv(paste0(dz, "/lincs_cell_lines_cor.csv"))
+  lincs_cell_line_weight <- read.csv(paste0(outputFolder, "/lincs_cell_lines_cor.csv"))
   pred <- merge(lincs_drug_prediction, lincs_cell_line_weight, by ="cell_id")
 }else{
   pred <- lincs_drug_prediction

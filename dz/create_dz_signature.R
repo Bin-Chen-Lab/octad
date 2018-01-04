@@ -6,18 +6,19 @@ library(pheatmap)
 library(BiocParallel)
 library(RColorBrewer)
 library(gplots)
-library(Glimma)
+#library(Glimma)
+
 
 if (parallel_cores > 1 ){
   register(MulticoreParam(parallel_cores))
 }
 
-if (!file.exists(dz)){dir.create(dz)}
-
 #load counts and clinical features
-dz_phenotype <-read.csv("raw/treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv", sep = "\t", stringsAsFactors = F)
-load("raw/treehouse/dz_expr.RData")
-GTEX_phenotype =read.csv("raw/treehouse/GTEX_phenotype", sep="\t", stringsAsFactors = F)
+dz_phenotype <-read.csv(paste0(dataFolder,"raw/treehouse/treehouse_public_samples_clinical_metadata.2017-09-11.tsv"), 
+                        sep = "\t", 
+                        stringsAsFactors = F)
+load(paste0(dataFolder,"raw/treehouse/dz_expr.RData"))
+GTEX_phenotype =read.csv(paste0(dataFolder,"raw/treehouse/GTEX_phenotype"), sep="\t", stringsAsFactors = F)
 cancers <-data.frame(table(dz_phenotype$disease))
 
 #dz_expr_patient_reformat = sapply(colnames(dz_expr), function(x){
@@ -31,17 +32,18 @@ dz_tissue <-dz_expr[, colnames(dz_expr) %in%  dz_samples ]
 
 #find subtype patient samples
 if (mutation_gene != "" & gdc_project_id != ""){
+  print("querying GDC for gene mutation samples")
   all_patients <-queryGDC(id_mapping_gene_ensembl(mutation_gene), gdc_project_id)
   dz_tissue_patient_id <-sapply(colnames(dz_tissue), function(x) paste(unlist(strsplit(x, "-"))[1:3], collapse="-"))
   dz_tissue <-dz_tissue[, dz_tissue_patient_id %in% all_patients[all_patients$gene == 1, 1]]
 }
-
 
 if (ncol(dz_tissue) < 4) { stop("few disease tissue samples") }
 
 
 #outlier detection;
 if (remove_outlier == T){
+  print("removing outlier dz tissue samples")
   x <-DGEList(counts = round(2^dz_tissue - 1) )
   x <- calcNormFactors(x, method = "TMM")
   lcpm <- cpm(x, log=TRUE)
@@ -53,7 +55,7 @@ if (remove_outlier == T){
   outliers = rownames(pca$x)[abs(pc1_z_score) > 3] #
   col.group = rep("black", length(pc1_z_score))
   col.group[rownames(pca$x) %in% outliers] = "red"
-  pdf(paste0(dz, "/tissue_mds.pdf"))
+  pdf(paste0(outputFolder, "/tissue_mds.pdf"))
     plot(pc1_z_score, pc2_z_score, xlab = "PC1", ylab = "PC2", col = col.group, pch = 20, cex.lab = 1.5, cex.axis = 1.5)
   dev.off()
 
@@ -63,11 +65,13 @@ if (remove_outlier == T){
 
 #estimate purity
 #may need to use TPM instead of count
+
 if (remove_impure == T){
-  sample_purity <-read.csv("treehouse_sample_purity.csv", row.names = 1)
+  print("removing low purity tissue samples")
+  sample_purity <-read.csv(paste0(dataFolder,"treehouse_sample_purity.csv"), row.names = 1)
   purity <-sample_purity[colnames(dz_tissue),]
-  write.csv(purity, paste0(dz, "/dz_sample_purity.csv"))
-  pdf(paste0(dz, "/tumor_purity.pdf"))
+  write.csv(purity, paste0(outputFolder, "/dz_sample_purity.csv"))
+  pdf(paste0(outputFolder, "/tumor_purity.pdf"))
     hist(purity, xlab = "purity", cex.lab = 1.5, cex.axis = 1.5, col = "black", main = "")
     abline(v = purity_cutoff, col = "red")
   dev.off()  
@@ -75,12 +79,15 @@ if (remove_impure == T){
   dz_tissue <-dz_tissue[, purity > purity_cutoff & !is.na(purity)]
 }
 
+
+
 #choose top correlated cell lines
 compute_tissue_cell_cor(colnames(dz_tissue))
 compute_tissue_lincs_cell_cor(colnames(dz_tissue))
 
 #find normal sample expression
 if (length(site) == 0) {
+  print('determining best ref sample tissue site')
   #find all gtex samples
   normal_tissue <-dz_expr[, colnames(dz_expr) %in%  GTEX_phenotype$Sample ] 
   #select varying genes
@@ -93,7 +100,7 @@ if (length(site) == 0) {
   
   GTEX_phenotype_cor <-merge(GTEX_phenotype, data.frame(Sample = names(normal_dz_cor_each), cor = as.numeric(normal_dz_cor_each)), by = "Sample")
 
-  write.csv(GTEX_phenotype_cor, paste0(dz, "/GTEX_phenotype_cor.csv"))
+  write.csv(GTEX_phenotype_cor, paste0(outputFolder, "/GTEX_phenotype_cor.csv"))
   
   #visualize reference tissues
   visualize_top_ref_tissue()
@@ -101,7 +108,7 @@ if (length(site) == 0) {
   reference_tissue_rank <-aggregate(cor ~ body_site_detail..SMTSD., GTEX_phenotype_cor, median)
   reference_tissue_rank <-reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
   
-  write.csv(reference_tissue_rank, paste0(dz, "/reference_tissue_rank.csv"))
+  write.csv(reference_tissue_rank, paste0(outputFolder, "/reference_tissue_rank.csv"))
   site <-reference_tissue_rank$body_site_detail..SMTSD.[1]
 }
 
@@ -143,13 +150,16 @@ counts <-round(counts)
 #need to choose outliers manually
 #source("../code/dz/rna_seq_normalization.R") replaced by the function ruvseqEmpNorm
 if (normalize_samples == T){
+  print('normalizing tissue samples')
   counts <-ruvseqEmpNorm(counts, coldata)
 }
 
-save(counts, file = paste0(dz, "/counts.RData"))
+save(counts, file = paste0(outputFolder, "/counts.RData"))
 
 x <-DGEList(counts = counts, group = coldata$condition )
 x <- calcNormFactors(x, method = "TMM")
+
+#ran code up to here
 
 cpm <- cpm(x)
 lcpm <- cpm(x, log=TRUE)
@@ -159,7 +169,7 @@ keep.exprs <- rowSums(cpm>1) >= min(table(coldata$condition))
 x <- x[keep.exprs,, keep.lib.sizes=FALSE]
 dim(x)
 
-pdf(paste0(dz, "/tissue_normal_mds.pdf"))
+pdf(paste0(outputFolder, "/tissue_normal_mds.pdf"))
   #col.group <-coldata$condition
   #levels(col.group) <-  brewer.pal(nlevels(col.group), "Set1")
   #col.group <- as.character(col.group)
@@ -174,8 +184,10 @@ dev.off()
 #glMDSPlot(x, labels = colnames(x), groups=x$samples, col = col.group, launch=TRUE)
 
 
-if (DE_method == "edgeR"){
+####DE Method Functions, edgeR, limma, deseq####
 
+if (DE_method == "edgeR"){
+  print('computing DE via edgeR')
   dgList <- x
   sampleType <-coldata$condition
   
@@ -202,7 +214,8 @@ if (DE_method == "edgeR"){
   #abline(h=c(-1,1),col=2)
   
 }else if (DE_method == "limma"){
-
+  print('computing DE via limma')
+  library('Glimma')
   nsamples <- ncol(x)
   col <- brewer.pal(nsamples, "Paired")
   lcpm <- cpm(x, log=TRUE)
@@ -210,10 +223,10 @@ if (DE_method == "edgeR"){
   #     main="", xlab="")
   #title(main="B. Filtered data", xlab="Log-cpm")
   #abline(v=0, lty=3)
-  for (i in 2:nsamples){
-    den <- density(lcpm[,i])
-    lines(den$x, den$y, col=col[i], lwd=2)
-  }
+  # for (i in 2:nsamples){
+  #   den <- density(lcpm[,i])
+  #   lines(den$x, den$y, col=col[i], lwd=2)
+  # }
   
   group <-coldata$condition
   col.group <- group
@@ -243,7 +256,7 @@ if (DE_method == "edgeR"){
   tumorvsnormal <- tumorvsnormal[order(abs(tumorvsnormal$logFC), decreasing = T),]
   tumorvsnormal.topgenes <- rownames(tumorvsnormal[1:50,])
   'mycol <- colorpanel(1000,"blue","white","red")
-  pdf( paste0(dz, "/limma_sig.pdf"))
+  pdf( paste0(outputFolder, "/limma_sig.pdf"))
     heatmap.2(v$E[tumorvsnormal.topgenes,], scale="row",
               labRow=tumorvsnormal.topgenes, labCol=group, 
               col=mycol, trace="none", density.info="none", 
@@ -254,13 +267,13 @@ if (DE_method == "edgeR"){
   rownames(df) = (coldata$sample)
   colnames(df) = c("type")
   pheatmap(v$E[tumorvsnormal.topgenes,], cluster_rows=T, show_rownames=T,show_colnames=F, scale="row",col=mycol,
-           cluster_cols=T, annotation_col=df, file= paste0(dz, "/limma_sig.pdf"))
+           cluster_cols=T, annotation_col=df, file= paste0(outputFolder, "/limma_sig.pdf"))
   '
   
   res <-tumorvsnormal
   colnames(res) <-c("log2FoldChange", "AveExpr", "t", "pvalue", "padj")
 }else{
-
+  print('computing DE via DESeq')
   dds <- DESeqDataSetFromMatrix(countData = round(counts),
                                 colData = coldata,
                                 design= ~ condition)
@@ -271,7 +284,7 @@ if (DE_method == "edgeR"){
     dds <- DESeq(dds)
   }
   
-  save(dds,file= paste0(dz, "/dds", ".RData"))
+  save(dds,file= paste0(outputFolder, "/dds", ".RData"))
   rnms <- resultsNames(dds)
   
   select <- order(rowMeans(counts(dds,normalized=TRUE)),
@@ -281,7 +294,7 @@ if (DE_method == "edgeR"){
   colnames(df) <-c("type")
   ntd <- normTransform(dds)
   pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE,
-           cluster_cols=FALSE, annotation_col=df, file= paste0(dz, "/deseq_cluster_by_counts.pdf"))
+           cluster_cols=FALSE, annotation_col=df, file= paste0(outputFolder, "/deseq_cluster_by_counts.pdf"))
   
   #take time to compute sampel-correlation
   'rld <- rlog(dds, blind=FALSE)
@@ -293,7 +306,7 @@ if (DE_method == "edgeR"){
   pheatmap(sampleDistMatrix,
            clustering_distance_rows=sampleDists,
            clustering_distance_cols=sampleDists,
-           col=colors, file= paste0(dz, "/cluster_by_co_correlation.pdf"))
+           col=colors, file= paste0(outputFolder, "/cluster_by_co_correlation.pdf"))
   '
   
   res <- results(dds, contrast=c("condition","tumor","normal"))
@@ -302,10 +315,11 @@ if (DE_method == "edgeR"){
 #plotMA(res, ylim=c(-2,2))
 #plotCounts(dds, gene=which.min(res$padj), intgroup="condition")
 
-write.csv(res, paste0(dz, "/dz_sig_genes_all", ".csv")  )
+write.csv(res, paste0(outputFolder, "/dz_sig_genes_all_",DE_method, ".csv")  )
 
 #we missed lots of hits after mapping. need to fix.
-mapping <-read.csv("raw/gene_info_hs.csv")
+#mapping <-read.csv("raw/gene_info_hs.csv")
+mapping <- read.csv(paste0(dataFolder,'raw/gene_info_hs.csv'))
 mapping <-mapping[, c("GeneID", "Symbol")]
 
 dz_signature <-merge(mapping, data.frame(Symbol = rownames(res), res), by = "Symbol")
@@ -313,7 +327,7 @@ dz_signature <-dz_signature[order(dz_signature$log2FoldChange), ]
 dz_signature <-dz_signature[abs(dz_signature$log2FoldChange) > dz_fc_threshold & dz_signature$padj < dz_p_threshold & !is.na(dz_signature$Symbol) & !is.na(dz_signature$padj), ]
 dz_signature$value <-dz_signature$log2FoldChange
 dz_signature$up_down <-ifelse(dz_signature$value > 0, "up", "down")
-write.csv(dz_signature, paste0(dz, "/dz_sig_genes", ".csv")  )
+write.csv(dz_signature, paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv")  )
 
 #visualize sig genes using lcpm
 df <- as.data.frame(coldata[,c("condition")])
@@ -321,8 +335,9 @@ rownames(df) <-(coldata$sample)
 colnames(df) <-c("type")
 mycol <- colorpanel(1000,"blue","white","red")
 pheatmap(lcpm[as.character(dz_signature$Symbol),], cluster_rows=T, show_rownames=F,show_colnames=F, scale="row",col=mycol,
-         cluster_cols=T, annotation_col=df, file= paste0(dz, "/sig_genes_lcpm.pdf"))
+         cluster_cols=T, annotation_col=df, file= paste0(outputFolder, "/sig_genes_lcpm.pdf"))
 
-
+print('Complete dz signature')
 #comparing EdgeR, limma, deseq
+
 #In HCC, limma missed the most well-known biomarker "AFP", deseq is super slow, edgeR relatively better in terms of accuracy and speed

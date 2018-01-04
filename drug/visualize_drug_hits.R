@@ -5,18 +5,18 @@ library("ggplot2")
 library("RColorBrewer")
 
 #CMAP score output
-output_path <- paste(dz, "/all_lincs_score.csv", sep="")
+output_path <- paste(outputFolder, "/all_lincs_score.csv", sep="")
 lincs_drug_prediction = read.csv(output_path)
 
-dz_gene_used_output_path <- paste(dz, "/dz_sig_used.csv", sep="")
+dz_gene_used_output_path <- paste(outputFolder, "/dz_sig_used.csv", sep="")
 dz_gene_ids = read.csv(dz_gene_used_output_path)
 
-dz_signature <- read.csv(paste0(dz, "/dz_sig_genes", ".csv") )
+dz_signature <- read.csv(paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv"))
 dz_signature = dz_signature[dz_signature$GeneID %in% dz_gene_ids$GeneID, ]
 dz_sig = subset(dz_signature, select=c("GeneID", "log2FoldChange"))
 
 #drugs to visualize
-sRGES = read.csv(paste(dz, "/sRGES.csv", sep=""))
+sRGES = read.csv(paste(outputFolder, "/sRGES.csv", sep=""))
 #choose top common drugs
 top_drugs = as.character(unique(sRGES$pert_iname[sRGES$n > 1 & !sRGES$pert_iname %in% sRGES$pert_iname[grep("BRD-|SA-", sRGES$pert_iname)]][1:20]))
 
@@ -39,9 +39,9 @@ sig_id_selects = drug_instances_select$id
 #sig_id_selects = lincs_drug_prediction_subset$id
 
 if (landmark == 1){
-  load("raw/lincs_signatures_cmpd_landmark.RData")
+  load(paste0(dataFolder,"lincs_signatures_cmpd_landmark.RData"))
 }else{
-  load("raw/lincs_signatures_cmpd_landmark_GSE92742.RData")
+  load(paste0(dataFolder,"lincs_signatures_cmpd_landmark_GSE92742.RData"))
 }
 
 drug_dz_signature = merge(dz_sig, data.frame(GeneID = rownames(lincs_signatures), lincs_signatures[, as.character(sig_id_selects)]),  by="GeneID", suffixes='')
@@ -66,7 +66,7 @@ drug_names = sapply(2:ncol(drug_dz_signature_rank), function(id){
   lincs_drug_prediction$pert_iname[paste("X",lincs_drug_prediction$id, sep="") == names(drug_dz_signature_rank)[id]][1]
 })
 
-pdf(paste(dz, "/lincs_reverse_expression.pdf", sep=""))
+pdf(paste(outputFolder, "/lincs_reverse_expression.pdf", sep=""))
 #colPal <- bluered(100)
 colPal = rev(colorRampPalette(brewer.pal(10, "RdYlBu"))(256))
 par(mar=c(13, 6, 2, 0.5))

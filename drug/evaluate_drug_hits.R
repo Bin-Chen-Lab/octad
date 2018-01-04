@@ -1,12 +1,21 @@
 #enrichment of known drugs
+#####TODO
+#understand this code
+#code to download clinicaltrial drugs from website
+
 
 library("ROCR")
 library("GSVA")
 library("colorRamps")
-dz_drugs <- read.csv(paste0("raw/validation/", dz, "_drugs.csv"), stringsAsFactors = F)
-
+dz_drugs <- read.csv(paste0(dataFolder,'validation/',dz,'_drugs.csv'),stringsAsFactors = F)
+#dz_drugs <- queryClinicalTrials('Oligodendroglioma')
+if (queryCT == T) {
+  dz_drugs <- queryClinicalTrials(dz)  
+}
+dz_drugs$Var1 = dz_drugs$Drug
+#grabs only the drugs in the validation set
 database <- "lincs"
-sRGES = read.csv(paste0(dz, "/sRGES.csv"))
+sRGES = read.csv(paste0(outputFolder, "/sRGES.csv"))
 sRGES$drug <- 0
 sRGES$drug[tolower(sRGES$pert_iname) %in% tolower(dz_drugs$Var1)] = 1
 
@@ -43,7 +52,7 @@ sRGES$score <- sapply(sRGES$sRGES, function(x){
     20^(abs(x))
   }
 })
-pdf( paste0(dz, "/enrichment_", database, "_drugs.pdf", sep=""))
+pdf( paste0(outputFolder, "/enrichment_", database, "_drugs_validation.pdf", sep=""))
   par(mar=c(12, 4, 12, 4)) #bottom, left, top, and right
   z <- (matrix((sRGES$score)))
   n <- 200
@@ -54,4 +63,3 @@ pdf( paste0(dz, "/enrichment_", database, "_drugs.pdf", sep=""))
   }
   text(0.1, 0.1, "aaaaaa")
 dev.off()
-
