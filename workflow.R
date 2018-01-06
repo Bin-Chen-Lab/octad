@@ -25,7 +25,7 @@ normalize_samples = T #normalize disease and normal samples from different studi
 
 
 #DE gene method
-DE_method = "limma" #deseq edgeR limma
+DE_method = "edgeR" #deseq edgeR limma
 
 #dz signature fold change and p value, threshold for 
 dz_fc_threshold = 1.5
@@ -47,9 +47,9 @@ parallel_cores = 8
 #setwd("/home/ubuntu/proj/BillyZ/OCTAD/OCTAD_testcodes/testcodes180102/code") #code folder
 #dataFolder = "/home/ubuntu/chenlab_v2/pipeline/data/" #folder for raw data or other needed files to run code
 #output = '/home/ubuntu/proj/BillyZ/OCTAD/OCTAD_testcodes/testcodes180102/output/' #default output Folder
-setwd("~/Google Drive/Bin Lab/Projects/OCTAD/code_test180103/")
-dataFolder = "~/Documents/GitHub/OCTAD/"
-output = '~/Documents/GitHub/OCTAD/output_test180103/'
+setwd("~/Documents/GitHub/OCTAD v180103/code/")
+dataFolder = "~/Documents/GitHub/OCTAD v180103/data/"
+output = '~/Documents/GitHub/OCTAD v180103/output_test180103/'
 if (!file.exists(output)){dir.create(output)} #create output folder if one doesn't exist
 #output folder for DE run
 outputFolder = paste0(output,dz,"-",
@@ -85,12 +85,12 @@ source("drug/runRGES_dz.R")
 print(paste("running compound set enrichment analysis"))
 source("drug/drug_enrichment_analysis.R")
 #visualize drugs of interest
-source("../code/drug/visualize_drug_hits.R")
-source("../code/drug/evaluate_drug_hits.R")
+source("drug/visualize_drug_hits.R")
+source("drug/evaluate_drug_hits.R")
 
 #run target predictions
 print(paste("running target predictions"))
-#source("../code/target/runTargetRGES_dz.R")
+source("target/runTargetRGES_dz.R")
 
 print(paste("running target enrichment analysis"))
-#source("../code/target/target_enrichment_analysis.R")
+source("target/target_enrichment_analysis.R")

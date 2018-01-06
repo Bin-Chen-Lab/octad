@@ -1,6 +1,6 @@
 library("GSVA")
 
-load(paste0(dataFolder,"cmpd_sets_", target_type, ".RData"))
+load(paste0(dataFolder,"raw/cmpd_sets_", target_type, ".RData"))
 cmpdSets = cmpd_sets$cmpd.sets
 names(cmpdSets) = cmpd_sets$cmpd.set.names
 

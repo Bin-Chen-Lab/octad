@@ -140,7 +140,9 @@ ref_tissue <- 2^ref_tissue -1
 counts <-cbind(dz_tissue, ref_tissue)
 rownames(counts) <-as.character(dz_expr$sample)
   
-coldata <-data.frame(sample = colnames(counts) , condition= c(rep("tumor", ncol(dz_tissue)), rep("normal", ncol(ref_tissue))) )
+coldata <-data.frame(sample = colnames(counts) , 
+                     condition= c(rep("tumor", ncol(dz_tissue)), 
+                                  rep("normal", ncol(ref_tissue))) )
 
 counts <-round(counts)
 #hmm.. lots of odd counts?  filtering genes with very large count may miss signficant genes...we may use ruvseqEmpNorm to normalize counts first 
@@ -154,7 +156,7 @@ if (normalize_samples == T){
   counts <-ruvseqEmpNorm(counts, coldata)
 }
 
-save(counts, file = paste0(outputFolder, "/counts.RData"))
+#save(counts, file = paste0(outputFolder, "/counts.RData"))
 
 x <-DGEList(counts = counts, group = coldata$condition )
 x <- calcNormFactors(x, method = "TMM")

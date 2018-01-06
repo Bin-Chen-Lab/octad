@@ -1,23 +1,23 @@
 #an example of running RGES and summarizing RGES across multiple profiles. Using shRNA profiles instead of drug.
 #make sure change the workspace and code directory
 
-code_dir <- "../code/drug/"
+#code_dir <- "../code/drug/"
 
 library("plyr")
 library("ggplot2")
 
 
 #load LINCS drug gene expression profiles
-load("raw/lincs_signatures_shrna_landmark.RData")
+load(paste0(dataFolder,"raw/lincs_signatures_shrna_landmark.RData"))
 
-source(paste(code_dir, "core_functions.R",sep=""))
+source("drug/core_functions.R")
 
-output_path <- paste(dz, "/shrna_all_lincs_score.csv", sep="")
-sRGES_output_path <- paste(dz, "/shrna_sRGES.csv", sep="")
-dz_sig_output_path <- paste(dz, "/shrna_dz_sig_used.csv", sep="")
+output_path <- paste(outputFolder, "/shrna_all_lincs_score.csv", sep="")
+sRGES_output_path <- paste(outputFolder, "/shrna_sRGES.csv", sep="")
+dz_sig_output_path <- paste(outputFolder, "/shrna_dz_sig_used.csv", sep="")
 
 landmark <- 1
-lincs_sig_info <- read.csv("raw/lincs_sig_info.csv")
+lincs_sig_info <- read.csv(paste0(dataFolder,"raw/lincs_sig_info.csv"))
 lincs_sig_info <- subset(lincs_sig_info, id %in% colnames(lincs_signatures))
 
 #remove duplicate instances
@@ -32,7 +32,7 @@ gene.list <- rownames(lincs_signatures)
 
 ##############
 #read disease signatures
-dz_signature <- read.csv(paste0(dz, "/dz_sig_genes", ".csv") )
+dz_signature <- read.csv(paste0(outputFolder, "dz_sig_genes_",DE_method, ".csv") )
 #dz_signature <- read.csv("~/Documents/stanford/breast/release_cmyc/data/myc/drug/dz_signature_lincs.txt", sep = "\t" )
 
 dz_signature <- dz_signature[dz_signature$GeneID %in% gene.list & abs(dz_signature$value) > 1 & dz_signature$padj < 0.005, ]

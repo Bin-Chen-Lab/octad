@@ -98,7 +98,7 @@ mungeResponseContent <- function(response.content) {
 
 
 ###example
-shrnas =  read.csv(paste0(dz, "/shrna_sRGES", ".csv"))
+shrnas =  read.csv(paste0(outputFolder, "/shrna_sRGES", ".csv"))
 
 up.genes = shrnas$pert_iname[head(shrnas$pert_iname, nrow(shrnas) * 0.05)] #choose top 5% targets
 databases = db.list
@@ -106,5 +106,5 @@ fdr.cutoff = 0.25
 up.gene.res = enrichGeneList(up.genes[1:min(300, length(up.genes))], databases, fdr.cutoff)
 up.gene.res = up.gene.res[order(up.gene.res$p), ]
 
-write.csv(up.gene.res, paste0(dz, "/shrna_enriched", ".csv"))
+write.csv(up.gene.res, paste0(outputFolder, "/shrna_enriched", ".csv"))
 

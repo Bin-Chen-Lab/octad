@@ -39,9 +39,9 @@ sig_id_selects = drug_instances_select$id
 #sig_id_selects = lincs_drug_prediction_subset$id
 
 if (landmark == 1){
-  load(paste0(dataFolder,"lincs_signatures_cmpd_landmark.RData"))
+  load(paste0(dataFolder,"raw/lincs_signatures_cmpd_landmark.RData"))
 }else{
-  load(paste0(dataFolder,"lincs_signatures_cmpd_landmark_GSE92742.RData"))
+  load(paste0(dataFolder,"raw/lincs_signatures_cmpd_landmark_GSE92742.RData"))
 }
 
 drug_dz_signature = merge(dz_sig, data.frame(GeneID = rownames(lincs_signatures), lincs_signatures[, as.character(sig_id_selects)]),  by="GeneID", suffixes='')

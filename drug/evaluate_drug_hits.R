@@ -7,7 +7,7 @@
 library("ROCR")
 library("GSVA")
 library("colorRamps")
-dz_drugs <- read.csv(paste0(dataFolder,'validation/',dz,'_drugs.csv'),stringsAsFactors = F)
+#dz_drugs <- read.csv(paste0(dataFolder,'validation/',dz,'_drugs.csv'),stringsAsFactors = F)
 #dz_drugs <- queryClinicalTrials('Oligodendroglioma')
 if (queryCT == T) {
   dz_drugs <- queryClinicalTrials(dz)  
