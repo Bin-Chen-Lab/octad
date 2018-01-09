@@ -9,8 +9,8 @@
 ####Cancer Disease Parameters####
 dz = "glioma" #select patient samples based on molecular features
 gdc_project_id = "TCGA-LGG" #TCGA-LGG
-mutation_gene = "IDH2" #IDH1 #will miss the IDH2 mutants
-site = NULL #"liver" #if site is null, will infer it later
+mutation_gene = "IDH1" #IDH1 #will miss the IDH2 mutants
+site = 'Brain - Amygdala' #"liver" #if site is null, will infer it later
 
 #==============================#
 
@@ -21,11 +21,12 @@ ref_tissue_cor_cutoff = 0 #threshold used to choose the most correlated normal t
 remove_outlier = T #remove outlier disease tissue samples
 remove_impure = T #considering remove impure samples
 purity_cutoff = 0.7
-normalize_samples = T #normalize disease and normal samples from different studies using RUVSeq
+normalize_samples = F #normalize disease and normal samples from different studies using RUVSeq
 
 
 #DE gene method
 DE_method = "edgeR" #deseq edgeR limma
+contrast_mutants = 1 #if you want to run the methods to contrast mutant gene tumor with non-mutant gene tumor
 
 #dz signature fold change and p value, threshold for 
 dz_fc_threshold = 1.5
@@ -47,9 +48,9 @@ parallel_cores = 8
 #setwd("/home/ubuntu/proj/BillyZ/OCTAD/OCTAD_testcodes/testcodes180102/code") #code folder
 #dataFolder = "/home/ubuntu/chenlab_v2/pipeline/data/" #folder for raw data or other needed files to run code
 #output = '/home/ubuntu/proj/BillyZ/OCTAD/OCTAD_testcodes/testcodes180102/output/' #default output Folder
-setwd("~/Documents/GitHub/OCTAD v180103/code/")
-dataFolder = "~/Documents/GitHub/OCTAD v180103/data/"
-output = '~/Documents/GitHub/OCTAD v180103/output_test180103/'
+setwd("~/Documents/GitHub/OCTAD v180104/code/")
+dataFolder = "~/Documents/GitHub/OCTAD v180104/data/"
+output = '~/Documents/GitHub/OCTAD v180104/contrast_mutantNoNorm_test/'
 if (!file.exists(output)){dir.create(output)} #create output folder if one doesn't exist
 #output folder for DE run
 outputFolder = paste0(output,dz,"-",

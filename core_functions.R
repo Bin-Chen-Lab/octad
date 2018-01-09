@@ -76,19 +76,21 @@ estimatePurity  <- function(expr_matrix){
 
 ruvseqEmpNorm <- function(counts, coldata, n_topGenes = 5000){
   set <- newSeqExpressionSet(round(counts),
-                             phenoData = data.frame(coldata,row.names= coldata$sample))
+                             phenoData = data.frame(coldata,row.names= coldata$sample_id))
   
   design <- model.matrix(~ condition, data = pData(set))
-  y <- DGEList(counts=counts(set), group =  as.factor(coldata$condition))
+  y <- DGEList(counts=counts(set), group =  coldata$condition)
   y <- calcNormFactors(y, method="TMM") #upperquartile generate Inf in the LGG case
   y <- estimateGLMCommonDisp(y, design)
   y <- estimateGLMTagwiseDisp(y, design)
   
   fit <- glmFit(y, design)
-  lrt <- glmLRT(fit, coef=2)
+  lrt <- glmLRT(fit) #defaults to compare tumor to normal or tumor mutant to normal
   
   top <- topTags(lrt, n=nrow(set))$table
-  n_topGenes <- 10000 #5000: assume there are 5000 signficant genes?
+  #n_topGenes <- n_topGenes #5000: assume there are 5000 signficant genes?
+  
+  #based on n_topGenes computing genes with low DE
   empirical <- rownames(set)[which(!(rownames(set) %in% rownames(top)[1:n_topGenes]))]
   
   set2 <- RUVg(set, empirical, k=1)
