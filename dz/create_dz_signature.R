@@ -312,15 +312,10 @@ if (DE_method == "edgeR"){
   lrt2 <- glmLRT(fit,contrast=c(0,-1,1)) #gene mutant tumor vs. non-gene mutant tumor
   res2 <- lrt2$table 
   
-  res <- lrt$table
   colnames(res) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
   res$padj <- p.adjust(res$pvalue)
-  
-  res1 <- lrt1$table
   colnames(res1) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
   res1$padj <- p.adjust(res1$pvalue)
-  
-  res2 <- lrt2$table
   colnames(res2) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
   res2$padj <- p.adjust(res2$pvalue)
   }else{
@@ -444,11 +439,11 @@ if (DE_method == "edgeR"){
 #we missed lots of hits after mapping. need to fix.
 #mapping <-read.csv("raw/gene_info_hs.csv")
 mapping <- read.csv(paste0(dataFolder,'raw/gene_info_hs.csv'))
-mapping <-mapping[, c("GeneID", "Symbol")]
+#mapping <-mapping[, c("GeneID", "Symbol")] # i like getting full descriptors
 
-createSignatureMappings <- function(dz_signatures){
-  dz_signature <- res %>% 
-    mutate(Symbol = row.names(res)) %>% 
+createSignatureMappings <- function(DE_results){
+  dz_signature <- DE_results %>% 
+    mutate(Symbol = row.names(DE_results)) %>% 
     left_join(mapping)
   dz_signature <-dz_signature[order(dz_signature$log2FoldChange), ]
   dz_signature <-dz_signature[abs(dz_signature$log2FoldChange) > dz_fc_threshold & dz_signature$padj < dz_p_threshold,] 
@@ -460,14 +455,20 @@ createSignatureMappings <- function(dz_signatures){
 
 if (contrast_mutants == 1) {
   dz_signature <- createSignatureMappings(res)
-  write.csv(dz_signature, paste0(outputFolder, "/dz_sig_genes_mutant_vs_normal_", DE_method,".csv"))
+  dz_signature$contrast <- 'mutant vs normal'
   dz_signature1 <- createSignatureMappings(res1)
-  write.csv(dz_signature1, paste0(outputFolder, "/dz_sig_genes_nonmutantTumor_vs_normal_", DE_method,".csv"))
+  #write.csv(dz_signature1, paste0(outputFolder, "/dz_sig_genes_nonmutantTumor_vs_normal_", DE_method,".csv"))
+  dz_signature1$contrast <- 'non-mutant tumor vs normal'
   dz_signature2 <- createSignatureMappings(res2)
-  write.csv(dz_signature2, paste0(outputFolder, "/dz_sig_genes_mutant_vs_nonmutant", DE_method,".csv")  )
+  #write.csv(dz_signature2, paste0(outputFolder, "/dz_sig_genes_mutant_vs_nonmutant", DE_method,".csv")  )
+  dz_signature2$contrast <- 'mutant vs nonmutant tumor'
+  write.csv(rbind(dz_signature,dz_signature1,dz_signature2), 
+            paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv"))
+  
+  
 }else{
   dz_signature <- createSignatureMappings(res)
-  write.csv(dz_signature, paste0(outputFolder, "/dz_sig_genes", DE_method,".csv"))
+  write.csv(dz_signature, paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv"))
   
 }
 
