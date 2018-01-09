@@ -316,11 +316,11 @@ if (DE_method == "edgeR"){
   colnames(res) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
   res$padj <- p.adjust(res$pvalue)
   
-  res1 <- lrt$table
+  res1 <- lrt1$table
   colnames(res1) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
   res1$padj <- p.adjust(res1$pvalue)
   
-  res2 <- lrt$table
+  res2 <- lrt2$table
   colnames(res2) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
   res2$padj <- p.adjust(res2$pvalue)
   }else{
