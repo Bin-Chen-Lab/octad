@@ -1,5 +1,5 @@
 #given a cancer, find its tumor samples, search its normal samples, compute its signature, perform enrichment analysis of its signatures
-library(DESeq2)
+#library(DESeq2) #moved this to DESeq2 method
 library(edgeR)
 #library(tximport)
 library(pheatmap)
@@ -19,9 +19,14 @@ library(dplyr)
 #GTEX_phenotype : feature data of normal tissue samples in dz_expr
   #ref_samples_phenotype : subset of ref samples chosen to make comparisons with dz tissues
 #counts : absolute value (2 ^ expr - 1) of dz_tissue and dz_phenotype
+
+
+####Changes####
+#created function createSignatureMappings, this merges the DESeq results table with the gene_info file
   
 
 ####TODO####
+#create validation set for liver cancer with SOH gene set
 #contrast mutants for LIMMA and DESeq
 
 if (parallel_cores > 1 ){
@@ -58,7 +63,7 @@ GTEX_phenotype =read.csv(paste0(dataFolder,"raw/treehouse/GTEX_phenotype"), sep=
 #cancers <-data.frame(table(dz_phenotype$disease)) 
 
 dz_samples <-dz_phenotype[dz_phenotype$disease %in% dz,]
-dz_tissue <-dz_expr[, colnames(dz_expr) %in%  dz_samples$sample_id ] 
+dz_tissue <-dz_expr[, colnames(dz_expr) %in% dz_samples$sample_id ] 
 rm(dz_samples) #no longer needed after this
 row.names(dz_tissue) <- dz_expr$sample
 
@@ -151,8 +156,10 @@ if (mutation_gene != "" & gdc_project_id != ""){
 
 
 ####Compute top correlated cell lines####
-compute_tissue_cell_cor(colnames(dz_tissue))
-compute_tissue_lincs_cell_cor(colnames(dz_tissue))
+#can turn on to compute linc data set to use 
+#turn off to save computation time
+#compute_tissue_cell_cor(colnames(dz_tissue))
+#compute_tissue_lincs_cell_cor(colnames(dz_tissue))
 
 #find normal sample expression
 if (length(site) == 0) {
@@ -183,14 +190,15 @@ if (length(site) == 0) {
   ref_samples_phenotype <-intersect(GTEX_phenotype$Sample[tolower(GTEX_phenotype$body_site_detail..SMTSD.) %in% 
                                                   tolower(site)],
                           GTEX_phenotype_cor$Sample[GTEX_phenotype_cor$cor > ref_tissue_cor_cutoff])
+  ref_samples_phenotype <- ref_samples_phenotype %>% 
+    left_join(GTEX_phenotype, by = c('sample_id' = 'Sample'))
   
 }else{
   ref_samples_phenotype <- data.frame(sample_id = GTEX_phenotype$Sample[tolower(GTEX_phenotype$body_site_detail..SMTSD.) %in% 
-                                         tolower(site)])
+                                         tolower(site)]) %>% left_join(GTEX_phenotype, by = c('sample_id' = 'Sample'))
 }
 
-ref_samples_phenotype <- ref_samples_phenotype %>% 
-  left_join(GTEX_phenotype, by = c('sample_id' = 'Sample'))
+
 ref_samples_phenotype$condition = 'normal'
 ref_samples_phenotype$sample_type = 'normal'
 #ref_samples_phenotype$condition = 'normal tissue'
@@ -244,14 +252,15 @@ if (contrast_mutants == 1) {
 #source("../code/dz/rna_seq_normalization.R") replaced by the function ruvseqEmpNorm
 if (normalize_samples == T){
   print('normalizing tissue samples')
-  counts <-ruvseqEmpNorm(counts, coldata)
+  counts <-ruvseqEmpNorm(counts, coldata, n_topGenes = 10000, k = 1)
 }else{counts <-round(counts)} #round(counts) is ran in ruvseqEmpNorm function
 
 ####Create Dz and Ref tissue counts DGEList for edgeR or Limma####
 
 load_edgeR_counts <- function(){
   x <-DGEList(counts = counts, group = coldata$condition )
-  x <- calcNormFactors(x, method = "TMM")
+  #RUVg(x)
+  #x <- calcNormFactors(x, method = "TMM")
   #warning output
   #In .calcFactorWeighted(obs = x[, i], ref = x[, refColumn],  ... : NaNs produced
   
@@ -392,6 +401,7 @@ if (DE_method == "edgeR"){
   res <-tumorvsnormal
   colnames(res) <-c("log2FoldChange", "AveExpr", "t", "pvalue", "padj")
 }else{
+  library('DESeq2')
   print('computing DE via DESeq')
   dds <- DESeqDataSetFromMatrix(countData = round(counts),
                                 colData = coldata,
@@ -436,12 +446,8 @@ if (DE_method == "edgeR"){
 
 #write.csv(res, paste0(outputFolder, "/dz_sig_genes_all_",DE_method, ".csv")  )
 
-#we missed lots of hits after mapping. need to fix.
-#mapping <-read.csv("raw/gene_info_hs.csv")
-mapping <- read.csv(paste0(dataFolder,'raw/gene_info_hs.csv'))
-#mapping <-mapping[, c("GeneID", "Symbol")] # i like getting full descriptors
-
 createSignatureMappings <- function(DE_results){
+  mapping <- read.csv(paste0(dataFolder,'raw/gene_info_hs.csv'))
   dz_signature <- DE_results %>% 
     mutate(Symbol = row.names(DE_results)) %>% 
     left_join(mapping)
