@@ -19,13 +19,16 @@ library(dplyr)
 #GTEX_phenotype : feature data of normal tissue samples in dz_expr
   #ref_samples_phenotype : subset of ref samples chosen to make comparisons with dz tissues
 #counts : absolute value (2 ^ expr - 1) of dz_tissue and dz_phenotype
+#counts_phenotype : phenotype data of counts
+  #counts$condition : this should be the condition you want to run your contrast in e.g.
+    #tumor vs. normal
+    #mutant gene tumor vs. normal, mutant gene tumor vs. non-mutant gene tumor, non-mutant gene tumor vs. normal
 
 
 ####Changes####
-#created function createSignatureMappings, this merges the DESeq results table with the gene_info file
-  
 
 ####TODO####
+#rearrange normalization steps such that 
 #create validation set for liver cancer with SOH gene set
 #contrast mutants for LIMMA and DESeq
 
@@ -48,6 +51,7 @@ dz_phenotype$sample_id <- gsub("_","-",dz_phenotype$sample_id)
 dz_phenotype$patient_id <- sapply(dz_phenotype$sample_id, 
                                   function(x) paste(unlist(strsplit(x, "-"))[1:3], collapse="-"))
 
+#turn test on if you're testing code the test dz_expr Sample set has ~10000 samples 
 test = 0
 
 if(test == 1)
@@ -106,8 +110,8 @@ if (remove_outlier == T){
 
   #refer to https://www.biostars.org/p/281767/
   dz_tissue = dz_tissue[, !colnames(dz_tissue) %in% outliers]
-  dz_tissue_phenotype <- dz_tissue_phenotype %>% 
-    mutate(outlier = ifelse(sample_id %in% outliers,1,0))
+  # dz_tissue_phenotype <- dz_tissue_phenotype %>% 
+  #   mutate(outlier = ifelse(sample_id %in% outliers,1,0))
   numOutliers = sum(dz_tissue_phenotype$outlier)
   ifelse(numOutliers == 0, 
          print('no outliers found'),
@@ -130,7 +134,9 @@ if (remove_impure == T){
   dev.off()  
   
   dz_tissue <-dz_tissue[, purity > purity_cutoff & !is.na(purity)]
-  
+  ncol(dz_expr) 
+  #dz_exprPure <- dz_expr[,purity>purity_cutoff & !is.na(purity)]
+  #ncol(dz_exprPure)
   #annotates the sample as pure 1 or 0
   dz_tissue_phenotype <- dz_tissue_phenotype %>% mutate(pure = ifelse(sample_id %in% colnames(dz_tissue),1,0))
   dz_tissue_phenotype <- dz_tissue_phenotype %>% filter(pure == 1)
@@ -139,7 +145,8 @@ if (remove_impure == T){
 ####Find and Annotate cancer mutation subtype patient samples####
 if (mutation_gene != "" & gdc_project_id != ""){
   print("querying GDC for gene mutation samples")
-  gdc_mutated_tumor_pt <-queryGDC(id_mapping_gene_ensembl(mutation_gene), gdc_project_id) %>% filter(gene == 1)
+  gdc_mutated_tumor_pt <-queryGDC(id_mapping_gene_ensembl(mutation_gene), 
+                                  gdc_project_id) %>% filter(gene == 1,project==1)
   #Annotating dz_tissue_phenotype with conditions
   
   #TODO consider setting levels here maybe it will set downstream
@@ -149,8 +156,18 @@ if (mutation_gene != "" & gdc_project_id != ""){
                                                          paste0("non-",mutation_gene,"-tumor"))))
   
   dz_tissue_phenotype$sample_type = "tumor"
+  rm(gdc_mutated_tumor_pt)
 
-} else {
+} else if(mutation_gene == "" & gdc_project_id !=""){
+  print("querying GDC for tumor samples")
+  gdc_mutated_tumor_pt <-queryGDC(PROJECT = gdc_project_id)
+  dz_tissue_phenotype <- dz_tissue_phenotype %>% 
+    filter(patient_id %in% gdc_mutated_tumor_pt$submitter_id)
+  dz_tissue <- dz_tissue[,dz_tissue_phenotype$sample_id]
+  #Annotating dz_tissue_phenotype with conditions
+  dz_tissue_phenotype$sample_type = "tumor"
+  rm(gdc_mutated_tumor_pt)
+}else {
   dz_tissue_phenotype$sample_type = "tumor"
 }
 
@@ -162,7 +179,7 @@ if (mutation_gene != "" & gdc_project_id != ""){
 #compute_tissue_lincs_cell_cor(colnames(dz_tissue))
 
 #find normal sample expression
-if (length(site) == 0) {
+if (length(site) == 0|site=="") {
   print('determining best ref sample tissue site')
   #find all gtex samples
   normal_tissue <-dz_expr[, colnames(dz_expr) %in%  GTEX_phenotype$Sample ] 
@@ -187,9 +204,10 @@ if (length(site) == 0) {
   write.csv(reference_tissue_rank, paste0(outputFolder, "/reference_tissue_rank.csv"))
   site <-reference_tissue_rank$body_site_detail..SMTSD.[1]
   #some normal tissue samples from the best site are not correlated. E.g., in colon ad , Colon - Transverse is the best site, but clearly it has two subgroups
-  ref_samples_phenotype <-intersect(GTEX_phenotype$Sample[tolower(GTEX_phenotype$body_site_detail..SMTSD.) %in% 
+  ref_samples_phenotype <-data.frame('sample_id' = intersect(GTEX_phenotype$Sample[tolower(GTEX_phenotype$body_site_detail..SMTSD.) %in% 
                                                   tolower(site)],
-                          GTEX_phenotype_cor$Sample[GTEX_phenotype_cor$cor > ref_tissue_cor_cutoff])
+                          GTEX_phenotype_cor$Sample[GTEX_phenotype_cor$cor > ref_tissue_cor_cutoff]))
+  
   ref_samples_phenotype <- ref_samples_phenotype %>% 
     left_join(GTEX_phenotype, by = c('sample_id' = 'Sample'))
   
@@ -201,14 +219,13 @@ if (length(site) == 0) {
 
 ref_samples_phenotype$condition = 'normal'
 ref_samples_phenotype$sample_type = 'normal'
-#ref_samples_phenotype$condition = 'normal tissue'
-#ref_samples_phenotype$sample_type = 'normal tissue'
 
 if (length(ref_samples_phenotype$sample_id) < 4) { stop("few reference tissue samples ") }
 
 ref_tissue <- dz_expr[, colnames(dz_expr) %in%  ref_samples_phenotype$sample_id ] 
 ref_samples_phenotype <- ref_samples_phenotype %>% filter(sample_id %in% colnames(ref_tissue))
 
+####Creating Counts DataFrame####
 #log2(norm_count+1)
 dz_tissue <- 2^dz_tissue - 1
 ref_tissue <- 2^ref_tissue -1
@@ -222,6 +239,7 @@ ref_tissue <- 2^ref_tissue -1
 
 counts <-cbind(dz_tissue, ref_tissue)
 rownames(counts) <-as.character(dz_expr$sample)
+
 if (contrast_mutants == 1) {
   #to make sure that levels are preserved
   #helpful to interpret design matrix if intercept = normal
@@ -238,8 +256,8 @@ if (contrast_mutants == 1) {
   
   coldata <- data.frame(sample_id = colnames(counts)) %>% left_join(counts_phenotype)
 }else{
-  counts_phenotype <- rbind(dz_tissue_phenotype %>% select(sample_id,sample_type),
-                            ref_samples_phenotype %>% select(sample_id,sample_type))
+  counts_phenotype <- rbind(dz_tissue_phenotype %>% dplyr::select(sample_id,sample_type),
+                            ref_samples_phenotype %>% dplyr::select(sample_id,sample_type))
   counts_phenotype$condition <- factor(counts_phenotype$sample_type,levels = c('normal','tumor')) #to keep condition column consistent when fed to model.matrix
   coldata <- data.frame(sample_id = colnames(counts)) %>% left_join(counts_phenotype)
 }
@@ -250,29 +268,71 @@ if (contrast_mutants == 1) {
 #need to run the code manually and inspect plots carefully
 #need to choose outliers manually
 #source("../code/dz/rna_seq_normalization.R") replaced by the function ruvseqEmpNorm
-if (normalize_samples == T){
-  print('normalizing tissue samples')
-  counts <-ruvseqEmpNorm(counts, coldata, n_topGenes = 10000, k = 1)
-}else{counts <-round(counts)} #round(counts) is ran in ruvseqEmpNorm function
+
+####testCode####
+
+####Remove Lowly Expressed Genes####
+if(normalize_samples == T){
+highExpGenes <- remLowExpr(counts,coldata)
+write.csv(data.frame(highExpGenes),file=paste0(outputFolder,"highExpGenes.csv"))
+counts <- counts[highExpGenes,]
+
+empiricalGenes <- compEmpContGenes(counts,coldata,n_topGenes = 10000)
+write.csv(data.frame(empiricalGenes),file=paste0(outputFolder,"computedEmpGenes.csv"))
+###RUVg and edgeR method####
+set <- newSeqExpressionSet(counts = round(counts),
+                           phenoData = data.frame(coldata,row.names= coldata$sample_id))
+
+#library(RColorBrewer)
+
+#colors <- brewer.pal(3,"Set2")
+#visualize before UQ norm
+# plotRLE(set,outline=F,ylim=c(-4,4),col=colors[set$condition])
+# plotPCA(set,col=colors[set$condition],cex=0.2)
+#upper quantile normalization
+
+#set <- betweenLaneNormalization(set,which = 'upper')
+#using betweenLaneNormalization makes error in RUVg for LGG
+
+set1 <- RUVg(set,empiricalGenes,k=1)
+rm(set)
+#pData(set1) #stores the normalization of set1
+
+#plotRLE(set1,outline=F,ylim=c(-4,4),col=colors[set$condition])
+#plotPCA(set1,col=colors[set$condition],cex=0.2)
+}else{set <- newSeqExpressionSet(round(counts),
+                                 phenoData = data.frame(coldata,row.names= coldata$sample_id))
+      set1 <- set}
+
+##edgeR DE implementation##
+
+
+#removed as most of this code is in remove lowly expressed genes
+# load_edgeR_counts <- function(){
+#   x <-DGEList(counts = counts, group = coldata$condition )
+#   #RUVg(x)
+#   #x <- calcNormFactors(x, method = "TMM")
+#   #warning output
+#   #In .calcFactorWeighted(obs = x[, i], ref = x[, refColumn],  ... : NaNs produced
+#   
+#   #cpm_x <- cpm(x)
+#   #lcpm_x <- cpm(x, log=TRUE)
+#   
+#   #remove lowly expressed genes
+#   ####Possibly where IDH1 may be deleted?####
+#   keep.exprs <- rowSums(cpm_x>1) >= min(table(coldata$condition))
+#   x <- x[keep.exprs,, keep.lib.sizes=FALSE]
+#   x
+# }
+
+# 
+# if (normalize_samples == T){
+#   print('normalizing tissue samples')
+#   counts <-ruvseqEmpNorm(counts, coldata, n_topGenes = 20000, k = 1)
+# }else{counts <-round(counts)} #round(counts) is ran in ruvseqEmpNorm function
 
 ####Create Dz and Ref tissue counts DGEList for edgeR or Limma####
 
-load_edgeR_counts <- function(){
-  x <-DGEList(counts = counts, group = coldata$condition )
-  #RUVg(x)
-  #x <- calcNormFactors(x, method = "TMM")
-  #warning output
-  #In .calcFactorWeighted(obs = x[, i], ref = x[, refColumn],  ... : NaNs produced
-  
-  cpm_x <- cpm(x)
-  lcpm_x <- cpm(x, log=TRUE)
-
-#remove lowly expressed genes
-####Possibly where IDH1 may be deleted?####
-  keep.exprs <- rowSums(cpm_x>1) >= min(table(coldata$condition))
-  x <- x[keep.exprs,, keep.lib.sizes=FALSE]
-  x
-}
 
 #unable to run this 
 # pdf(paste0(outputFolder, "/tissue_normal_mds.pdf"))
@@ -294,39 +354,40 @@ load_edgeR_counts <- function(){
 
 if (DE_method == "edgeR"){
   print('computing DE via edgeR')
-  dgList <- load_edgeR_counts()
-  #dgList <- x
-  #order sampleType by normal tissue, tumor w/o specified gene mutation, tumor w/ gene mutation
-  #this helps to sort out the design matrix 
+  if(normalize_samples == T){
+    design <- model.matrix(~condition + W_1, data=pData(set1))
+  }else{design <- model.matrix(set1$condition,data=pData(set1))}
   
-  # sampleType <-factor(coldata$condition, levels = c('normal', 
-  #                                                      paste0("non-",mutation_gene,"-tumor"),
-  #                                                     paste0(mutation_gene,"-mutant")))
-  
-  designMat <- model.matrix(~ counts_phenotype$condition)
-  
-  dgList <- estimateGLMCommonDisp(dgList,design=designMat)
-  dgList <- estimateGLMTrendedDisp(dgList,design=designMat)
-  dgList <- estimateGLMTagwiseDisp(dgList,design=designMat)
-  
+  dgList <- DGEList(counts=counts(set1),group=set1$condition)
+  dgList <- calcNormFactors(dgList, method="TMM") #using upperquartile seems to give issue for LGG
+  dgList <- estimateGLMCommonDisp(dgList, design)
+  dgList <- estimateGLMTagwiseDisp(dgList, design)
+  fit <- glmFit(dgList, design)
+  #lrt <- glmLRT(fit)
+
   #see edgeRUsersGuide section on testing for DE genes for contrast
-  fit <- glmFit(dgList,design = designMat)
+  #fit <- glmFit(dgList,design = designMat)
   if(contrast_mutants==1){
-  lrt <- glmLRT(fit,coef=3) #gene mutant tumor vs. ref tissue
-  res <- lrt$table
-  
-  lrt1 <- glmLRT(fit,coef = 2) #non-gene mutant tumor vs. ref tissue
-  res1 <- lrt1$table
-  
-  lrt2 <- glmLRT(fit,contrast=c(0,-1,1)) #gene mutant tumor vs. non-gene mutant tumor
-  res2 <- lrt2$table 
-  
-  colnames(res) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
-  res$padj <- p.adjust(res$pvalue)
-  colnames(res1) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
-  res1$padj <- p.adjust(res1$pvalue)
-  colnames(res2) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
-  res2$padj <- p.adjust(res2$pvalue)
+    lrt <- glmLRT(fit,coef=3) #gene mutant tumor vs. ref tissue
+    res <- lrt$table
+    
+    lrt1 <- glmLRT(fit,coef = 2) #non-gene mutant tumor vs. ref tissue
+    res1 <- lrt1$table
+    
+    lrt2 <- glmLRT(fit,contrast=c(0,-1,1,0)) #gene mutant tumor vs. non-gene mutant tumor
+    res2 <- lrt2$table 
+    
+    colnames(res) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
+    res$padj <- p.adjust(res$pvalue)
+    colnames(res1) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
+    res1$padj <- p.adjust(res1$pvalue)
+    colnames(res2) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
+    res2$padj <- p.adjust(res2$pvalue)
+    res$contrast <- 'mutant vs. ref'
+    res1$contrast <- 'non-mutant vs. ref'
+    res2$contrast <- 'mutant vs. non-mutant'
+    res <- rbind(res,res1,res2)
+    #write.csv(res,paste0(outputFolder,"all_genes_differences.csv"))
   }else{
     lrt <- glmLRT(fit) #gene mutant tumor vs. ref tissue
     res <- lrt$table
@@ -448,6 +509,10 @@ if (DE_method == "edgeR"){
 
 createSignatureMappings <- function(DE_results){
   mapping <- read.csv(paste0(dataFolder,'raw/gene_info_hs.csv'))
+  all_results <- DE_results %>% 
+    mutate(Symbol = row.names(DE_results)) %>% 
+    left_join(mapping)
+  write.csv(all_results,paste0(outputFolder,"all_genes_differences.csv"))
   dz_signature <- DE_results %>% 
     mutate(Symbol = row.names(DE_results)) %>% 
     left_join(mapping)
@@ -462,32 +527,33 @@ createSignatureMappings <- function(DE_results){
 if (contrast_mutants == 1) {
   dz_signature <- createSignatureMappings(res)
   dz_signature$contrast <- 'mutant vs normal'
+  write.csv(dz_signature,paste0(outputFolder,"/dz_sig_genes_mutantTumor_vs_normal_",DE_method,".csv"))
   dz_signature1 <- createSignatureMappings(res1)
-  #write.csv(dz_signature1, paste0(outputFolder, "/dz_sig_genes_nonmutantTumor_vs_normal_", DE_method,".csv"))
+  write.csv(dz_signature1, paste0(outputFolder, "/dz_sig_genes_nonmutantTumor_vs_normal_", DE_method,".csv"))
   dz_signature1$contrast <- 'non-mutant tumor vs normal'
   dz_signature2 <- createSignatureMappings(res2)
-  #write.csv(dz_signature2, paste0(outputFolder, "/dz_sig_genes_mutant_vs_nonmutant", DE_method,".csv")  )
+  write.csv(dz_signature2, paste0(outputFolder, "/dz_sig_genes_mutant_vs_nonmutant", DE_method,".csv")  )
   dz_signature2$contrast <- 'mutant vs nonmutant tumor'
   write.csv(rbind(dz_signature,dz_signature1,dz_signature2), 
             paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv"))
   
-  
 }else{
   dz_signature <- createSignatureMappings(res)
   write.csv(dz_signature, paste0(outputFolder, "/dz_sig_genes_", DE_method,".csv"))
+  write.csv(res,paste0(outputFolder,"all_genes_differences.csv"))
   
 }
 
 
 
-
+#doesn't work
 #visualize sig genes using lcpm
-df <- as.data.frame(coldata[,c("condition")])
-rownames(df) <-(coldata$sample)
-colnames(df) <-c("type")
-mycol <- colorpanel(1000,"blue","white","red")
-pheatmap(lcpm[as.character(dz_signature$Symbol),], cluster_rows=T, show_rownames=F,show_colnames=F, scale="row",col=mycol,
-         cluster_cols=T, annotation_col=df, file= paste0(outputFolder, "/sig_genes_lcpm.pdf"))
+# df <- as.data.frame(coldata[,c("condition")])
+# rownames(df) <-(coldata$sample)
+# colnames(df) <-c("type")
+# mycol <- colorpanel(1000,"blue","white","red")
+# pheatmap(lcpm[as.character(dz_signature$Symbol),], cluster_rows=T, show_rownames=F,show_colnames=F, scale="row",col=mycol,
+#          cluster_cols=T, annotation_col=df, file= paste0(outputFolder, "/sig_genes_lcpm.pdf"))
 
 print('Complete dz signature')
 #comparing EdgeR, limma, deseq
