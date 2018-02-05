@@ -1,4 +1,3 @@
-library(estimate)
 library(ggplot2)
 library("rrcov")
 library("RUVSeq")
@@ -11,6 +10,7 @@ library("RUVSeq")
 #gdc_query modified function to allow for querying of tumor project only 
 #added compEmpControlGenes function to compute empirical control genes
 #added remLowExpr function to remove lowly expressed genes
+#added remImpure function to remove impure 
 
 id_mapping <-function(id, input_format = "hgnc_symbol", output_format = "ensembl_gene_id"){
   #ensembl_gene_id ensembl_transcript_id hgnc_symbol entrezgene
@@ -70,9 +70,149 @@ queryGDC <- function(GENE="", PROJECT){
   return(combined)
 }
 
+####Compute Ref Tissue####
+computeRefTissue <- function(expSet=dz_tissue,varyingGenes = 3000,
+                             method='varying genes', #random #autoencode
+                             site_selection = 'top', 
+                             #top site or any cor cutoff>quantile,
+                             #all will select samples from 90th percentile
+                             random_size = 50,
+                             any_size = 50,
+                             cor_cutoff=0,output=T,visualize=T){
+  #method options
+# 0) random : random assortment of GTEX normal tissues (~50 GTEX tissues normal picked at random)
+# 1) varying genes : base-line approach (5K, 10K)
+  # a) cor cutoff : select the quantile 0 will use all tissue, 1 will be >= 25th percentile
+# 2) deep learning autoencoder, reduce the features to 100 for example
+# 4) based on enriched transcriptional factors
+# 5) based on tissue specific markers
+# 6) based on DNA sequence (more advanced work!)
+  #input expression set must be subset of dz_tissue
+  #output list of GTEX tissue 
+  if(method == 'random'){
+    all_normal <- all_pheno %>% filter(X_study == 'GTEX',X_sample_type == 'Normal Tissue')
+    GTEXid <- sample(all_normal$sample,size = random_size)
+    GTEXid
+  }else if(method == 'varying genes'){
+    all_normal <- all_pheno %>% filter(X_study == 'GTEX',X_sample_type == 'Normal Tissue') 
+    normal_tissue <-dz_expr[, toupper(colnames(dz_expr)) %in% all_normal$sample] 
+    #varying genes parameter
+    iqr_gene <-apply(normal_tissue, 1, IQR)
+    varying_genes <-order(iqr_gene, decreasing=T)[1:varyingGenes]
+    normal_dz_cor <-cor(normal_tissue[varying_genes, ], expSet[varying_genes, ], method = "spearman")
+    normal_dz_cor_each <-apply(normal_dz_cor, 1, median)
+    GTEX_phenotype_cor <-left_join(all_normal, data.frame(sample = names(normal_dz_cor_each), cor = as.numeric(normal_dz_cor_each)), by = "sample")
+    reference_tissue_rank <-aggregate(cor ~ primary.disease.or.tissue, GTEX_phenotype_cor, median)
+    reference_tissue_rank <-reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
+    if(output==T){
+      write.csv(GTEX_phenotype_cor, paste0(outputFolder, "/GTEX_phenotype_cor.csv"))
+      write.csv(reference_tissue_rank, paste0(outputFolder, "/reference_tissue_rank.csv"))
+    } 
+    if(site_selection=='any'){
+      #cutoff = quantile(GTEX_phenotype_cor$cor,probs=seq(0,1,0.05),na.rm=T)['95%']
+      GTEXid <- GTEX_phenotype_cor %>% arrange(desc(cor)) %>% 
+        #filter(cor>=cutoff) %>% 
+        dplyr::select(sample)
+      GTEXid <- GTEXid[1:any_size,]
+      GTEXid
+    }else{
+      if(visualize==T){
+      tissue_ref_cor <- GTEX_phenotype_cor
+      top_refs <-  reference_tissue_rank[1:10, 1]
+      
+      tissue_ref_cor <- tissue_ref_cor[tissue_ref_cor$primary.disease.or.tissue %in% top_refs, ]
+      
+      #order based on median cor
+      tissue_ref_cor$ref <- factor(tissue_ref_cor$primary.disease.or.tissue, levels = top_refs)
+      
+      #margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")
+      pdf(paste0(outputFolder, "/top_reference_tissues.pdf"))
+      par(mar=c(12,4.1,4.1,2.1))
+      p <- ggplot(tissue_ref_cor, aes(ref, cor))
+      print(p +   geom_boxplot(outlier.colour = "grey", notch=F, outlier.shape = NA) + geom_jitter() + theme_bw() + 
+              ylab("correlation") +
+              xlab("") +  theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 12),
+                                axis.text.y = element_text(size = 15), axis.title = element_text(size = 20), plot.margin = margin(l=35))
+      ) 
+      dev.off()  
+    }
+      #corQuantile <- GTEX_phenotype_cor$
+      site <-reference_tissue_rank$primary.disease.or.tissue[1]
+      cors <- GTEX_phenotype_cor %>% filter(primary.disease.or.tissue == site) %>% select(cor) 
+      cutoff = quantile(cors$cor,na.rm=T)[1 + cor_cutoff]
+      GTEXid <- GTEX_phenotype_cor %>% 
+        filter(primary.disease.or.tissue == site,cor>=cutoff) %>% 
+        dplyr::select(sample)
+      GTEXid
+    }
+    
+  }else if(method == 'autoencode'){
+    load(paste0(dataFolder,'raw/treehouse/tcga_target_gtex_autoencoder.RData'))
+    all_normal <- all_pheno %>% filter(X_study == 'GTEX',X_sample_type == 'Normal Tissue') 
+    dz_autoEncode <- tcga_target_gtex_autoencoder[,toupper(colnames(tcga_target_gtex_autoencoder)) %in% colnames(expSet)]
+    normal_autoEncode <- tcga_target_gtex_autoencoder[,toupper(colnames(tcga_target_gtex_autoencoder)) %in% all_normal$sample]
+    
+    #varying genes parameter
+    iqr_gene <-apply(normal_autoEncode, 1, IQR)
+    varying_genes <-order(iqr_gene, decreasing=T)
+    normal_dz_cor <-cor(normal_autoEncode[varying_genes, ], dz_autoEncode[varying_genes, ], method = "spearman")
+    normal_dz_cor_each <-apply(normal_dz_cor, 1, median)
+    GTEX_phenotype_cor <-left_join(all_normal, data.frame(sample = names(normal_dz_cor_each), cor = as.numeric(normal_dz_cor_each)), by = "sample")
+    reference_tissue_rank <-aggregate(cor ~ primary.disease.or.tissue, GTEX_phenotype_cor, median)
+    reference_tissue_rank <-reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
+    if(output==T){
+      write.csv(GTEX_phenotype_cor, paste0(outputFolder, "/GTEX_phenotype_cor_autoencode.csv"))
+      write.csv(reference_tissue_rank, paste0(outputFolder, "/reference_tissue_rank_autoencode.csv"))
+    }
+    if(site_selection=='any'){
+      # cutoff = quantile(GTEX_phenotype_cor$cor,probs=seq(0,1,0.10),na.rm=T)['90%']
+      # GTEXid <- GTEX_phenotype_cor %>%
+      #   filter(cor>=cutoff) %>%
+      #   dplyr::select(sample)
+      # GTEXid
+      #cutoff = quantile(GTEX_phenotype_cor$cor,probs=seq(0,1,0.10),na.rm=T)['90%']
+      GTEXid <- GTEX_phenotype_cor %>% arrange(desc(cor)) %>% 
+        #filter(cor>=cutoff) %>% 
+        dplyr::select(sample)
+      GTEXid <- GTEXid[1:any_size,]
+      GTEXid
+    }else{
+        if(visualize==T){
+        tissue_ref_cor <- GTEX_phenotype_cor
+        top_refs <-  reference_tissue_rank[1:10, 1]
+        
+        tissue_ref_cor <- tissue_ref_cor[tissue_ref_cor$primary.disease.or.tissue %in% top_refs, ]
+        
+        #order based on median cor
+        tissue_ref_cor$ref <- factor(tissue_ref_cor$primary.disease.or.tissue, levels = top_refs)
+        
+        #margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")
+        pdf(paste0(outputFolder, "/top_reference_tissues_autoencode.pdf"))
+        par(mar=c(12,4.1,4.1,2.1))
+        p <- ggplot(tissue_ref_cor, aes(ref, cor))
+        print(p +   geom_boxplot(outlier.colour = "grey", notch=F, outlier.shape = NA) + geom_jitter() + theme_bw() + 
+                ylab("correlation") +
+                xlab("") +  theme(axis.text.x = element_text(angle = 30, hjust = 1, size = 12),
+                                  axis.text.y = element_text(size = 15), axis.title = element_text(size = 20), plot.margin = margin(l=35))
+        ) 
+        dev.off()  
+      }
+      #corQuantile <- GTEX_phenotype_cor$
+        site <-reference_tissue_rank$primary.disease.or.tissue[1]
+        cors <- GTEX_phenotype_cor %>% filter(primary.disease.or.tissue == site) %>% select(cor) 
+        cutoff = quantile(cors$cor,na.rm=T)[1 + cor_cutoff]
+        GTEXid <- GTEX_phenotype_cor %>% 
+          filter(primary.disease.or.tissue == site,cor>=cutoff) %>% 
+          dplyr::select(sample)
+        GTEXid
+      }      
+  }
 
+}
 
 estimatePurity  <- function(expr_matrix){
+  library(estimate)
+  
   #expr_matrix: with gene symbols as row names and samples as colnames
   #return purity score
   samples <- data.frame(NAME = rownames(expr_matrix), Description = NA,  expr_matrix)
@@ -151,6 +291,30 @@ compEmpContGenes <- function(counts, coldata, n_topGenes = 5000){
 #   
 # }
 
+
+
+detectOutlier <- function(expSet,z_threshold=3,outlierPdf="/tissue_mds.pdf"){
+  #refer to https://www.biostars.org/p/281767/
+  x <-DGEList(counts = round(2^expSet - 1))
+  x <- calcNormFactors(x, method = "TMM")
+  lcpm <- cpm(x, log=TRUE)
+  pca <- prcomp(t(lcpm))
+  #plot(pca$x, pch = 20)
+  pc1_z_score = as.numeric(scale(pca$x[,1]))
+  pc2_z_score = as.numeric(scale(pca$x[,2]))
+  outliers = rownames(pca$x)[abs(pc1_z_score) > z_threshold] #
+  col.group = rep("black", length(pc1_z_score))
+  col.group[rownames(pca$x) %in% outliers] = "red"
+  pdf(paste0(outputFolder, outlierPdf))
+  plot(pc1_z_score, pc2_z_score, xlab = "PC1", ylab = "PC2",col = col.group, pch = row.names(x$samples))
+  dev.off()
+  outliers
+}
+
+
+  
+
+
 remLowExpr <- function(counts,coldata){
   x <-DGEList(counts = counts, group = coldata$condition )
   #RUVg(x)
@@ -162,7 +326,6 @@ remLowExpr <- function(counts,coldata){
   lcpm_x <- cpm(x, log=TRUE)
   
   #remove lowly expressed genes
-  ####Possibly where IDH1 may be deleted?####
   keep.exprs <- rowSums(cpm_x>1) >= min(table(coldata$condition))
   keep.exprs
 }
@@ -210,17 +373,18 @@ compute_tissue_lincs_cell_cor <- function(dz_tissue_samples){
 
 
 visualize_top_ref_tissue <- function(){
-  tissue_ref_cor <- read.csv(paste0(outputFolder, "/GTEX_phenotype_cor.csv"))
-
-  reference_tissue_rank <- aggregate(cor ~ body_site_detail..SMTSD., tissue_ref_cor, median)
+  
+  #tissue_ref_cor <- read.csv(paste0(outputFolder, "/GTEX_phenotype_cor.csv"))
+  tissue_ref_cor <- GTEX_phenotype_cor
+  reference_tissue_rank <- aggregate(cor ~ X_primary_site, GTEX_phenotype_cor, median)
   reference_tissue_rank <- reference_tissue_rank[order(reference_tissue_rank$cor, decreasing = T), ]
   
   top_refs <-  reference_tissue_rank[1:10, 1]
   
-  tissue_ref_cor <- tissue_ref_cor[tissue_ref_cor$body_site_detail..SMTSD. %in% top_refs, ]
+  tissue_ref_cor <- tissue_ref_cor[tissue_ref_cor$X_primary_site %in% top_refs, ]
   
   #order based on median cor
-  tissue_ref_cor$ref <- factor(tissue_ref_cor$body_site_detail..SMTSD., levels = top_refs)
+  tissue_ref_cor$ref <- factor(tissue_ref_cor$X_primary_site, levels = top_refs)
   
   #margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")
   pdf(paste0(outputFolder, "/top_reference_tissues.pdf"))
