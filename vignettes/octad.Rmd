@@ -1,0 +1,269 @@
+---
+title: "Open Cancer TherApeutic Discovery (OCTAD)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{octad}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+## E. Chekalin, B. Zeng, P. Newbury, B. Glicksberg, J. Xing, K. Liu, D. Joseph, B. Chen
+### Edited September 28, 2020; Compiled: September 29, 2020
+
+# Package overview
+As the field of precision medicine progresses, we start to tailor treatments for cancer patients classified not only by their clinical, but also by their molecular features. The emerging cancer subtypes defined by these features require dedicated resources to assist the discovery of drug candidates for preclinical evaluation. Voluminous cancer patient gene expression profiles have been accumulated in public databases, enabling the creation of a cancer-specific expression signature. Meanwhile, large-scale gene expression profiles of chemical compounds became available in recent years. By matching the cancer-specific expression signature to compound-induced gene expression profiles from large drug libraries, researchers can prioritize small molecules that present high potency to reverse expression of signature genes for further experimental testing of their efficacy. This approach has proven to be an efficient and cost-effective way to identify efficacious drug candidates. However, the success of this approach requires multiscale procedures, imposing significant challenges to many labs. Therefore, we present OCTAD (http://octad.org): an open workspace for virtually screening compounds targeting precise cancer patient groups using gene expression features. We have included 19,127 patient tissue samples covering 50 cancer types, and expression profiles for 12,442 distinct compounds. We streamline all the procedures including deep-learning based reference tissue selection, disease gene expression signature creation, drug reversal potency scoring, and in silico validation. We release OCTAD as a web portal and a standalone R package to allow experimental and computational scientists to easily navigate the tool. 
+
+# How to Install
+Before library installation install required Bioconductor and CRAN packages through this code:
+```r
+bioconductor_packages=c('edgeR','RUVSeq','DESeq2','limma','rhdf5','artMS')
+
+#For R version 3.5> use BiocManager to install required bioconductor packages: 
+if (length(setdiff(bioconductor_packages, rownames(installed.packages()))) > 0) {
+  if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+  BiocManager::install(setdiff(bioconductor_packages, rownames(installed.packages())))
+}
+
+#For R version <3.5 use the BiocInstaller to install required bioconductor packages: 
+source("https://bioconductor.org/biocLite.R")
+BiocInstaller::biocLite(bioconductor_packages)
+
+packages=c('magrittr','dplyr','ggplot2','doParallel','foreach','lme4','Rfast','httr')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+```
+
+Next, install the octad.db, package with all required files for computation available via link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0). The size of the files required for pipeline processing is ~400mb.
+```
+install.packages("octad.db_0.99.0.tar", repos = NULL, type="source")
+```
+Or without downloading the distributive:
+```
+install.packages("https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0",
+                 method="libcurl",repos=NULL,type="source")
+```
+It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
+Finally, install the package:
+```
+devtools::install_github('Bin-Chen-Lab/octad_desktop')
+```
+# Workflow
+We illustrate the utility of the desktop pipeline by highlighting a use-case for HCC: we provide code and data for investigating differential expression, pathway enrichment, drug prediction and hit selection, and in silico validation using an external dataset. In this workflow, we will select case tissue samples from our compiled TCGA data and compute control tissues from the GTEx data.Note that our compiled data also contains adjacent normal TCGA HCC samples which can also serve as control tissues. By default, the octad package uses Small OCTAD dataset containing expression values only for LINCS landmark genes required for sRGES score computation. To download the full expression values, please refer to the link with [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) to download the whole expression dataset. By default, computation results of the pipeline are stored in the working directory. 
+```
+library(octad)
+```
+## Select case samples.
+Choosing which cases (tumor samples from the phenoDF data.frame) and controls (corresponding samples treated as background samples, e.g. normal healthy tissue, adjacent healthy tissue or tumor samples without mutation) to use are the two most important factors in achieving the best results when using this pipeline. There are several methods included in the provided code which evaluate controls relative to cases, but there are no built-in validation steps which evaluate cases. Each group of cases needs to be evaluated individually for validity by the investigator. Visualization of cases in a t-SNE (t-Distributed Stochastic Neighbor Embedding)  plot could help understand their relations with other OCTAD samples. Samples sharing similar transcriptomic profiles tend to cluster together in the t-SNE plot. The cases scattering in multiple clusters are not recommended to choose as a group.
+Phenotype dataframe `phenoDF ` contains tissue types such as normal tissue, adjacent normal tissue, primary cancer, recurrent cancer, and metastatic cancer. We will select for primary hepatocellular carcinoma. To list all available samples from the octad database, use the phenoDF data frame. 
+To select HCC samples, use the code below:
+```
+head(phenoDF)
+
+                 sample.id sample.type                  biopsy.site cancer data.source gender read.count.file age_in_year metastatic_site tumor_grade tumor_stage
+1 GTEX-1117F-0226-SM-5GZZ7      normal       ADIPOSE - SUBCUTANEOUS normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
+2 GTEX-1117F-0426-SM-5EGHI      normal            MUSCLE - SKELETAL normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
+3 GTEX-1117F-0526-SM-5EGHJ      normal              ARTERY - TIBIAL normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
+4 GTEX-1117F-0626-SM-5N9CS      normal            ARTERY - CORONARY normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
+5 GTEX-1117F-0726-SM-5GIEN      normal     HEART - ATRIAL APPENDAGE normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
+6 GTEX-1117F-1326-SM-5EGHH      normal ADIPOSE - VISCERAL (OMENTUM) normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
+  gain_list loss_list mutation_list subtype
+1                              <NA>    <NA>
+2                              <NA>    <NA>
+3                              <NA>    <NA>
+4                              <NA>    <NA>
+5                              <NA>    <NA>
+6                              <NA>    <NA>
+```
+To select data, user can subset the phenoDF for the required data:
+```
+#select data
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+case_id=HCC_primary$sample.id #select cases
+```
+The sample ids will be stored in the character vector case_id. 
+This can be easily modified to select other cancers, or a set of samples based on mutation and copy numbers (e.g., TP53 mutation or MYC amplification). It is also recommended to use the R package cgdsr to select TCGA samples based on more clinical and molecular features.
+```
+#choose breast invasive carcinoma samples with PIK3CA mutation 
+BIC_with_PIK3_primary=subset(phenoDF,cancer=='breast invasive carcinoma'&sample.type == 'primary'&grepl('PIK3CA',mutation_list))
+```
+
+## Compute or select control samples.
+Use the function `computeRefTissue` to compute appropriate normal tissues via comparing gene expression features between case samples and normal tissue samples. Users can select adjacent normal tissue samples if available. By default, features from the precomputed `AutoEncoder` file are used, but other features such as top varying genes across samples can be employed as well. Pairwise Spearman correlation is computed between every case sample and every normal sample using these features. For each normal sample, its median correlation with all case samples is then computed. Top correlated normal samples (defined by control_size) are then selected as control. 
+ ```
+#computing top 50 reference tissues 
+control_id=computeRefTissue(case_id,outputFolder='',output=T,adjacent=T,source = "octad",control_size = 50)
+ ```
+Alternatively, it is possible to select the samples manually:
+ ```
+HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') 
+control_id=HCC_adjacent$sample.id
+ ```
+The relationships among case, control and other samples can be visualised through precomputed  t-SNE matrix. We applied the t-SNE algorithm to whole OCTAD database for computation of the distance between all samples in the phenoDF for increased visualization timings. T-SNE is a non-linear dimensionality reduction technique that is particularly well suited for the visualization of high-dimensional datasets.
+```
+tsne$type <- "others"
+tsne$type[tsne$sample.id %in% case_id] <- "case"
+tsne$type[tsne$sample.id %in% control_id] <- "control"
+
+#plot
+(p2 <- ggplot(tsne, aes(X, Y, color = type)) + geom_point(alpha = 0.4)+
+    labs(title = paste ('TNSE PLOT'), x= 'TSNE Dim1', y='TSNE Dim2', caption="OCTAD")+
+    theme_bw())
+```
+## Compute gene differential expression between case and control samples
+Differential expression can be computed via edgeR, limma + voom, or DESeq2. By default, we use edgeR in the analysis. Since the function `diffExp` computes differentially expressed genes between `case_id` and `control_id` within the same data matrix, it can be used to find differentially expressed genes between any two groups of samples. By default, a small dataset containing only 978 genes shared with the LINCS database is used.
+```
+res=diffExp(case_id,control_id,source='octad.small',output=T)
+```
+If it is need to use the whole OCTAD dataset from [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) as input, make sure the required .h5 file is stored in the R working directory or the whole path to the file is specified:
+```
+res=diffExp(case_id,control_id,source='octad.whole',
+    output=T,n_topGenes=10000,file='octad.counts.and.tpm.h5')
+```
+We can also perform DE analysis using an external dataset. Below is an example to perform DE analysis between tumor and non-tumor samples using the count data downloaded from GEO [GSE144269](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE144269).
+
+```
+data=read.table('GSE144269_RSEM_GeneCounts.txt',header=T,row.names=1)
+samples=colnames(data) #define the case and control cohorts, A samples were obtained from tumors, B samples were obtained from adjacent tissue
+case_id=samples[grepl('A_S',samples)]
+control_id=samples[grepl('B_S',samples)]
+res=diffExp(case_id,control_id,source='side',output=T,n_topGenes=10000,
+    expSet=log2(as.matrix(data)),annotate=F) #compute DE
+```
+The `diffExp` function will produce `data.frame` with DE results. Please, note, that option `annotate` is not required to be `TRUE`, but in this case annotation will be performed. If using custom expression matrix, please, make sure `expSet row.names` contain ENSG symbols that are used to assign gene names and gene descriptions. 
+```
+head(res)
+       identifier log2FoldChange    logCPM        LR       pvalue         padj tax_id GeneID       LocusTag chromosome
+1 ENSG00000000003      0.5860708 10.408806 20.876006 4.899941e-06 2.743967e-03   9606   7105 UNQ767/PRO1560          X
+2 ENSG00000000457     -0.2668590  7.829950  8.622518 3.320326e-03 1.000000e+00   9606  57147    RP1-97P20.2          1
+3 ENSG00000002330      0.3738779  9.205412 11.974950 5.392052e-04 2.399463e-01   9606    572           NULL         11
+4 ENSG00000002549     -0.2008760 10.649280  2.007441 1.565292e-01 1.000000e+00   9606  51056           NULL          4
+5 ENSG00000002919      0.3728050  8.022714 21.368984 3.788507e-06 2.144295e-03   9606  29916           NULL         17
+6 ENSG00000003400     -0.5044907  7.378216 29.173919 6.616385e-08 4.141857e-05   9606    843           NULL          2
+  map_location                                      description           type Symbol_autho
+1         Xq22                                    tetraspanin 6 protein-coding       TSPAN6
+2       1q24.2                      SCY1-like 3 (S. cerevisiae) protein-coding        SCYL3
+3      11q13.1            BCL2-associated agonist of cell death protein-coding          BAD
+4      4p15.32                         leucine aminopeptidase 3 protein-coding         LAP3
+5     17q21.32                                 sorting nexin 11 protein-coding        SNX11
+6     2q33-q34 caspase 10, apoptosis-related cysteine peptidase protein-coding       CASP10
+                                              name status                                    other Symbol
+1                                    tetraspanin 6      O A15 homolog|putative NF-kappa-B-activati TSPAN6
+2                      SCY1-like 3 (S. cerevisiae)      O SCY1-like protein 3|ezrin-binding partne  SCYL3
+3            BCL2-associated agonist of cell death      O BCL-X/BCL-2 binding protein|BCL2-antagon    BAD
+4                         leucine aminopeptidase 3      O LAP-3|cytosol aminopeptidase|leucyl amin   LAP3
+5                                 sorting nexin 11      O                         sorting nexin-11  SNX11
+6 caspase 10, apoptosis-related cysteine peptidase      O CASP-10|FADD-like ICE2|FAS-associated de CASP10
+```
+Use simple subset to filter the DE results:
+```
+res=subset(res,abs(log2FoldChange)>1&padj<0.001)
+```
+## Compute reverse gene expression scores
+The `runsRGES` function is used to identify the drugs that potentially reverses the disease signature. Use the code below to choose significant genes; this works by keeping genes that have low adjusted P-values and high log-fold changes. 
+Launch the sRGES computation. It takes a few minutes to compute RGES scores. After the job is finished, it will output files all_lincs_score.csv (RGES of individual profiles), sRGES.csv (summarized RGES of individual drugs) and dz_sig_used.csv (signature genes used for drug prediction). LINCS also provides the imputed expression of the whole transcriptome based on the 978 genes. We will add it in the future when its usage is fully evaluated. The hits threshold should be considered to be >|0.2|.
+
+```
+sRGES=runsRGES(res,max_gene_size=100,permutations=10000)
+
+head(sRGES)
+# A tibble: 6 x 6
+  pert_iname      mean     n median      sd  sRGES
+  <chr>          <dbl> <int>  <dbl>   <dbl>  <dbl>
+1 BRD-K91617567 -0.527     1 -0.527 NA      -0.527
+2 BRD-K86694468 -0.502     1 -0.502 NA      -0.502
+3 BRD-K64979177 -0.499     1 -0.499 NA      -0.499
+4 BRD-K07660364 -0.494     1 -0.494 NA      -0.494
+5 BRD-K20792495 -0.493     1 -0.493 NA      -0.493
+6 BRD-K68836298 -0.488     2 -0.488  0.0628 -0.488
+```
+## Validate results using published pharmacogenomics data.
+As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in 860 cancer cell lines 39,54, we may leverage this database for further in silico validation of our predictions, even without running any biological experiments. We use the HepG2 cell line to validate the prediction of HCC drugs. In our previous work, we’ve shown that RGES scores correlate with drug efficacy such as AUC or IC50.
+
+```
+cell_line_computed=computeCellLine(case_id=case_id,
+                    returnDF=T,source='octad',file='octad.counts.and.tpm.h5')
+head(cell_line_computed)
+          medcor
+HEPG2  0.4388177
+VCAP   0.2173189
+COV644 0.2107736
+HS578T 0.2054412
+CL34   0.2028619
+SKBR3  0.2020225
+```
+`computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
+```
+topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
+```
+`topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
+1. *_auc_insilico_validation.html (correlation between drug AUC in the specified cell line and sRGES)
+2. *_ic50_insilico_validation.html (correlation between drug IC50 in the specified cell line and sGRES)
+
+## Compute drug enrichment.
+After calculation of sRGES on the L1000 compound dataset, perform drug enrichment analysis to identify interesting drug classes whose member drugs are significantly enriched at the top of the prediction. Example drug classes include anti-inflammatories, EGFR inhibitors, and dipines (calcium channel blockers). We combine LINCS drugs into three lists: MESH, CHEMBL, and CHEM_CLUSTER for MeSH term enrichment, target enrichment, and chemical structure enrichment, respectively. The enrichment score is calculated using ssGSEA 55 and its significance is computed by a permutation test. Figure 5f shows the enrichment of Antimetabolites (drugs that interfere with one or more enzymes or their reactions that are necessary for DNA synthesis), Antineoplastics (drugs used to treat cancer) in the top ranked drugs, suggesting members of this drug class are more likely drug hits.
+
+```
+octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets','mesh','ChemCluster'))
+```
+This analysis provides much information for following candidate selection and experiment design. First, the candidates selected from the same enriched class (i.e., MeSH term, target) are more likely to be true positive than those randomly selected from the top list. Second, when the ideal candidate is not available, it is reasonable to choose an alternative from the same class. Sometimes, it is necessary to choose a new drug for testing (e.g., a second generation of one inhibitor for the same target). Lastly, since many compounds have multiple MOAs, this analysis would help interpret the MOA of promising compounds. 
+
+# Web-version and citation.
+Alternatively the database and the pipeline is available via website of the OCTAD project: http://octad.org/.
+If you use our work, please cite the [OCTAD paper](https://www.biorxiv.org/content/10.1101/821546v1). Both OCTAD package and website was developed by [Bin Chen laboratory](http://binchenlab.org/).
+octad package is github available via [link](https://github.com/Bin-Chen-Lab/octad_desktop)
+
+# Session information.
+Here is the output of `sessionInfo()` on the system on which this document was compiled:
+```
+R version 4.0.2 (2020-06-22)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 18362)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=English_United States.1252  LC_CTYPE=English_United States.1252    LC_MONETARY=English_United States.1252 LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.1252    
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] octad.db_0.99.0             octad_0.99.0                biocViews_1.57.3            Rfast_2.0.1                 RcppZiggurat_0.1.5         
+ [6] Rcpp_1.0.5                  doParallel_1.0.15           iterators_1.0.12            foreach_1.5.0               rhdf5_2.33.9               
+[11] DESeq2_1.29.14              RUVSeq_1.23.0               EDASeq_2.23.2               ShortRead_1.47.2            GenomicAlignments_1.25.3   
+[16] SummarizedExperiment_1.19.7 DelayedArray_0.15.10        matrixStats_0.57.0          Matrix_1.2-18               Rsamtools_2.5.3            
+[21] GenomicRanges_1.41.6        GenomeInfoDb_1.25.11        Biostrings_2.57.2           XVector_0.29.3              IRanges_2.23.10            
+[26] S4Vectors_0.27.13           BiocParallel_1.23.2         Biobase_2.49.1              BiocGenerics_0.35.4         edgeR_3.31.4               
+[31] limma_3.45.14               ggplot2_3.3.2               dplyr_1.0.2                 magrittr_1.5                BiocCheck_1.25.13          
+
+loaded via a namespace (and not attached):
+  [1] backports_1.1.10       aroma.light_3.19.0     BiocFileCache_1.13.1   splines_4.0.2          usethis_1.6.3          digest_0.6.25         
+  [7] htmltools_0.5.0        fansi_0.4.1            memoise_1.1.0          remotes_2.2.0          annotate_1.67.1        R.utils_2.10.1        
+ [13] askpass_1.1            prettyunits_1.1.1      jpeg_0.1-8.1           colorspace_1.4-1       blob_1.2.1             rappdirs_0.3.1        
+ [19] xfun_0.16              jsonlite_1.7.1         callr_3.4.4            crayon_1.3.4           RCurl_1.98-1.2         roxygen2_7.1.1        
+ [25] graph_1.67.1           genefilter_1.71.0      survival_3.2-7         glue_1.4.2             gtable_0.3.0           zlibbioc_1.35.0       
+ [31] pkgbuild_1.1.0         Rhdf5lib_1.11.3        scales_1.1.1           DBI_1.1.0              xtable_1.8-4           progress_1.2.2        
+ [37] bit_4.0.4              httr_1.4.2             getopt_1.20.3          RColorBrewer_1.1-2     ellipsis_0.3.1         pkgconfig_2.0.3       
+ [43] XML_3.99-0.5           R.methodsS3_1.8.1      dbplyr_1.4.4           locfit_1.5-9.4         tidyselect_1.1.0       rlang_0.4.7           
+ [49] AnnotationDbi_1.51.3   munsell_0.5.0          tools_4.0.2            cli_2.0.2              generics_0.0.2         RSQLite_2.2.0         
+ [55] devtools_2.3.2         evaluate_0.14          stringr_1.4.0          yaml_2.2.1             processx_3.4.4         knitr_1.30            
+ [61] bit64_4.0.5            fs_1.5.0               purrr_0.3.4            RBGL_1.65.0            whisker_0.4            R.oo_1.24.0           
+ [67] xml2_1.3.2             biomaRt_2.45.3         compiler_4.0.2         rstudioapi_0.11        curl_4.3               png_0.1-7             
+ [73] testthat_2.3.2         tibble_3.0.3           geneplotter_1.67.0     stringi_1.5.3          ps_1.3.4               GenomicFeatures_1.41.3
+ [79] desc_1.2.0             lattice_0.20-41        vctrs_0.3.4            stringdist_0.9.6       pillar_1.4.6           lifecycle_0.2.0       
+ [85] rhdf5filters_1.1.3     RUnit_0.4.32           optparse_1.6.6         BiocManager_1.30.10    bitops_1.0-6           rtracklayer_1.49.5    
+ [91] R6_2.4.1               latticeExtra_0.6-29    hwriter_1.3.2          sessioninfo_1.1.1      codetools_0.2-16       MASS_7.3-53           
+ [97] assertthat_0.2.1       pkgload_1.1.0          openssl_1.4.3          rprojroot_1.3-2        withr_2.3.0            GenomeInfoDbData_1.2.3
+[103] hms_0.5.3              grid_4.0.2             rmarkdown_2.3          git2r_0.27.1           tinytex_0.26    
+```
+
+
