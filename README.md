@@ -35,7 +35,7 @@ install.packages("https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.
 It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
 Finally, install the package:
 ```
-devtools::install_github('Bin-Chen-Lab/OCTAD',build_vignettes = TRUE)
+devtools::install_github('Bin-Chen-Lab/octad',build_vignettes = TRUE)
 ```
 
 # Additional data
