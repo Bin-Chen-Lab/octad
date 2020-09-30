@@ -23,7 +23,7 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 }
 ```
 
-Next, install the octad.db, package with all required files for computation avalilable via link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0)
+Next, install the octad.db, package with all required files for computation available via link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0)
 ```
 install.packages("octad.db_0.99.0.tar", repos = NULL, type="source")
 ```

@@ -2,7 +2,7 @@
 \alias{diffExp}
 \title{Compute differential expression}
 \description{
-  Compute differential expression for case vs control samples. Will produce the file \code{computedEmpGenes.csv} listing empiricaly differentially expressed genes used for RNA-Seq normalization. 
+  Compute differential expression for case vs control samples. Will produce the file \code{computedEmpGenes.csv} listing empiricaly differentially expressed genes used for RNA-Seq normalization.
 }
 \usage{
   diffExp(case_id,control_id,source='octad.whole',output=T,normalize_samples=T,
@@ -28,25 +28,21 @@
   \code{\link{computeRefTissue},\link{runsRGES},\link{geneEnrich}}.
 }
 \examples{
- #compute differential expression,
- #DE_method='edgeR',
- #normalize_samples=T,
- #ready source='octad.small' or 'octad.whole' using data for LINCS genes or whole octad dataset,
- #IT DOES MATTER!!!, or you can load your own expression data.
- #by default output=T and outputFolder is empty sending control corMatrix.csv to working directory.
- #and you need to source full path to .h5 file containing count expression data.
- #By default files being sourced with package and their names are
- #octad.LINCS.h5 for 978 expression signatures and octad.counts.and.tpm.h5
- ref_deseq = diffExp(case_id, control_id, DE_method = "edgeR", source='octad.whole', 
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+case_id=HCC_primary$sample.id #select cases
+HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data
+control_id=HCC_adjacent$sample.id #select cases
+
+ ref_deseq = diffExp(case_id, control_id, DE_method = "edgeR", source='octad.whole',
     file='octad.counts.and.tpm.h5')
- #to use the small subset. It is fast but has less coverage of transcriptome and 
+ #to use the small subset. It is fast but has less coverage of transcriptome and
  #lower performance due to normalization and multiple comparison issues.
   res=diffExp(case_id,control_id,expSet='octad.small',output=T)
   ref_edgeR = diffExp(case_id, control_id, DE_method = "edgeR")
   ref_limma = diffExp(case_id, control_id, DE_method = "limma")
   # By default the normalization is performed, but it can be manually turned off:
   ref_deseq = diffExp(case_id, control_id, DE_method = "DESeq2", normalize_samples = F, n_topGenes = 500)
-  #And filter the result by log2fold-change and adjusted p.value. 
+  #And filter the result by log2fold-change and adjusted p.value.
   res = ref_deseq[abs(ref_deseq$log2FoldChange) > 2 & ref_deseq$padj < 0.001, ]
   ref_edgeR = diffExp(case_id, control_id, DE_method = "edgeR", normalize_samples = F)
   ref_limma = diffExp(case_id, control_id, DE_method = "limma", normalize_samples = F)

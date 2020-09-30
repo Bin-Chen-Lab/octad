@@ -21,13 +21,12 @@
   \code{\link{diffExp}}
 }
 \examples{
+#gene list
 genes=c('PHF14', 'RBM3', 'MSL1', 'PHF21A', 'ARL10', 'INSR', 'JADE2', 'P2RX7')
 db=c('KEGG_2019_Human','KEGG_2015')
-
 enrich=geneEnrich(gene_list=genes,database_list=db)
-
-gene_e = geneEnrich(res$Symbol[res$log2FoldChange > 2], 
-  database_list = c("KEGG_2019_Human", "GO_Biological_Process_2017"))
+#output
+gene_e = geneEnrich(genes,  database_list = db)
 dim(gene_e$KEGG_2019_Human)
 dim(gene_e$GO_Biological_Process_2017)
 

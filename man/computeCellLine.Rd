@@ -2,8 +2,8 @@
 \alias{computeCellLine }
 \title{Compute Correlation between cell lines and vector of case ids.}
 \description{
- Select top CCLE cell lines sharing similar expression profiles with input case samples. Input case sample ids and output correlation scores for every cell line and/or output file. The results could be used for in-silico validation of predictions or used to weight cell lines in RGES computation. 
- \code{CellLineCorrelations.csv}, correlation between CCLE cell lines and input disease samples. 
+ Select top CCLE cell lines sharing similar expression profiles with input case samples. Input case sample ids and output correlation scores for every cell line and/or output file. The results could be used for in-silico validation of predictions or used to weight cell lines in RGES computation.
+ \code{CellLineCorrelations.csv}, correlation between CCLE cell lines and input disease samples.
 
 }
 \usage{
@@ -23,6 +23,8 @@
  \code{\link{runsRGES}}
 }
 \examples{
+ HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+ case_id=HCC_primary$sample.id #select cases
  cell_line_computed=computeCellLine(case_id=case_id,returnDF=T)
  computeCellLine(case_id,returnDF=T,source='octad.whole',file='octad.counts.and.tpm.h5')
 
