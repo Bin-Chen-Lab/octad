@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 ### E. Chekalin, B. Zeng, P. Newbury, B. Glicksberg, J. Xing, K. Liu, D. Joseph, B. Chen
-Edited September 28, 2020; Compiled: September 29, 2020
+Edited on September 28, 2020; Compiled on September 29, 2020
 
 # Package overview
 As the field of precision medicine progresses, we start to tailor treatments for cancer patients classified not only by their clinical, but also by their molecular features. The emerging cancer subtypes defined by these features require dedicated resources to assist the discovery of drug candidates for preclinical evaluation. Voluminous cancer patient gene expression profiles have been accumulated in public databases, enabling the creation of a cancer-specific expression signature. Meanwhile, large-scale gene expression profiles of chemical compounds became available in recent years. By matching the cancer-specific expression signature to compound-induced gene expression profiles from large drug libraries, researchers can prioritize small molecules that present high potency to reverse expression of signature genes for further experimental testing of their efficacy. This approach has proven to be an efficient and cost-effective way to identify efficacious drug candidates. However, the success of this approach requires multiscale procedures, imposing significant challenges to many labs. Therefore, we present OCTAD (http://octad.org): an open workspace for virtually screening compounds targeting precise cancer patient groups using gene expression features. We have included 19,127 patient tissue samples covering 50 cancer types, and expression profiles for 12,442 distinct compounds. We will continue to include more samples. We streamline all the procedures including deep-learning based reference tissue selection, disease gene expression signature creation, drug reversal potency scoring, and in silico validation. We release OCTAD as a web portal and a standalone R package to allow experimental and computational scientists to easily navigate the tool. 
@@ -41,27 +41,28 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 }
 ```
 
-Next, install the octad.db, package with all required files for computation available via link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0). The size of the files required for pipeline processing is ~400mb.
+Next, install the octad.db package available via the link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0). It includes all required data files for computation (size: ~400 M).
 ```
 install.packages("octad.db_0.99.0.tar", repos = NULL, type="source")
 ```
-Or without downloading the distributive:
+Or without downloading the package:
 ```
 install.packages("https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0",
                  method="libcurl",repos=NULL,type="source")
 ```
-It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
-Finally, install the package:
+It takes a few minutes to install the package and verify files. 
+
+Finally, install the octad package:
 ```
-devtools::install_github('Bin-Chen-Lab/octad_desktop')
+devtools::install_github('Bin-Chen-Lab/octad')
 ```
 # Workflow
-We illustrate the utility of the desktop pipeline by highlighting a use-case for HCC: we provide code and data for investigating differential expression, pathway enrichment, drug prediction and hit selection, and in silico validation using an external dataset. In this workflow, we will select case tissue samples from our compiled TCGA data and compute control tissues from the GTEx data.Note that our compiled data also contains adjacent normal TCGA HCC samples which can also serve as control tissues. By default, the octad package uses Small OCTAD dataset containing expression values only for LINCS landmark genes required for sRGES score computation. To download the full expression values, please refer to the link with [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) to download the whole expression dataset. By default, computation results of the pipeline are stored in the working directory. 
+We illustrate the utility of the desktop pipeline by highlighting a use-case for HCC: we provide code and data for investigating differential expression, pathway enrichment, drug prediction and hit selection, and in silico validation using an external dataset. In this workflow, we will select case tissue samples from our compiled TCGA data and compute control tissues from the GTEx data. Note that our compiled data contains adjacent normal TCGA HCC samples which can also serve as control tissues. By default, the octad package uses Small OCTAD dataset containing expression values only for LINCS 978 landmark genes required for sRGES score computation. To download the full expression value matrix, please refer to the link with [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5). We encourage to use the full OCTAD dataset. By default, computation results of the pipeline are stored in the working directory. 
 ```
 library(octad)
 ```
-## Select case samples.
-Choosing which cases (tumor samples from the phenoDF data.frame) and controls (corresponding samples treated as background samples, e.g. normal healthy tissue, adjacent healthy tissue or tumor samples without mutation) to use are the two most important factors in achieving the best results when using this pipeline. There are several methods included in the provided code which evaluate controls relative to cases, but there are no built-in validation steps which evaluate cases. Each group of cases needs to be evaluated individually for validity by the investigator. Visualization of cases in a t-SNE (t-Distributed Stochastic Neighbor Embedding)  plot could help understand their relations with other OCTAD samples. Samples sharing similar transcriptomic profiles tend to cluster together in the t-SNE plot. The cases scattering in multiple clusters are not recommended to choose as a group.
+## Select case samples
+Choosing cases (tumor samples from the phenoDF data.frame) and controls (corresponding samples treated as background such as healthy tissue, adjacent normal tissue or tumor tissue samples without a specific mutation) are critical in achieving the best results. Several methods are included in the provided code which evaluate controls relative to cases, but there are no built-in validation steps which evaluate cases. Each group of cases needs to be evaluated individually for validity by the investigator. Visualization of cases in a t-SNE (t-Distributed Stochastic Neighbor Embedding)  plot could help understand their relations with other OCTAD samples. Samples sharing similar transcriptomic profiles tend to cluster together in the t-SNE plot. The cases scattering in multiple clusters are not recommended to choose as a group.
 Phenotype dataframe `phenoDF ` contains tissue types such as normal tissue, adjacent normal tissue, primary cancer, recurrent cancer, and metastatic cancer. We will select for primary hepatocellular carcinoma. To list all available samples from the octad database, use the phenoDF data frame. 
 To select HCC samples, use the code below:
 ```
