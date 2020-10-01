@@ -2,15 +2,12 @@
 \alias{computeRefTissue}
 \title{Compute correlating reference control samples.}
 \description{
-Compute reference control samples from OCTAD database using precomputed \code{EncoderDF} models. Return
-a vector of an appropriate set of control samples. Besides, if \code{output=TRUE}, two files are created in the working directory:
-\code{case_normal_corMatrix.csv} which contains pairwise correlation between case samples vs control samples, and
-\code{case_normal_median_cor.csv}, which contains median correlation values with case samples for returned control samples.
+Compute reference control samples from OCTAD database using precomputed \code{EncoderDF} models. 
 }
 \usage{
- computeRefTissue(case_id)
- computeRefTissue(case_id,outputFolder='',output=T,
- adjacent=T, expSet = "octad",control_size = 50)
+ computeRefTissue(case_id=NULL,adjacent=FALSE,source='octad',n_varGenes = 500,method='varGenes',expSet=NULL,control_size = length(case_id),outputFolder='',cor_cutoff='0',output=TRUE)
+
+
 }
 \arguments{
 \item{case_id}{vector of cases used to compute references.}
@@ -24,6 +21,13 @@ a vector of an appropriate set of control samples. Besides, if \code{output=TRUE
 \item{cor_cutoff}{cut-off for correlation values, by default \code{cor_cutoff='0'}.}
 \item{output}{if \code{TRUE}, two output files are produced.}
 }
+\value{
+Return
+\item{control_id}{a vector of an appropriate set of control samples.}
+Besides, if \code{output=TRUE}, two files are created in the working directory:
+\item{case_normal_corMatrix.csv}{contains pairwise correlation between case samples vs control samples.}
+\item{case_normal_median_cor.csv}{contains median correlation values with case samples for returned control samples.}
+}
 \seealso{
  \code{\link{diffExp}}.
 }
@@ -34,17 +38,11 @@ a vector of an appropriate set of control samples. Besides, if \code{output=TRUE
  #select cases
  case_id=HCC_primary$sample.id
  #computing reference tissue, by default using small autoEncoder, but can use custom expression set,
- #by default output=T and outputFolder option is empty,
+ #by default output=TRUE and outputFolder option is empty,
  #which creates control corMatrix.csv to working directory
- control_id=computeRefTissue(case_id,outputFolder='',output=T, expSet = "octad",control_size = 50)
+ control_id=computeRefTissue(case_id,outputFolder='',output=TRUE, expSet = "octad",control_size = 50)
  #increase number of samples
  control_id=computeRefTissue(case_id, control_size = 100)
- #the use adjacent normal tissue samples as control_id allow you to avoid running this function
- control_id =subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
-           sample.type == 'adjacent' & data.source == 'TCGA')
- #by default the autoencoder is used. User can use expression data to compute reference tissue
- expression_log2=loadOctadCounts(sample_vector=phenoDF$sample.id,
-        type='tpm',file='octad.counts.and.tpm.h5')
- control_id=computeRefTissue(case_id, control_size = 50,expSet=expression_log2,source='side')
+
 }
 \keyword{computeRefTissue}

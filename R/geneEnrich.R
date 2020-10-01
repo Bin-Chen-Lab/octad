@@ -1,5 +1,7 @@
 #' @export
+#' @import httr
 geneEnrich=function(gene_list=NULL,database_list=NULL,output=FALSE){
+
   if(is.null(gene_list)|is.null(database_list)){
     stop('Source gene_list vector and database_list vector please')
   }

@@ -1,9 +1,100 @@
 #' @export
+#' @importFrom Rfast colRanks 
+#' @importFrom dplyr summarise id desc
+#' @importFrom plotly group_by
+#' @import octad.db
+
 #### runsRGES #######
-runsRGES <- function(dz_signature=NULL,choose_fda_drugs = F,max_gene_size=500, 
-                     cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000
-){
-require(octad.db)
+runsRGES <- function(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
+                     cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000){
+  getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor){
+    
+    sRGES <- RGES
+    pert_time <- ifelse(pert_time < 24, "short", "long")
+    pert_dose <- ifelse(pert_dose < 10, "low", "high")
+    if (pert_time == "short" & pert_dose == "low"){
+      sRGES <- sRGES + diff[4]
+    }
+    if (pert_dose ==  "low" & pert_time == "long"){
+      sRGES <- sRGES + diff[2]
+    }
+    if (pert_dose ==  "high" & pert_time == "short"){
+      sRGES <- sRGES + diff[1]
+    }
+    return(sRGES * cor/max_cor) 
+  }
+  
+cmap_score_ultimate=function (sig_up, sig_down, drug_signature) 
+{
+    num_genes <- length(drug_signature)
+    ks_up <- 0
+    ks_down <- 0
+    connectivity_score <- 0
+	
+	
+	drug_signature=rank(drug_signature)
+	up_tags_rank=drug_signature[as.vector(sig_up)]
+	down_tags_rank=drug_signature[as.vector(sig_down)]
+
+up_tags_position=sort(up_tags_rank)
+down_tags_position=sort(down_tags_rank)
+
+    num_tags_up <- length(up_tags_position)
+    num_tags_down <- length(down_tags_position)
+    if (num_tags_up > 1) {
+        a_up <- 0
+        b_up <- 0
+        a_up <- max(sapply(1:num_tags_up, function(j) {
+            j/num_tags_up - up_tags_position[j]/num_genes
+        }))
+        b_up <- max(sapply(1:num_tags_up, function(j) {
+            up_tags_position[j]/num_genes - (j - 1)/num_tags_up
+        }))
+        if (a_up > b_up) {
+            ks_up <- a_up
+        }
+        else {
+            ks_up <- -b_up
+        }
+    }
+    else {
+        ks_up <- 0
+    }
+    if (num_tags_down > 1) {
+        a_down <- 0
+        b_down <- 0
+        a_down <- max(sapply(1:num_tags_down, function(j) {
+            j/num_tags_down - down_tags_position[j]/num_genes
+        }))
+        b_down <- max(sapply(1:num_tags_down, function(j) {
+            down_tags_position[j]/num_genes - (j - 1)/num_tags_down
+        }))
+        if (a_down > b_down) {
+            ks_down <- a_down
+        }
+        else {
+            ks_down <- -b_down
+        }
+    }
+    else {
+        ks_down <- 0
+    }
+    if (ks_up == 0 & ks_down != 0) {
+        connectivity_score <- -ks_down
+    }
+    else if (ks_up != 0 & ks_down == 0) {
+        connectivity_score <- ks_up
+    }
+    else if (sum(sign(c(ks_down, ks_up))) == 0) {
+        connectivity_score <- ks_up - ks_down
+    }
+    else {
+        connectivity_score <- ks_up - ks_down
+    }
+    return(connectivity_score)
+}
+  
+  
   if(missing(dz_signature)){
 stop('Disease signature input not found')
 }
@@ -17,42 +108,6 @@ stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
 		dir.create(outputFolder)
 		}
   }
-  
-  #  require("dplyr")
-  #  require("ggplot2")
-  #  require(data.table)
-  #RGES
-  #Compute RGES by calculating reversal gene expression from LINCS1000
-  ####DataFrames####
-  #lincs_signature : dataframe for lincs pertubation data 
-  #row id : landmark genes 978 of them
-  #need metadata to change them to Symbol
-  #col id : experiment id
-  #need metadata to parse them
-  #lincs_sig_info : experiment info for lincs pertubation data
-  #row id corresponds to lincs_signature column id
-  #fda_drugs : fda drug data
-  
-  ####required input####
-  #outputFolder : folder to output the drug resutls
-  #dataFolder : root folder with lincs input data
-  #dz_signature : disease signature genes dataframe
-  #required columns Symbol : this must be an UPPERCASE gene symbol needed to join with RGES landmark genes
-  #must change this if they require another identifier
-  
-  ####parameters####
-  #store these parameters somewhere if you are doing multiple runs for comparison
-  
-  # default parameters
-  # landmark = 1
-  # choose_fda_drugs = F
-  # max_gene_size = 100
-  # weight_cell_line = F
-  #load dz_signature
-  #load output folder
-  #load LINCS drug gene expression profiles
-  # load("data/lincs_sig_info")
-  #  lincs_sig_info <- data.table::fread("data/lincs_sig_info.csv", stringsAsFactors = TRUE)
 
   if(!missing(cells)){
     lincs_sig_info$cell_id = toupper(octad.db::lincs_sig_info$cell_id)
@@ -62,11 +117,7 @@ stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
   }else if(missing(cells)){
     cells='' #plug for older code version
   }
-#  landmark = 1
- # if (landmark == 1){
-    #there are a few lincs dataframes in the datafolder but for some reason only this one has gene symbols...
-    #load(paste0('data/lincs_signatures.rda'))
-    lincs_signatures=octad.db::lincs_signatures
+   lincs_signatures=octad.db::lincs_signatures
 #  }else{
     #don't bother
  #   load(paste0(data,"lincs_signatures_cmpd_landmark_GSE92742.RData"))
@@ -79,7 +130,7 @@ stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
     lincs_sig_info_FDA <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(pert_iname) %in% tolower(fda_drugs$pert_iname))
     FDAdf <- select(lincs_sig_info_FDA, pert_id, pert_iname)
     FDAdf <- unique(FDAdf[,1:2])
-    write.csv(FDAdf,file = paste0(outputFolder,"FDA_approved_drugs.csv"),row.names = F)
+    write.csv(FDAdf,file = paste0(outputFolder,"FDA_approved_drugs.csv"),row.names = FALSE)
     lincs_sig_info <- lincs_sig_info %>% filter(id %in% colnames(lincs_signatures))
   }else{
     lincs_sig_info <- lincs_sig_info %>% filter(id %in% colnames(lincs_signatures))
@@ -120,7 +171,7 @@ stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
   #print(paste('finished loading in', round(Sys.time()-start,2),units(Sys.time()-start)))
   #start=Sys.time()
   
-  parallel=F
+  parallel=FALSE
   if(!parallel){
     #    require(lme4)
     #   require(Rfast)
@@ -186,35 +237,7 @@ random_cmap_scores=apply(cmap_exp_signature,2,
                            sample(1:length(dz_genes_up$Symbol),replace=TRUE),
                            sample(1:length(dz_genes_down$Symbol),replace=TRUE),
                            drug_signature=x))
-
-#random_input_signature_genes <- sample(gene.list, (nrow(dz_genes_up)+nrow(dz_genes_down)))
-
-#rand_dz_gene_up <- data.frame(GeneID=random_input_signature_genes[1:nrow(dz_genes_up)])
-#rand_dz_gene_down <- data.frame(GeneID=random_input_signature_genes[(nrow(dz_genes_up)+1):
-#length(random_input_signature_genes)])
-
-#random_cmap_scores <- c(random_cmap_scores, cmap_score_new(rand_dz_gene_up,rand_dz_gene_down,cmap_exp_signature))
-   #print(paste('ready to start permutations', round(Sys.time()-start,2),units(Sys.time()-start)))
-    #start=Sys.time()
-#    for (expr_id in random_sig_ids){
- #     i=i+1
- #     setTxtProgressBar(pb, i) 
- #     count <- count + 1
-      #print(count)
-  #    cmap_exp_signature <- data.frame(gene.list,  
- #                                      rank(-1 * lincs_signatures[, as.character(expr_id)], ties.method="random"))    
-  #    colnames(cmap_exp_signature) <- c("ids","rank")
-      # cmap_exp_sig <- Rfast::colRanks(-1 * lincs_signatures, method = "min")    
-      # names.list <- list(rownames(lincs_sig),colnames(lincs_sig))
-      # dimnames(cmap_exp_signature) <- names.list
-      
-#      random_input_signature_genes <- sample(gene.list, (nrow(dz_genes_up)+nrow(dz_genes_down)))
-#      rand_dz_gene_up <- data.frame(GeneID=random_input_signature_genes[1:nrow(dz_genes_up)])
-#      rand_dz_gene_down <- data.frame(GeneID=random_input_signature_genes[(nrow(dz_genes_up)+1):length(random_input_signature_genes)])
-#      random_cmap_scores <- c(random_cmap_scores, cmap_score_new(rand_dz_gene_up,rand_dz_gene_down,cmap_exp_signature))
-#    }
-    #print(paste('finished lpermutations', round(Sys.time()-start,2),units(Sys.time()-start)))
-    #start=Sys.time()   
+ 
     p <- sapply(dz_cmap_scores, function(score){
       sum(random_cmap_scores < score)/length(random_cmap_scores)
     })

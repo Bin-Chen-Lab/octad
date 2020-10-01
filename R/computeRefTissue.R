@@ -1,5 +1,9 @@
 #' @export
 #' @importFrom magrittr %>%	
+#' @import octad.db stats
+#' @importFrom dplyr filter select arrange mutate desc
+
+
 computeRefTissue <- function(case_id = NULL,
 								adjacent=FALSE,
                              source='octad',n_varGenes = 500,
@@ -10,11 +14,10 @@ computeRefTissue <- function(case_id = NULL,
                              #all will select samples from 90th percentile
                              control_size = length(case_id),
 							 outputFolder='',
-                             cor_cutoff='0%', #greater or equal than the cutoff 
+                             cor_cutoff='0', #greater or equal than the cutoff 
                              output=TRUE){
 	 
 #  require(dplyr)
-require(octad.db)
 if(missing(case_id)){
 stop('Case ids vector input not found')
 }
@@ -78,13 +81,13 @@ normal_id=normal_id[normal_id%in%colnames(expSet)]
 		tryCatch(write.csv(normal_dz_cor,file = paste0(outputFolder,'/case_normal_corMatrix.csv')),
                error = function(c) "failed to write case normal cor matrix csv. Try checking if your outputFolder string is correct or exists")
       
-		tryCatch(write.csv(normal_dz_cor_eachDF,row.names = F, paste0(outputFolder, "/case_normal_median_cor.csv")),
+		tryCatch(write.csv(normal_dz_cor_eachDF,row.names = FALSE, paste0(outputFolder, "/case_normal_median_cor.csv")),
                error = function(c) "failed to write case normal median correlation csv. Try checking if your outputFolder string is correct or exists")
 }else{
     tryCatch(write.csv(normal_dz_cor,file = paste0(outputFolder,'case_normal_corMatrix.csv')),
                error = function(c) "failed to write case normal cor matrix csv. Try checking if your outputFolder string is correct or exists")
       
-    tryCatch(write.csv(normal_dz_cor_eachDF,row.names = F, paste0(outputFolder, "case_normal_median_cor.csv")),
+    tryCatch(write.csv(normal_dz_cor_eachDF,row.names = FALSE, paste0(outputFolder, "case_normal_median_cor.csv")),
                error = function(c) "failed to write case normal median correlation csv. Try checking if your outputFolder string is correct or exists")
     }}
     return(GTEXid)
@@ -97,13 +100,13 @@ normal_id=normal_id[normal_id%in%colnames(expSet)]
 		tryCatch(write.csv(normal_dz_cor,file = paste0(outputFolder,'/case_normal_corMatrix.csv')),
                error = function(c) "failed to write case normal cor matrix csv. Try checking if your outputFolder string is correct or exists")
       
-		tryCatch(write.csv(normal_dz_cor_eachDF,row.names = F, paste0(outputFolder, "/case_normal_median_cor.csv")),
+		tryCatch(write.csv(normal_dz_cor_eachDF,row.names = FALSE, paste0(outputFolder, "/case_normal_median_cor.csv")),
                error = function(c) "failed to write case normal median correlation csv. Try checking if your outputFolder string is correct or exists")
 }else{
     tryCatch(write.csv(normal_dz_cor,file = paste0(outputFolder,'case_normal_corMatrix.csv')),
                error = function(c) "failed to write case normal cor matrix csv. Try checking if your outputFolder string is correct or exists")
       
-    tryCatch(write.csv(normal_dz_cor_eachDF,row.names = F, paste0(outputFolder, "case_normal_median_cor.csv")),
+    tryCatch(write.csv(normal_dz_cor_eachDF,row.names = FALSE, paste0(outputFolder, "case_normal_median_cor.csv")),
                error = function(c) "failed to write case normal median correlation csv. Try checking if your outputFolder string is correct or exists")
     }}
     return(GTEXid)

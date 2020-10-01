@@ -1,9 +1,9 @@
 #' @export
+#' @import rhdf5
 #### runsRGES #######
 loadOctadCounts <- function(sample_vector='',type='tpm',file=''){
   #  require(dplyr)
   #  require(RUVSeq)
-  #  require(edgeR)
   transcripts = as.character(rhdf5::h5read(file, "meta/transcripts"))
   samples = as.character(rhdf5::h5read(file, "meta/samples"))
   if(type=='counts'){

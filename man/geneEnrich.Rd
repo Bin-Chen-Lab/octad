@@ -5,10 +5,8 @@
    Perform functional enrichment analysis for disease signature genes. This function interacts with Enrichr's REST API for enrichment analysis. Databases are specified with underscores for spaces (e.g. "WikiPathways_2016", "KEGG_2019_Human", "GO_Biological_Process_2018"). Other databases are listed on the website (https://amp.pharm.mssm.edu/Enrichr/#stats). A list of data.frame is produced. Every data.frame contain enriched terms for a specific selected database.
 }
 \usage{
-  GO <- geneEnrich(gene_list,
-                       database_list=c( "KEGG_2019_Human",
-                       "GO_Biological_Process_2017",
-                       "GO_Cellular_Component_2017"),output=F)
+geneEnrich(gene_list=NULL,
+                       database_list=NULL,output=FALSE)
 
 }
 \arguments{
@@ -16,6 +14,9 @@
 \item{database_list}{a vector of EnrichR-supported databases. }
 \item{output}{if \code{TRUE} dataframe with names of selected databases with GO will be produced.}
 
+}
+\value{
+\item{GO_enriched}{\code{list} with result of GO analysis. Every leaf is a \code{data.frame} containing GO enrichment for specific database.}
 }
 \seealso{
   \code{\link{diffExp}}

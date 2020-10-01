@@ -1,5 +1,5 @@
 Package: octad
-Title: Open Cancer TherApeutic Discovery (OCTAD).
+Title: Open Cancer TherApeutic Discovery (OCTAD)
 Version: 0.99.0
 Authors@R: 
     c(person(given = "E.",
@@ -32,7 +32,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Depends: 
-    R (>= 2.10),
+    R (>= 4.0),
     magrittr,
     dplyr,
     ggplot2,
@@ -43,7 +43,17 @@ Depends:
     rhdf5,
     doParallel,
     foreach,
-    Rfast
+    Rfast,
+    octad.db,
+    stats,
+    httr
+Imports:
+    EDASeq, 
+    GSVA, 
+    data.table, 
+    htmlwidgets, 
+    plotly, 
+    reshape2
 Suggests: 
     knitr,
     rmarkdown

@@ -5,9 +5,10 @@
   Compute differential expression for case vs control samples. Will produce the file \code{computedEmpGenes.csv} listing empiricaly differentially expressed genes used for RNA-Seq normalization.
 }
 \usage{
-  diffExp(case_id,control_id,source='octad.whole',output=T,normalize_samples=T,
-          file='octad.counts.and.tpm.h5')
-  diffExp(case_id,control_id,source='octad.small',output=T,normalize_samples=T)
+  diffExp(case_id='',control_id='',source='octad.small',
+  file='octad.counts.and.tpm.h5',normalize_samples=TRUE,k=1,
+  expSet=NULL,n_topGenes=500,DE_method='edgeR',
+  parallel_cores = 2,output=TRUE,outputFolder='', annotate=TRUE)
 }
 \arguments{
   \item{case_id}{vector of cases used for differential expression.}
@@ -16,7 +17,7 @@
   \item{expSet}{input expression matrix. By default set to \code{NULL} since the expSet is created based on cases, controls and source file.}
   \item{file}{if \code{expSet='octad.whole'}, source path to \code{expSet='octad.counts.and.tpm.h5'} file is required if it is not in working directory. By default function seeks for the .h5 file in the working directory.}
   \item{normalize_samples}{if TRUE, RUVSeq normalization is applied to either EdgeR or DESeq. No normalization needed for limma+voom.}
-  \item{k}{eiter k=1 (by default), k=2 or k=3, number of factors used in model matrix construction in RUVSeq normalization if \code{normalize_samples=T}.}
+  \item{k}{eiter k=1 (by default), k=2 or k=3, number of factors used in model matrix construction in RUVSeq normalization if \code{normalize_samples=TRUE}.}
   \item{n_topGenes}{number of empiricaly differentially expressed genes estimated for RUVSeq normalization. Default is 5000. }
   \item{DE_method}{edgeR, DESeq2 or limma DE analysis.}
   \item{parallel_cores}{number of cores to be used for parallel computing in DESeq2.}
@@ -24,6 +25,11 @@
   \item{outputFolder}{path to output folder. By default, the function produces result files in working directory.}
   \item{annotate}{if \code{TRUE}, annotation by ENSEMBL gene is performed. If \code{TRUE}, make sure row.names of the custom input contain ensembl gene ids.}
 }
+\value{
+\item{res}{\code{data.frame} with list of differentially expressed genes.}
+\item{computedEmpGenes.csv}{\code{data.frame} listing empiricaly differentially expressed genes used for RNA-Seq normalization.}
+}
+
 \seealso{
   \code{\link{computeRefTissue},\link{runsRGES},\link{geneEnrich}}.
 }
@@ -32,19 +38,6 @@ HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type 
 case_id=HCC_primary$sample.id #select cases
 HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data
 control_id=HCC_adjacent$sample.id #select cases
-
- ref_deseq = diffExp(case_id, control_id, DE_method = "edgeR", source='octad.whole',
-    file='octad.counts.and.tpm.h5')
- #to use the small subset. It is fast but has less coverage of transcriptome and
- #lower performance due to normalization and multiple comparison issues.
-  res=diffExp(case_id,control_id,expSet='octad.small',output=T)
-  ref_edgeR = diffExp(case_id, control_id, DE_method = "edgeR")
-  ref_limma = diffExp(case_id, control_id, DE_method = "limma")
-  # By default the normalization is performed, but it can be manually turned off:
-  ref_deseq = diffExp(case_id, control_id, DE_method = "DESeq2", normalize_samples = F, n_topGenes = 500)
-  #And filter the result by log2fold-change and adjusted p.value.
-  res = ref_deseq[abs(ref_deseq$log2FoldChange) > 2 & ref_deseq$padj < 0.001, ]
-  ref_edgeR = diffExp(case_id, control_id, DE_method = "edgeR", normalize_samples = F)
-  ref_limma = diffExp(case_id, control_id, DE_method = "limma", normalize_samples = F)
+res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
 }
 \keyword{diffExp}

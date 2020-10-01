@@ -1,20 +1,28 @@
 #' @export
-diffExp <- function(case_id='',control_id='',source='octad',file='octad.counts.and.tpm.h5',
+#' @importFrom  rhdf5 h5read H5close
+#' @import RUVSeq edgeR DESeq2 EDASeq stats
+#' @importFrom  dplyr everything left_join
+
+
+diffExp <- function(case_id='',control_id='',source='octad.small',file='octad.counts.and.tpm.h5',
                     normalize_samples=TRUE,
                     k=1,
 					expSet=NULL,
                     n_topGenes=500,
-					          n_varGenes=NULL,
                     DE_method='edgeR',
                     parallel_cores = 2,
 					output=TRUE,
 					outputFolder='', annotate=TRUE){
-#  require(dplyr)
-#  require(RUVSeq)
-#  require(edgeR)
-if(!missing(n_varGenes)){
-  n_topGenes=n_varGenes
+
+remLowExpr <- function(counts,counts_phenotype){
+  x <-DGEList(counts = round(counts), group = counts_phenotype$sample_type )
+  cpm_x <- cpm(x)
+  #needs to be at least larger the than the size of the smallest set
+  keep.exprs <- rowSums(cpm_x>1) >= min(table(counts_phenotype$sample_type)) 
+  keep.exprs
 }
+
+
 
 if(missing(case_id)|missing(control_id)){
 stop('Case ids and/or control ids vector input not found')
@@ -24,17 +32,6 @@ stop('Case ids and/or control ids vector input not found')
 if(source=='octad.whole'){
 
 print(paste('loading whole octad expression data for',length(c(case_id,control_id)),'samples',sep=' '))
-
-#case.load.start <- Sys.time()
-#setwd(base.folder)
-#rhdf5_file <- paste0(, "octad.h5")
-#transcripts=row.names(octad.db::octad_counts)
-#saamples=colnames(octad.db::octad_counts)
-
-#expSet=octad.db::octad_counts[row.names()]
-  
-
-
 
 transcripts = as.character(rhdf5::h5read(file, "meta/transcripts"))
 samples = as.character(rhdf5::h5read(file, "meta/samples"))
@@ -98,7 +95,7 @@ stop('Expression data not sourced, please, modify expSet option')
                              phenoData = data.frame(counts_phenotype,row.names=counts_phenotype$sample))
   
   #normalize samples using RUVSeq
-  if (normalize_samples == T){
+  if (normalize_samples == TRUE){
     #compute empirical genes
     
     design <- stats::model.matrix(~ sample_type, data = pData(set))
@@ -123,7 +120,7 @@ stop('Expression data not sourced, please, modify expSet option')
     row.names(counts_phenotype) = counts_phenotype$sample
     coldata = counts_phenotype
     
-    if (normalize_samples == T){
+    if (normalize_samples == TRUE){
       dds <- DESeq2::DESeqDataSetFromMatrix(countData = counts(set1),
                                     colData = pData(set1),
                                     design= ~ sample_type + W_1)
@@ -135,7 +132,7 @@ stop('Expression data not sourced, please, modify expSet option')
     gc()
     
     if (parallel_cores > 1){
-      dds <- DESeq2::DESeq(dds, parallel = T)
+      dds <- DESeq2::DESeq(dds, parallel = TRUE)
     }else{
       dds <- DESeq2::DESeq(dds)
     }
@@ -153,7 +150,7 @@ stop('Expression data not sourced, please, modify expSet option')
     print('computing DE via edgeR')
     
     #construct model matrix based on whether there was normalization ran
-    if(normalize_samples == T){
+    if(normalize_samples == TRUE){
       if(k==1){
         design <- stats::model.matrix(~sample_type + W_1, data=pData(set1))
       }else if(k == 2){
@@ -198,7 +195,7 @@ stop('Expression data not sourced, please, modify expSet option')
       TumorvsNon = case - control, 
       levels = colnames(design))
     
-    v <- limma::voom(x, design, plot=F)
+    v <- limma::voom(x, design, plot=FALSE)
     vfit <- limma::lmFit(v, design)
     vfit <- limma::contrasts.fit(vfit, contrasts=contr.matrix)
     efit <- limma::eBayes(vfit)
@@ -209,7 +206,7 @@ stop('Expression data not sourced, please, modify expSet option')
     summary(dt)
     
     tumorvsnormal <- limma::topTreat(tfit, coef=1, n=Inf)
-    tumorvsnormal <- tumorvsnormal[order(abs(tumorvsnormal$logFC), decreasing = T),]
+    tumorvsnormal <- tumorvsnormal[order(abs(tumorvsnormal$logFC), decreasing = TRUE),]
     #tumorvsnormal.topgenes <- rownames(tumorvsnormal[1:50,])
     
     

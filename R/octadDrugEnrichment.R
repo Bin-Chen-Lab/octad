@@ -1,7 +1,10 @@
 #' @export
+#' @importFrom GSVA gsva
+#' @importFrom limma barcodeplot
+#' @import octad.db
+
 octadDrugEnrichment <- function(sRGES=NULL,target_type='chembl_targets',enrichFolder='enrichFolder'){
 #  require(GSVA)
-require(octad.db)
 if(missing(sRGES)){
 stop('sRGES input not found')
 }
@@ -38,7 +41,7 @@ cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
   
   rgess = matrix(-1*drug_pred$sRGES, ncol = 1)
   rownames(rgess) = drug_pred$pert_iname
-  gsea_results = GSVA::gsva(rgess, cmpdSets, method = "ssgsea",  parallel.sz=8,ssgsea.norm = T,verbose=FALSE)
+  gsea_results = GSVA::gsva(rgess, cmpdSets, method = "ssgsea",  parallel.sz=8,ssgsea.norm = TRUE,verbose=FALSE)
   
   gsea_results = merge(random_gsea_score[[target_type_selected]], gsea_results,by='row.names')
   row.names(gsea_results)=gsea_results$Row.names
@@ -52,7 +55,7 @@ cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
   gsea_p = data.frame(target = names(gsea_p),score = gsea_summary, p = gsea_p, padj = p.adjust(gsea_p, method = 'fdr'))
   gsea_p = gsea_p[order(gsea_p$padj), ]
   # return(gsea_p)
-  write.csv(gsea_p, paste0(enrichFolder.n, "/enriched_", target_type_selected, ".csv"),row.names = F)
+  write.csv(gsea_p, paste0(enrichFolder.n, "/enriched_", target_type_selected, ".csv"),row.names = FALSE)
   top.out.num = nrow(gsea_p[which(gsea_p$padj<=0.05),])
   if (top.out.num == 0) {
     top.out.num = 1
@@ -81,7 +84,7 @@ if(nrow(gsea_p)>0){
     clusterdf$cluster <- clusternames
     clusterdf$pval <- (gsea_p[which(gsea_p$padj<=0.05),])$padj
     colnames(clusterdf)[1] <- "drugs.in.cluster"
-    write.csv(clusterdf,file=paste0(enrichFolder.n,'drugstructureclusters.csv'),row.names = F)
+    write.csv(clusterdf,file=paste0(enrichFolder.n,'drugstructureclusters.csv'),row.names = FALSE)
     }
   }
   cat(paste('Done for',target_type_selected,'for',nrow(gsea_p[which(gsea_p$padj<=0.05),]),'genes'),'\n')

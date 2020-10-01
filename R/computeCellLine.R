@@ -1,14 +1,15 @@
 #' @export
+#' @importFrom foreach foreach %do%
+#' @importFrom rhdf5 h5read 
+
+
 ####### computeCellLine #######
-computeCellLine <- function(case_id = NULL,
+computeCellLine <- function(case_id =case_id,
                             expSet=NULL,
-                            LINCS_overlaps = T,
-							source='octad',
-							file='octad.counts.and.tpm.h5',
-                            returnDF = F){
-  #  require(dplyr)
-  #  require(foreach)
-  #  require(data.table)
+                            LINCS_overlaps = TRUE,
+							source='octad.small',
+							file=NULL,
+                            returnDF = FALSE){
 
   #STOPS
   if(missing(case_id)){
@@ -39,7 +40,7 @@ computeCellLine <- function(case_id = NULL,
 #		case_id=case_id[case_id%in%colnames(octad.db::octad.LINCS.counts)]
 #		case_counts=octad.db::octad.LINCS.counts[,c(case_id)]
 #  }else if (source=='octad.whole'){
-if(source=='octad'){
+if(source=='octad.whole'){
 print(paste('loading whole octad expression data for',length(c(case_id)),'samples',sep=' '))
 
 transcripts = as.character(rhdf5::h5read(file, "meta/transcripts"))
@@ -66,23 +67,23 @@ print(paste('computing correlation between cell lines and selected samples',sep=
 }else if(source!='octad'&missing(expSet)){
 stop('Expression data not sourced, please, modify expSet option')
 
-}else if(source != "octad"){
+}else if(source != "octad.whole"|source != "octad.small"){
     case_counts=expSet[,case_id]
   }
 
-  if(LINCS_overlaps == T){
+  if(LINCS_overlaps == TRUE){
 
     CCLE.median                 <- apply(octad.db::CCLE.overlaps,1,median)
   }else{
     CCLE.median = apply(octad.db::CCLE.log2.read.count.matrix,1,median)
   }
   CCLE.expressed.gene         <- names(CCLE.median)[CCLE.median > 1]
-  tmp                         <- CCLE.log2.read.count.matrix[CCLE.expressed.gene,]
+  tmp                         <- octad.db::CCLE.log2.read.count.matrix[CCLE.expressed.gene,]
   tmp.rank                    <- apply(tmp,2,rank)
   rank.mean                   <- apply(tmp.rank,1,mean)
   rank.sd                     <- apply(tmp.rank,1,sd)
   CCLE.rna.seq.marker.gene.1000                 <- names(sort(rank.sd,decreasing =TRUE))[1:1000]
-  TCGA.vs.CCLE.polyA.expression.correlation.result  <- pick.out.cell.line(case_counts, CCLE.overlaps,CCLE.rna.seq.marker.gene.1000)
+  TCGA.vs.CCLE.polyA.expression.correlation.result  <- pick.out.cell.line(case_counts, octad.db::CCLE.overlaps,CCLE.rna.seq.marker.gene.1000)
   correlation.dataframe <- TCGA.vs.CCLE.polyA.expression.correlation.result$cell.line.median.cor %>% as.data.frame()
   colnames(correlation.dataframe) <- "cor"
   cell.line.folder <- "CellLineEval/"
@@ -95,7 +96,7 @@ stop('Expression data not sourced, please, modify expSet option')
   # 3 of TCGA.vs.CCLE.polyA.expression.correlation.result$cell.line.median.cor
 
 
-  if(returnDF == T)
+  if(returnDF == TRUE)
   {
     return(topline)
   }else{
