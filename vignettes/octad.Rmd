@@ -10,7 +10,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -24,64 +24,47 @@ As the field of precision medicine progresses, we start to tailor treatments for
 
 # How to Install
 Before octad library installation, install the required package octad.db via the link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0). octad.db includes all data files required for computation (size: ~400 M).
-```
+```{r eval=FALSE} 
 install.packages("https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0",
                  method="libcurl",repos=NULL,type="source")
 ```
 It takes a few minutes to install the package and verify files.  
 
 Next install the octad package:
-```
+```{r eval=TRUE} 
 devtools::install_github('Bin-Chen-Lab/octad')
+library(octad)
 ```
 Afterward, the pipeline will be ready to run. 
 
 # Workflow
 We use Hepatocellular Carcinoma (HCC) to illustrate the utility of the desktop pipeline. We provide the code and data for investigating differential expression, pathway enrichment, drug prediction and hit selection, and in silico validation. In this workflow, we will select case tissue samples from our compiled TCGA data and compute control tissue samples from the GTEx data. Note that the compiled data  contains adjacent normal samples which can also serve as control tissues. By default, the octad package uses Small OCTAD dataset containing expression values only for LINCS 978 landmark genes required for sRGES score computation. To download the full expression values, please refer to the link [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) (~3G). We recommend to use the full expression matrix. By default, computated results are stored in the working directory. 
-```
-library(octad)
-```
 ## Select case samples
 Choosing cases (tumor samples from the phenoDF data.frame) and controls (corresponding samples treated as background such as normal tissue, adjacent normal tissue or tumor tissue samples without a specific mutation)  is critical to achieving the best results. Several methods are included in the provided code which demonstrates multiple control sample selection methods. There are no built-in validation steps to evaluate case samples. Visualization of cases in a t-SNE (t-Distributed Stochastic Neighbor Embedding)  plot could help understand their relations with other OCTAD samples. Samples sharing similar transcriptomic profiles tend to cluster together in the t-SNE plot. The cases scattering in multiple clusters are not recommended to choose as a group.
 Phenotype data frame `phenoDF ` contains tissue types including normal tissue, adjacent normal tissue, primary cancer, recurrent cancer, and metastatic cancer. 
 
 To list all available samples from the octad database, use the phenoDF data frame. 
-```
+```{r eval=TRUE} 
 head(phenoDF)
-
-                 sample.id sample.type                  biopsy.site cancer data.source gender read.count.file age_in_year metastatic_site tumor_grade tumor_stage
-1 GTEX-1117F-0226-SM-5GZZ7      normal       ADIPOSE - SUBCUTANEOUS normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
-2 GTEX-1117F-0426-SM-5EGHI      normal            MUSCLE - SKELETAL normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
-3 GTEX-1117F-0526-SM-5EGHJ      normal              ARTERY - TIBIAL normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
-4 GTEX-1117F-0626-SM-5N9CS      normal            ARTERY - CORONARY normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
-5 GTEX-1117F-0726-SM-5GIEN      normal     HEART - ATRIAL APPENDAGE normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
-6 GTEX-1117F-1326-SM-5EGHH      normal ADIPOSE - VISCERAL (OMENTUM) normal        GTEX Female      TOIL.RData        <NA>            <NA>        <NA>        <NA>
-  gain_list loss_list mutation_list subtype
-1                              <NA>    <NA>
-2                              <NA>    <NA>
-3                              <NA>    <NA>
-4                              <NA>    <NA>
-5                              <NA>    <NA>
-6                              <NA>    <NA>
 ```
 To select HCC samples, subset the phenoDF:
-```
+```{r eval=TRUE} 
 #select data
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 ```
 The sample ids will be stored in the character vector case_id. 
 The code can be easily modified to select for other cancers or a set of samples based on mutations and copy numbers (e.g., TP53 mutation or MYC amplification). It is also recommended to use the R package cgdsr to select TCGA samples based on more clinical and molecular features.
-```
+```{r eval=TRUE} 
 #choose breast invasive carcinoma samples with PIK3CA mutation 
 BIC_with_PIK3_primary=subset(phenoDF,cancer=='breast invasive carcinoma'&sample.type == 'primary'&grepl('PIK3CA',mutation_list))
 ```
 
 ## Compute or select control samples
 Use the function `computeRefTissue` to compute appropriate normal tissues via comparing gene expression features between case samples and normal tissue samples. Users can select adjacent normal tissue samples if available. By default, features from the precomputed `AutoEncoder` file are used, but other features such as top varying genes across samples can be employed as well. Pairwise Spearman correlation is computed between every case sample and every normal sample using these features. For each normal sample, its median correlation with all case samples is then computed. Top correlated normal samples (defined by control_size) are then selected as control.   
- ```
+```{r eval=FALSE} 
 #computing top 50 reference tissues 
-control_id=computeRefTissue(case_id,outputFolder='',output=T,adjacent=T,source = "octad",control_size = 50)  
+control_id=computeRefTissue(case_id,outputFolder='',output=TRUE,adjacent=TRUE,source = "octad",control_size = 50)  
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 control_id =subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
            sample.type == 'adjacent' & data.source == 'TCGA')  
@@ -89,16 +72,16 @@ control_id =subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
 expression_log2=loadOctadCounts(sample_vector=phenoDF$sample.id,
         type='tpm',file='octad.counts.and.tpm.h5')  
 control_id=computeRefTissue(case_id, control_size = 50,expSet=expression_log2,source='side')  
- ```  
+```  
    
 Alternatively, it is possible to select the samples manually:  
- ```
+```{r eval=TRUE} 
 HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') 
 control_id=HCC_adjacent$sample.id
- ```
+```
  
 The relationships among case, control and other samples can be visualised through a t-SNE matrix precomputed based on the features derived from autoencoder. 
-```
+```{r eval=TRUE} 
 tsne$type <- "others"
 tsne$type[tsne$sample.id %in% case_id] <- "case"
 tsne$type[tsne$sample.id %in% control_id] <- "control"
@@ -110,87 +93,48 @@ tsne$type[tsne$sample.id %in% control_id] <- "control"
 ```
 ## Compute gene differential expression between case and control samples
 Differential expression can be computed via edgeR, limma + voom, or DESeq2. By default, we use edgeR in the analysis. Since the function `diffExp` computes differentially expressed genes between `case_id` and `control_id` within the same data matrix, it can be used to find differentially expressed genes between any two groups of samples. By default, a small dataset containing only 978 genes shared with the LINCS database is used.
-```
-res=diffExp(case_id,control_id,source='octad.small',output=T)
-```
-To use the whole OCTAD dataset from [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) as input, make sure the required .h5 file is stored in the R working directory or the whole path to the file is specified:
-```
-res=diffExp(case_id,control_id,source='octad.whole',
-    output=T,n_topGenes=10000,file='octad.counts.and.tpm.h5')
-```
-We can also perform DE analysis using an external dataset. Below is an example to perform DE analysis between tumor and non-tumor samples using the count data downloaded from GEO [GSE144269](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE144269).
-
-```
-data=read.table('GSE144269_RSEM_GeneCounts.txt',header=T,row.names=1)
-samples=colnames(data) #define the case and control cohorts, A samples were obtained from tumors, B samples were obtained from adjacent tissue
-case_id=samples[grepl('A_S',samples)]
-control_id=samples[grepl('B_S',samples)]
-res=diffExp(case_id,control_id,source='side',output=T,n_topGenes=10000,
-    expSet=log2(as.matrix(data)),annotate=F) #compute DE
-```
-The `diffExp` function will produce `data.frame` with DE results. Please note that option `annotate` is not required to be `TRUE`, but in this case annotation will be performed. If using custom expression matrix, please make sure `expSet row.names` contains Ensembl IDs that are used to assign gene names and gene descriptions. 
-```
+```{r eval=TRUE} 
+res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
 head(res)
-       identifier log2FoldChange    logCPM        LR       pvalue         padj tax_id GeneID       LocusTag chromosome
-1 ENSG00000000003      0.5860708 10.408806 20.876006 4.899941e-06 2.743967e-03   9606   7105 UNQ767/PRO1560          X
-2 ENSG00000000457     -0.2668590  7.829950  8.622518 3.320326e-03 1.000000e+00   9606  57147    RP1-97P20.2          1
-3 ENSG00000002330      0.3738779  9.205412 11.974950 5.392052e-04 2.399463e-01   9606    572           NULL         11
-4 ENSG00000002549     -0.2008760 10.649280  2.007441 1.565292e-01 1.000000e+00   9606  51056           NULL          4
-5 ENSG00000002919      0.3728050  8.022714 21.368984 3.788507e-06 2.144295e-03   9606  29916           NULL         17
-6 ENSG00000003400     -0.5044907  7.378216 29.173919 6.616385e-08 4.141857e-05   9606    843           NULL          2
-  map_location                                      description           type Symbol_autho
-1         Xq22                                    tetraspanin 6 protein-coding       TSPAN6
-2       1q24.2                      SCY1-like 3 (S. cerevisiae) protein-coding        SCYL3
-3      11q13.1            BCL2-associated agonist of cell death protein-coding          BAD
-4      4p15.32                         leucine aminopeptidase 3 protein-coding         LAP3
-5     17q21.32                                 sorting nexin 11 protein-coding        SNX11
-6     2q33-q34 caspase 10, apoptosis-related cysteine peptidase protein-coding       CASP10
-                                              name status                                    other Symbol
-1                                    tetraspanin 6      O A15 homolog|putative NF-kappa-B-activati TSPAN6
-2                      SCY1-like 3 (S. cerevisiae)      O SCY1-like protein 3|ezrin-binding partne  SCYL3
-3            BCL2-associated agonist of cell death      O BCL-X/BCL-2 binding protein|BCL2-antagon    BAD
-4                         leucine aminopeptidase 3      O LAP-3|cytosol aminopeptidase|leucyl amin   LAP3
-5                                 sorting nexin 11      O                         sorting nexin-11  SNX11
-6 caspase 10, apoptosis-related cysteine peptidase      O CASP-10|FADD-like ICE2|FAS-associated de CASP10
-
 #Use simple subset to filter the DE results:
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 ```
+To use the whole OCTAD dataset from [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) as input, make sure the required .h5 file is stored in the R working directory or the whole path to the file is specified:
+```{r eval=FALSE} 
+res=diffExp(case_id,control_id,source='octad.whole',
+    output=TRUE,n_topGenes=10000,file='octad.counts.and.tpm.h5')
+```
+We can also perform DE analysis using an external dataset. Below is an example to perform DE analysis between tumor and non-tumor samples using the count data downloaded from GEO [GSE144269](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE144269).
+
+```{r eval=FALSE} 
+data=read.table('GSE144269_RSEM_GeneCounts.txt',header=TRUE,row.names=1)
+samples=colnames(data) #define the case and control cohorts, A samples were obtained from tumors, B samples were obtained from adjacent tissue
+case_id=samples[grepl('A_S',samples)]
+control_id=samples[grepl('B_S',samples)]
+res=diffExp(case_id,control_id,source='side',output=TRUE,n_topGenes=10000,
+    expSet=log2(as.matrix(data)),annotate=FALSE) #compute DE
+```
+The `diffExp` function will produce `data.frame` with DE results. Please note that option `annotate` is not required to be `TRUE`, but in this case annotation will be performed. If using custom expression matrix, please make sure `expSet row.names` contains Ensembl IDs that are used to assign gene names and gene descriptions. 
+
 ## Compute reverse gene expression scores
 The `runsRGES` function is used to identify the drugs that potentially reverses the disease signature. Use the code below to choose significant genes; this works by keeping genes that have low adjusted P-values and high log-fold changes.   
 Launch the sRGES computation. It takes a few minutes to compute RGES scores. After the job is finished, it will output files all_lincs_score.csv (RGES of individual profiles), sRGES.csv (summarized RGES of individual drugs) and dz_sig_used.csv (signature genes used for drug prediction). LINCS also provides the imputed expression of the whole transcriptome based on the 978 genes. We will add it in the future when its usage is fully evaluated. There is no good way available to choose an optimal sRGES threshold, but empirically < -0.2 is good to go
 
-```
+```{r eval=TRUE} 
+
 sRGES=runsRGES(res,max_gene_size=100,permutations=10000)
 
 head(sRGES)
-# A tibble: 6 x 6
-  pert_iname      mean     n median      sd  sRGES
-  <chr>          <dbl> <int>  <dbl>   <dbl>  <dbl>
-1 BRD-K91617567 -0.527     1 -0.527 NA      -0.527
-2 BRD-K86694468 -0.502     1 -0.502 NA      -0.502
-3 BRD-K64979177 -0.499     1 -0.499 NA      -0.499
-4 BRD-K07660364 -0.494     1 -0.494 NA      -0.494
-5 BRD-K20792495 -0.493     1 -0.493 NA      -0.493
-6 BRD-K68836298 -0.488     2 -0.488  0.0628 -0.488
 ```
 ## Validate results using published pharmacogenomics data
 As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in 860 cancer cell lines, we may leverage this database for further in silico validation of our predictions, even without running any biological experiment. We use the HepG2 cell line to validate the prediction of HCC drugs.  
 
-```
+```{r eval=TRUE} 
 cell_line_computed=computeCellLine(case_id=case_id,
-                    returnDF=T,source='octad',file='octad.counts.and.tpm.h5')
-head(cell_line_computed)
-          medcor
-HEPG2  0.4388177
-VCAP   0.2173189
-COV644 0.2107736
-HS578T 0.2054412
-CL34   0.2028619
-SKBR3  0.2020225
+                    returnDF=TRUE,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
-```
+```{r eval=FALSE} 
 topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
@@ -200,7 +144,7 @@ topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
 ## Compute drug enrichment
 After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enrichment analysis to identify interesting drug classes whose member drugs are significantly enriched at the top of the prediction. Example drug classes include anti-inflammatories, EGFR inhibitors, and dipines (calcium channel blockers). OCTAD provides MESH, CHEMBL, and CHEM_CLUSTER for MeSH term enrichment, target enrichment, and chemical structure enrichment, respectively. The enrichment score is calculated using ssGSEA and its significance is computed by a permutation test. 
 
-```
+```{r eval=FALSE} 
 octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets','mesh','ChemCluster'))
 ```
 This analysis provides much information for following candidate selection and experiment design. First, the candidates selected from the same enriched class (i.e., MeSH term, target) are more likely to be true positive than those randomly selected from the top list. Second, when the ideal candidate is not available, it is reasonable to choose an alternative from the same class. Sometimes, it is necessary to choose a new drug for testing (e.g., a second generation of one inhibitor for the same target). Lastly, since many compounds have multiple MOAs, this analysis would help interpret the MOA of promising compounds. 
@@ -212,7 +156,7 @@ octad package is github available via [link](https://github.com/Bin-Chen-Lab/oct
 
 # Session information
 Here is the output of `sessionInfo()` on the system where this document was compiled:
-```
+```{r eval=FALSE} 
 R version 4.0.2 (2020-06-22)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 10 x64 (build 18362)
