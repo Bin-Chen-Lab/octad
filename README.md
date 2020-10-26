@@ -1,3 +1,6 @@
+###TEST README
+
+
 # Web version: 
 http://octad.org/
 
@@ -45,7 +48,7 @@ By default, octad package uses expression data for 978 genes from the LINCS data
 The tutorial available via following [link](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad_tutorial.pdf)
 
 # Examples
-The several examples listed in the file [octad_example.R](https://github.com/Bin-Chen-Lab/octad_desktop/blob/master/octad_example.R) :
+The several examples listed in the file [octad_example.R](https://chenlab-data-public.s3.amazonaws.com/octad/octad_example.R) :
 <li>Example 1. liver hepatocellular carcinoma vs adjacent reference tissues;</li> 
 <li>Example 2. breast cancer invasive carcinoma with PIK3 mutation vs reference tissues;</li> 
 <li>Example 3. lung adenocarcinoma with amplified MYC gene vs reference tissues;</li> 
