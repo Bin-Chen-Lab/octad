@@ -1,6 +1,3 @@
-###TEST README
-
-
 # Web version: 
 http://octad.org/
 
