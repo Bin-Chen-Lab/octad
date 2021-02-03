@@ -29,7 +29,7 @@ install.packages("octad.db_0.99.0.tar.gz", repos = NULL, type="source")
 ```
 Or without downloading the distributive:
 ```
-install.packages("https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0",
+install.packages("https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.db_0.99.0.tar.gz",
                  method="libcurl",repos=NULL,type="source")
 ```
 It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
