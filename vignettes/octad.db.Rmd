@@ -10,12 +10,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
   
-```
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
+
 ### Eugene Chekalin, Billy Zeng, Patrick Newbury, Benjamin Glicksberg, Jing Xing, Ke Liu, Dimitri Joseph, Bin Chen
 Edited on October 25, 2021; Compiled on October 25, 2021
 
