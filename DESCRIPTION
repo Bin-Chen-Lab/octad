@@ -1,6 +1,6 @@
 Package: octad.db
 Title: Open Cancer TherApeutic Discovery (OCTAD) database
-Version: 0.99.5
+Version: 0.99.6
 Authors@R: 
     c(person(given = "E.",
            family = "Chekalin",
@@ -35,3 +35,6 @@ Depends:
     R (>= 4.0)
 biocViews: ExperimentData, CancerData, ExperimentHub, SequencingData, ExpressionData
 VignetteBuilder: knitr
+Suggests: 
+    knitr,
+    rmarkdown
