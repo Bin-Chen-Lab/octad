@@ -9,7 +9,7 @@ To install the package run the following code:
 devtools::install_github('Bin-Chen-Lab/octad.db')
 ``` 
 
-Please note, this is a database-like package for the main package ```octad``` which can be obtained [there](https://github.com/Bin-Chen-Lab/octad)
+# Please note, this is a support package for the main package ```octad``` which can be obtained [there](https://github.com/Bin-Chen-Lab/octad)
 
   
   
