@@ -22,6 +22,7 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
 }
 ```
+<<<<<<< HEAD
 Next, install the octad.db, package with all required files for computation available via link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0)
 ```
 install.packages("octad.db_0.99.0.tar.gz", repos = NULL, type="source")
@@ -33,6 +34,20 @@ install.packages("https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.
 ```
 It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
 Finally, install the OCTAD package:
+=======
+
+Next, install the octad.db, package with all required files for computation available via link  [octad.db](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.db_0.99.0.tar.gz)
+```
+install.packages("path%to%octad.db_0.99.0.tar.gz", repos = NULL, type="source")
+```
+Or without downloading the distributive:
+```
+install.packages("https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.db_0.99.0.tar.gz",
+                 method="libcurl",repos=NULL,type="source")
+```
+It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
+Finally, install the package:
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 ```
 devtools::install_github('Bin-Chen-Lab/octad',build_vignettes = TRUE)
 ```
@@ -44,7 +59,11 @@ By default, octad package uses expression data for 978 genes from the LINCS data
 The tutorial available via following [link](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad_tutorial.pdf)
 
 # Examples
+<<<<<<< HEAD
 The several examples listed in the file [octad_example.R](https://github.com/Bin-Chen-Lab/octad_desktop/blob/master/octad_example.R) :
+=======
+The several examples listed in the file [octad_example.R](https://chenlab-data-public.s3.amazonaws.com/octad/octad_example.R) :
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 <li>Example 1. liver hepatocellular carcinoma vs adjacent reference tissues;</li> 
 <li>Example 2. breast cancer invasive carcinoma with PIK3 mutation vs reference tissues;</li> 
 <li>Example 3. lung adenocarcinoma with amplified MYC gene vs reference tissues;</li> 
@@ -54,5 +73,9 @@ The several examples listed in the file [octad_example.R](https://github.com/Bin
 
 
 # Contacts and citation
+<<<<<<< HEAD
 If you use our work, please cite the [OCTAD paper](https://www.biorxiv.org/content/10.1101/821546v1). Both OCTAD package and website was developed by [Bin Chen laboratory](http://binchenlab.org/).
+=======
+If you use our work, please cite the paper [OCTAD: an open workplace for virtually screening therapeutics targeting precise cancer patient groups using gene expression features, Nature Protocols](https://www.nature.com/articles/s41596-020-00430-z). Both OCTAD package and website was developed by [Bin Chen laboratory](http://binchenlab.org/).
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 Examples and questions can be addressed to Eugene Chekalin, PhD, chekali1@msu.edu or Bin Chen, PhD, PI, bin.chen@hc.msu.edu

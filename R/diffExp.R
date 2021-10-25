@@ -2,7 +2,10 @@
 #' @importFrom    rhdf5 h5read H5close
 #' @import RUVSeq edgeR DESeq2 EDASeq stats
 #' @importFrom    dplyr everything left_join
+<<<<<<< HEAD
 #' @importFrom magrittr %>%  
+=======
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 
 
 diffExp <- function(case_id='',control_id='',source='octad.small',file='octad.counts.and.tpm.h5',

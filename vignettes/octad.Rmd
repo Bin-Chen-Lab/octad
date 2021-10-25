@@ -10,32 +10,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
 ### Eugene Chekalin, Billy Zeng, Patrick Newbury, Benjamin Glicksberg, Jing Xing, Ke Liu, Dimitri Joseph, Bin Chen
 Edited on September 28, 2020; Compiled on September 29, 2020
 
 # Package overview
 As the field of precision medicine progresses, we start to tailor treatments for cancer patients classified not only by their clinical, but also by their molecular features. The emerging cancer subtypes defined by these features require dedicated resources to assist the discovery of drug candidates for preclinical evaluation. Voluminous cancer patient gene expression profiles have been accumulated in public databases, enabling the creation of a cancer-specific expression signature. Meanwhile, large-scale gene expression profiles of chemical compounds became available in recent years. By matching the cancer-specific expression signature to compound-induced gene expression profiles from large drug libraries, researchers can prioritize small molecules that present high potency to reverse expression of signature genes for further experimental testing of their efficacy. This approach has proven to be an efficient and cost-effective way to identify efficacious drug candidates. However, the success of this approach requires multiscale procedures, imposing significant challenges to many labs. Therefore, we present OCTAD (http://octad.org): an open workspace for virtually screening compounds targeting precise cancer patient groups using gene expression features. We have included 19,127 patient tissue samples covering 50 cancer types, and expression profiles for 12,442 distinct compounds.  We will continue to include more tissue samples. We streamline all the procedures including deep-learning based reference tissue selection, disease gene expression signature creation, drug reversal potency scoring, and in silico validation. We release OCTAD as a web portal and a standalone R package to allow experimental and computational scientists to easily navigate the tool. The code and data can also be employed to answer various biological questions.
 
-# How to Install
-Before octad library installation, install the required package octad.db via the link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0). octad.db includes all data files required for computation (size: ~400 M).
-```{r eval=FALSE} 
-install.packages("https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0",
-                 method="libcurl",repos=NULL,type="source")
-```
-It takes a few minutes to install the package and verify files.  
-
-Next install the octad package:
-```{r eval=TRUE} 
-devtools::install_github('Bin-Chen-Lab/octad')
-library(octad)
-```
-Afterward, the pipeline will be ready to run. 
 
 # Workflow
 We use Hepatocellular Carcinoma (HCC) to illustrate the utility of the desktop pipeline. We provide the code and data for investigating differential expression, pathway enrichment, drug prediction and hit selection, and in silico validation. In this workflow, we will select case tissue samples from our compiled TCGA data and compute control tissue samples from the GTEx data. Note that the compiled data  contains adjacent normal samples which can also serve as control tissues. By default, the octad package uses Small OCTAD dataset containing expression values only for LINCS 978 landmark genes required for sRGES score computation. To download the full expression values, please refer to the link [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) (~3G). We recommend to use the full expression matrix. By default, computated results are stored in the working directory. 
@@ -157,13 +137,20 @@ octad package is github available via [link](https://github.com/Bin-Chen-Lab/oct
 # Session information
 Here is the output of `sessionInfo()` on the system where this document was compiled:
 ```{r eval=FALSE} 
+<<<<<<< HEAD
 R version 4.0.3 (2020-10-10)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 10 x64 (build 19042)
+=======
+R version 4.0.2 (2020-06-22)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 18362)
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 
 Matrix products: default
 
 locale:
+<<<<<<< HEAD
 [1] LC_COLLATE=English_United States.1252  LC_CTYPE=English_United States.1252    LC_MONETARY=English_United States.1252 LC_NUMERIC=C                           LC_TIME=English_United States.1252    
 
 attached base packages:
@@ -181,6 +168,42 @@ loaded via a namespace (and not attached):
 [46] graph_1.68.0        cli_3.0.1           stringi_1.7.5       cachem_1.0.6        fs_1.5.0            remotes_2.4.1       getopt_1.20.3       testthat_3.1.0      optparse_1.7.1     
 [55] xml2_1.3.2          ellipsis_0.3.2      vctrs_0.3.8         tools_4.0.3         Biobase_2.50.0      glue_1.4.2          purrr_0.3.4         processx_3.5.2      pkgload_1.2.3      
 [64] parallel_4.0.3      fastmap_1.1.0       yaml_2.2.1          BiocManager_1.30.16 sessioninfo_1.1.1   memoise_2.0.0       knitr_1.36          usethis_2.1.0          grid_4.0.2             rmarkdown_2.3          git2r_0.27.1           tinytex_0.26    
+=======
+[1] LC_COLLATE=English_United States.1252  LC_CTYPE=English_United States.1252    LC_MONETARY=English_United States.1252 LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.1252    
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] octad.db_0.99.0             octad_0.99.0                biocViews_1.57.3            Rfast_2.0.1                 RcppZiggurat_0.1.5         
+ [6] Rcpp_1.0.5                  doParallel_1.0.15           iterators_1.0.12            foreach_1.5.0               rhdf5_2.33.9               
+[11] DESeq2_1.29.14              RUVSeq_1.23.0               EDASeq_2.23.2               ShortRead_1.47.2            GenomicAlignments_1.25.3   
+[16] SummarizedExperiment_1.19.7 DelayedArray_0.15.10        matrixStats_0.57.0          Matrix_1.2-18               Rsamtools_2.5.3            
+[21] GenomicRanges_1.41.6        GenomeInfoDb_1.25.11        Biostrings_2.57.2           XVector_0.29.3              IRanges_2.23.10            
+[26] S4Vectors_0.27.13           BiocParallel_1.23.2         Biobase_2.49.1              BiocGenerics_0.35.4         edgeR_3.31.4               
+[31] limma_3.45.14               ggplot2_3.3.2               dplyr_1.0.2                 magrittr_1.5                BiocCheck_1.25.13          
+
+loaded via a namespace (and not attached):
+  [1] backports_1.1.10       aroma.light_3.19.0     BiocFileCache_1.13.1   splines_4.0.2          usethis_1.6.3          digest_0.6.25         
+  [7] htmltools_0.5.0        fansi_0.4.1            memoise_1.1.0          remotes_2.2.0          annotate_1.67.1        R.utils_2.10.1        
+ [13] askpass_1.1            prettyunits_1.1.1      jpeg_0.1-8.1           colorspace_1.4-1       blob_1.2.1             rappdirs_0.3.1        
+ [19] xfun_0.16              jsonlite_1.7.1         callr_3.4.4            crayon_1.3.4           RCurl_1.98-1.2         roxygen2_7.1.1        
+ [25] graph_1.67.1           genefilter_1.71.0      survival_3.2-7         glue_1.4.2             gtable_0.3.0           zlibbioc_1.35.0       
+ [31] pkgbuild_1.1.0         Rhdf5lib_1.11.3        scales_1.1.1           DBI_1.1.0              xtable_1.8-4           progress_1.2.2        
+ [37] bit_4.0.4              httr_1.4.2             getopt_1.20.3          RColorBrewer_1.1-2     ellipsis_0.3.1         pkgconfig_2.0.3       
+ [43] XML_3.99-0.5           R.methodsS3_1.8.1      dbplyr_1.4.4           locfit_1.5-9.4         tidyselect_1.1.0       rlang_0.4.7           
+ [49] AnnotationDbi_1.51.3   munsell_0.5.0          tools_4.0.2            cli_2.0.2              generics_0.0.2         RSQLite_2.2.0         
+ [55] devtools_2.3.2         evaluate_0.14          stringr_1.4.0          yaml_2.2.1             processx_3.4.4         knitr_1.30            
+ [61] bit64_4.0.5            fs_1.5.0               purrr_0.3.4            RBGL_1.65.0            whisker_0.4            R.oo_1.24.0           
+ [67] xml2_1.3.2             biomaRt_2.45.3         compiler_4.0.2         rstudioapi_0.11        curl_4.3               png_0.1-7             
+ [73] testthat_2.3.2         tibble_3.0.3           geneplotter_1.67.0     stringi_1.5.3          ps_1.3.4               GenomicFeatures_1.41.3
+ [79] desc_1.2.0             lattice_0.20-41        vctrs_0.3.4            stringdist_0.9.6       pillar_1.4.6           lifecycle_0.2.0       
+ [85] rhdf5filters_1.1.3     RUnit_0.4.32           optparse_1.6.6         BiocManager_1.30.10    bitops_1.0-6           rtracklayer_1.49.5    
+ [91] R6_2.4.1               latticeExtra_0.6-29    hwriter_1.3.2          sessioninfo_1.1.1      codetools_0.2-16       MASS_7.3-53           
+ [97] assertthat_0.2.1       pkgload_1.1.0          openssl_1.4.3          rprojroot_1.3-2        withr_2.3.0            GenomeInfoDbData_1.2.3
+[103] hms_0.5.3              grid_4.0.2             rmarkdown_2.3          git2r_0.27.1           tinytex_0.26    
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 ```
 
 

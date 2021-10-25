@@ -6,7 +6,10 @@ export(diffExp)
 export(geneEnrich)
 export(loadOctadCounts)
 export(octadDrugEnrichment)
+<<<<<<< HEAD
 export(plot_bsabs)
+=======
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 export(runsRGES)
 export(topLineEval)
 import(DESeq2)
@@ -14,7 +17,10 @@ import(EDASeq)
 import(RUVSeq)
 import(edgeR)
 import(ggplot2)
+<<<<<<< HEAD
 import(ggrepel)
+=======
+>>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 import(httr)
 import(octad.db)
 import(rhdf5)
