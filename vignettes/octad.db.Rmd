@@ -1,13 +1,13 @@
 ---
-  title: "Open Cancer TherApeutic Discovery (OCTAD) database"
+title: "Open Cancer TherApeutic Discovery (OCTAD) database"
 output: 
   html_document:
-  toc: true
-toc_depth: 2
+    toc: true
+    toc_depth: 2
 vignette: >
-  %\VignetteIndexEntry{octad.db}
-%\VignetteEngine{knitr::rmarkdown}
-%\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{octad}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
   
   ```
