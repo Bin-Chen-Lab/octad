@@ -26,7 +26,7 @@ As the field of precision medicine progresses, we start to tailor treatments for
 Please note, this is a database-like package for the main package octad which can be obtained [there](https://github.com/Bin-Chen-Lab/octad)
 
 # Session information
-Here is the output of `sessionInfo()` on the system where this document was compiled:
+Here is the output of sessionInfo on the system where this document was compiled:
 ```{r eval=TRUE} 
 sessionInfo()
 ```
