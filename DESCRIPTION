@@ -30,11 +30,7 @@ License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-<<<<<<< HEAD
 RoxygenNote: 7.1.2
-=======
-RoxygenNote: 7.1.1
->>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 Depends: 
     R (>= 4.0),
     magrittr,
@@ -57,12 +53,8 @@ Imports:
     data.table, 
     htmlwidgets, 
     plotly, 
-<<<<<<< HEAD
     reshape2,
     ggrepel 
-=======
-    reshape2
->>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
 Suggests: 
     knitr,
     rmarkdown

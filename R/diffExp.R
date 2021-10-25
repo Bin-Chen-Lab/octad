@@ -2,10 +2,7 @@
 #' @importFrom    rhdf5 h5read H5close
 #' @import RUVSeq edgeR DESeq2 EDASeq stats
 #' @importFrom    dplyr everything left_join
-<<<<<<< HEAD
-#' @importFrom magrittr %>%  
-=======
->>>>>>> 1e2994a38ae41dfab4abb72468d626f20cc8dbd7
+#' @importFrom magrittr %>%
 
 
 diffExp <- function(case_id='',control_id='',source='octad.small',file='octad.counts.and.tpm.h5',
@@ -22,7 +19,7 @@ remLowExpr <- function(counts,counts_phenotype){
     x <-DGEList(counts = round(counts), group = counts_phenotype$sample_type )
     cpm_x <- cpm(x)
     #needs to be at least larger the than the size of the smallest set
-    keep.exprs <- rowSums(cpm_x>1) >= min(table(counts_phenotype$sample_type)) 
+    keep.exprs <- rowSums(cpm_x>1) >= min(table(counts_phenotype$sample_type))
     keep.exprs
 }
 
@@ -85,23 +82,23 @@ stop('Expression data not sourced, please, modify expSet option')
     counts_phenotype <- rbind(data.frame(sample = case_id,sample_type = 'case'),
                                                         data.frame(sample = control_id, sample_type = 'control'))
     counts_phenotype = counts_phenotype[counts_phenotype$sample %in% colnames(expSet),]
-    
+
     counts = expSet[,as.character(counts_phenotype$sample)]
     counts = 2^counts - 1 #unlog the counts it was log(2x + 1) in dz.expr.log2.readCounts
     counts_phenotype$sample = as.character(counts_phenotype$sample)
     counts_phenotype$sample_type = factor(counts_phenotype$sample_type, levels = c("control", "case"))
-    
+
     #remove lowly expressed transcripts
     highExpGenes <- remLowExpr(counts,counts_phenotype)
     counts = counts[highExpGenes,]
-    
+
     set <- EDASeq::newSeqExpressionSet(round(counts),
                                                          phenoData = data.frame(counts_phenotype,row.names=counts_phenotype$sample))
-    
+
     #normalize samples using RUVSeq
     if (normalize_samples == TRUE){
         #compute empirical genes
-        
+
         design <- stats::model.matrix(~ sample_type, data = pData(set))
         y <- edgeR::DGEList(counts=counts(set), group =    counts_phenotype$sample)
         y <- edgeR::calcNormFactors(y, method="TMM") #upperquartile generate Inf in the LGG case
@@ -109,7 +106,7 @@ stop('Expression data not sourced, please, modify expSet option')
         y <- edgeR::estimateGLMTagwiseDisp(y, design)
         fit <- edgeR::glmFit(y, design)
         lrt <- edgeR::glmLRT(fit,2) #defaults to compare case control
-        
+
         top <- edgeR::topTags(lrt, n=nrow(set))$table
         i = which(!(rownames(set) %in% rownames(top)[1:min(n_topGenes,dim(top)[1])]))
         empirical <- rownames(set)[i]
@@ -117,13 +114,13 @@ stop('Expression data not sourced, please, modify expSet option')
         write.csv(data.frame(empirical),file=paste0(outputFolder,"computedEmpGenes.csv"))
         set1 <- RUVSeq::RUVg(set,empirical,k=k)
     }
-    
+
     if(DE_method=='DESeq2'){
 #        library('DESeq2')
         print('computing DE via DESeq')
         row.names(counts_phenotype) = counts_phenotype$sample
         coldata = counts_phenotype
-        
+
         if (normalize_samples == TRUE){
             dds <- DESeq2::DESeqDataSetFromMatrix(countData = counts(set1),
                                                                         colData = pData(set1),
@@ -134,25 +131,25 @@ stop('Expression data not sourced, please, modify expSet option')
                                                                         design= ~ sample_type)
         }
         gc()
-        
+
         if (parallel_cores > 1){
             dds <- DESeq2::DESeq(dds, parallel = TRUE)
         }else{
             dds <- DESeq2::DESeq(dds)
         }
-        
+
         #save(dds,file= paste0(outputFolder, "/dds", ".RData"))
         rnms <- DESeq2::resultsNames(dds)
-        
+
         resRaw <- DESeq2::results(dds, contrast=c("sample_type","case","control"))
         res = data.frame(resRaw)
         res$identifier <- row.names(res)
         res = res %>% select(identifier,everything())
 #        return(res)
-        
+
     }else if(DE_method=='edgeR'){
         print('computing DE via edgeR')
-        
+
         #construct model matrix based on whether there was normalization ran
         if(normalize_samples == TRUE){
             if(k==1){
@@ -163,7 +160,7 @@ stop('Expression data not sourced, please, modify expSet option')
                 design <- stats::model.matrix(~sample_type + W_1 + W_2 + W_3, data = pData(set1))
             }
             dgList <- edgeR::DGEList(counts=counts(set1),group=set1$sample_type)
-            
+
         }else{
             design <- stats::model.matrix(~ sample_type,data=pData(set))
             dgList <- edgeR::DGEList(counts=counts(set),group=set$sample_type)
@@ -173,7 +170,7 @@ stop('Expression data not sourced, please, modify expSet option')
         dgList <- edgeR::estimateGLMTagwiseDisp(dgList, design)
         fit <- edgeR::glmFit(dgList, design)
         #see edgeRUsersGuide section on testing for DE genes for contrast
-        lrt <- edgeR::glmLRT(fit,2) 
+        lrt <- edgeR::glmLRT(fit,2)
         #second coefficient otherwise it'll default the W_1 term when normalize is on
         res <- lrt$table
         colnames(res) <- c("log2FoldChange", "logCPM", "LR", "pvalue")
@@ -188,32 +185,32 @@ stop('Expression data not sourced, please, modify expSet option')
         x <- counts
         nsamples <- ncol(x)
         lcpm <- edgeR::cpm(x, log=TRUE)
-        
+
         group <-counts_phenotype$sample_type
-        
+
         ## ----design-----------------------------------------------------------------------------
         design <- model.matrix(~0 + group)
         colnames(design) <- gsub("group", "", colnames(design))
-        
+
         contr.matrix <- limma::makeContrasts(
-            TumorvsNon = case - control, 
+            TumorvsNon = case - control,
             levels = colnames(design))
-        
+
         v <- limma::voom(x, design, plot=FALSE)
         vfit <- limma::lmFit(v, design)
         vfit <- limma::contrasts.fit(vfit, contrasts=contr.matrix)
         efit <- limma::eBayes(vfit)
-        #plotSA(efit, main="Final model: Mean−variance trend")
-        
+        #plotSA(efit, main="Final model: Mean variance trend")
+
         tfit <- limma::treat(vfit, lfc=1) #not_sure
         dt <- limma::decideTests(tfit)
         summary(dt)
-        
+
         tumorvsnormal <- limma::topTreat(tfit, coef=1, n=Inf)
         tumorvsnormal <- tumorvsnormal[order(abs(tumorvsnormal$logFC), decreasing = TRUE),]
         #tumorvsnormal.topgenes <- rownames(tumorvsnormal[1:50,])
-        
-        
+
+
         res <-tumorvsnormal
         colnames(res) <-c("log2FoldChange", "AveExpr", "t", "pvalue", "padj")
         res$identifier = row.names(res)
