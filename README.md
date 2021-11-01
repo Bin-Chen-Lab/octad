@@ -1,4 +1,4 @@
-# Web version: test
+# Web version:
 http://octad.org/
 
 # How to Install
