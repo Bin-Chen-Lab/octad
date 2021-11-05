@@ -25,29 +25,34 @@ Phenotype data frame `phenoDF ` contains tissue types including normal tissue, a
 
 To list all available samples from the octad database, use the phenoDF data frame. 
 ```{r eval=TRUE} 
-head(octad.db::phenoDF)
+head(ExperimentHub()[["EH7274"]])
+#head(octad.db::phenoDF)
 ```
 To select HCC samples, subset the phenoDF:
 ```{r eval=TRUE} 
 #select data
-HCC_primary=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+
+phenoDF=(ExperimentHub()[["EH7274"]]) #
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 ```
 The sample ids will be stored in the character vector case_id. 
 The code can be easily modified to select for other cancers or a set of samples based on mutations and copy numbers (e.g., TP53 mutation or MYC amplification). It is also recommended to use the R package cgdsr to select TCGA samples based on more clinical and molecular features.
 ```{r eval=TRUE} 
 #choose breast invasive carcinoma samples with PIK3CA mutation 
-BIC_with_PIK3_primary=subset(octad.db::phenoDF,cancer=='breast invasive carcinoma'&sample.type == 'primary'&grepl('PIK3CA',mutation_list))
+phenoDF=(ExperimentHub()[["EH7274"]]) #
+BIC_with_PIK3_primary=subset(phenoDF,cancer=='breast invasive carcinoma'&sample.type == 'primary'&grepl('PIK3CA',mutation_list))
 ```
 
 ## Compute or select control samples
 Use the function `computeRefTissue` to compute appropriate normal tissues via comparing gene expression features between case samples and normal tissue samples. Users can select adjacent normal tissue samples if available. By default, features from the precomputed `AutoEncoder` file are used, but other features such as top varying genes across samples can be employed as well. Pairwise Spearman correlation is computed between every case sample and every normal sample using these features. For each normal sample, its median correlation with all case samples is then computed. Top correlated normal samples (defined by control_size) are then selected as control.   
 ```{r eval=TRUE} 
 library(octad)
+phenoDF=(ExperimentHub()[["EH7274"]]) #
 #computing top 50 reference tissues 
 control_id=computeRefTissue(case_id,outputFolder='',output=TRUE,adjacent=TRUE,source = "octad",control_size = 50)  
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
-control_id =subset(octad.db::phenoDF,cancer=='liver lepatocellular carcinoma'&
+control_id =subset(phenoDF,cancer=='liver lepatocellular carcinoma'&
            sample.type == 'adjacent' & data.source == 'TCGA')  
 #by default the autoencoder is used. User can use expression data to compute reference tissue  
 #expression_log2=loadOctadCounts(sample_vector=phenoDF$sample.id,
@@ -57,15 +62,16 @@ control_id =subset(octad.db::phenoDF,cancer=='liver lepatocellular carcinoma'&
    
 Alternatively, it is possible to select the samples manually:  
 ```{r eval=TRUE} 
-HCC_adjacent=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') 
+phenoDF=(ExperimentHub()[["EH7274"]]) #
+HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') 
 control_id=HCC_adjacent$sample.id
 ```
  
 The relationships among case, control and other samples can be visualised through a t-SNE matrix precomputed based on the features derived from autoencoder. 
 ```{r eval=TRUE} 
 library(octad)
-
-tsne <- octad.db::tsne
+tsne=(ExperimentHub()[["EH7276"]]) #
+#tsne <- octad.db::tsne
 tsne$type <- "others"
 tsne$type[tsne$sample.id %in% case_id] <- "case"
 tsne$type[tsne$sample.id %in% control_id] <- "control"
@@ -113,9 +119,12 @@ Launch the sRGES computation. It takes a few minutes to compute RGES scores. Aft
 
 ```{r eval=TRUE} 
 library(octad)
-HCC_primary=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+
+phenoDF=(ExperimentHub()[["EH7274"]]) #
+
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
-control_id=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&
+control_id=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
            sample.type == 'adjacent' & data.source == 'TCGA') 
 control_id=control_id$sample.id
 res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
@@ -129,16 +138,20 @@ head(sRGES)
 As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in 860 cancer cell lines, we may leverage this database for further in silico validation of our predictions, even without running any biological experiment. We use the HepG2 cell line to validate the prediction of HCC drugs.  
 
 ```{r eval=TRUE} 
-HCC_primary=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+library(octad)
+phenoDF=(ExperimentHub()[["EH7274"]]) #
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 cell_line_computed=computeCellLine(case_id=case_id,
                     returnDF=TRUE,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
-HCC_primary=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+library(octad)
+phenoDF=(ExperimentHub()[["EH7274"]]) #
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
-control_id=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&
+control_id=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
            sample.type == 'adjacent' & data.source == 'TCGA') 
 control_id=control_id$sample.id
 res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
@@ -155,9 +168,11 @@ topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
 After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enrichment analysis to identify interesting drug classes whose member drugs are significantly enriched at the top of the prediction. Example drug classes include anti-inflammatories, EGFR inhibitors, and dipines (calcium channel blockers). OCTAD provides MESH, CHEMBL, and CHEM_CLUSTER for MeSH term enrichment, target enrichment, and chemical structure enrichment, respectively. The enrichment score is calculated using ssGSEA and its significance is computed by a permutation test. 
 
 ```{r eval=TRUE} 
-HCC_primary=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+library(octad)
+phenoDF=(ExperimentHub()[["EH7274"]]) #
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
-control_id=subset(octad.db::phenoDF,cancer=='liver hepatocellular carcinoma'&
+control_id=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
            sample.type == 'adjacent' & data.source == 'TCGA') 
 control_id=control_id$sample.id
 res=diffExp(case_id,control_id,source='octad.small',output=FALSE)

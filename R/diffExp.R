@@ -3,7 +3,7 @@
 #' @import RUVSeq edgeR DESeq2 EDASeq stats
 #' @importFrom    dplyr everything left_join
 #' @importFrom magrittr %>%
-
+#' @importFrom ExperimentHub ExperimentHub
 
 diffExp <- function(case_id='',control_id='',source='octad.small',file='octad.counts.and.tpm.h5',
                                         normalize_samples=TRUE,
@@ -66,7 +66,13 @@ rm(case_counts)
 #rownames(normal_counts) = transcripts
 #control_id = samples[samples %in% control_id]
 #H5close()
-expSet=octad.db::octad.LINCS.counts[,c(case_id,control_id)]
+
+octad.LINCS.counts=ExperimentHub()[["EH7273"]]
+expSet=octad.LINCS.counts[,c(case_id,control_id)]
+
+#expSet=octad.db::octad.LINCS.counts[,c(case_id,control_id)]# bioconductor replace
+
+
 #expSet = cbind(normal_counts, case_counts)
 #rm(normal_counts) # free up some memory
 #rm(case_counts)
@@ -218,7 +224,11 @@ stop('Expression data not sourced, please, modify expSet option')
     }
 #load(merged_gene_info)
 if(annotate==TRUE){
-    merged_gene_info=octad.db::merged_gene_info
+	
+	merged_gene_info=ExperimentHub()[["EH7272"]]
+    #merged_gene_info=octad.db::merged_gene_info #bioconductor replace
+	
+	
         merged_gene_info$ensembl<-as.vector(merged_gene_info$ensembl)
         merged_gene_info$V1=NULL #modify it when will have time
         merged_gene_info$Symbol=merged_gene_info$gene #modify it when will have time

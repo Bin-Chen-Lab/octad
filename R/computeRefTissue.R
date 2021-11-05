@@ -2,7 +2,7 @@
 #' @importFrom magrittr %>%    
 #' @import octad.db stats
 #' @importFrom dplyr select arrange mutate desc
-
+#' @importFrom ExperimentHub ExperimentHub
 
 computeRefTissue <- function(case_id = NULL,
                              adjacent=FALSE,
@@ -22,19 +22,31 @@ if(missing(case_id)){
 stop('Case ids vector input not found')
 }
 if(source=='octad'){
-expSet=octad.db::EncoderDF
+
+expSet=ExperimentHub()[["EH7265"]]
+#expSet=octad.db::EncoderDF #bioconductor replace
+
 case_id=case_id[case_id %in% colnames(expSet)] 
 #if we pick adjacent, filter them out
 if(adjacent==TRUE){
 
-adjacent_ids = as.vector(subset(octad.db::phenoDF,sample.type == "adjacent")$sample.id)
-normal_id = as.vector(subset(octad.db::phenoDF,sample.type == "normal")$sample.id)
+
+phenoDF=ExperimentHub()[["EH7274"]]
+adjacent_ids = as.vector(subset(phenoDF,sample.type == "adjacent")$sample.id) #bioconductor replace
+#adjacent_ids = as.vector(subset(octad.db::phenoDF,sample.type == "adjacent")$sample.id) #bioconductor replace
+
+
+normal_id = as.vector(subset(phenoDF,sample.type == "normal")$sample.id) #bioconductor replace
+#normal_id = as.vector(subset(octad.db::phenoDF,sample.type == "normal")$sample.id) #bioconductor replace
+
 normal_id = c(adjacent_ids,normal_id)
 
 }else{
  #load autoencoder dataset as ExpSet
 #load('data/EncoderDF.rda')
-normal_id = as.vector(subset(octad.db::phenoDF,sample.type == "normal")$sample.id)
+
+normal_id = as.vector(subset(phenoDF,sample.type == "normal")$sample.id) #bioconductor replace
+#normal_id = as.vector(subset(octad.db::phenoDF,sample.type == "normal")$sample.id) #bioconductor replace
 
 }
 

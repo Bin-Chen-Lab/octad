@@ -2,6 +2,7 @@
 #' @importFrom GSVA gsva
 #' @importFrom limma barcodeplot
 #' @import octad.db
+#' @importFrom ExperimentHub ExperimentHub
 
 octadDrugEnrichment <- function(sRGES=NULL,target_type='chembl_targets',enrichFolder='enrichFolder'){
 #    require(GSVA)
@@ -33,7 +34,11 @@ cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
     cmpd_sets = get(paste0("cmpd_sets_", target_type_selected), asNamespace('octad.db'))
     cmpdSets = cmpd_sets$cmpd.sets
     names(cmpdSets) = cmpd_sets$cmpd.set.names
-    random_gsea_score=octad.db::random_gsea_score
+	
+	random_gsea_score=ExperimentHub()[["EH7275"]]
+    #random_gsea_score=octad.db::random_gsea_score #bioconductor replace
+	
+	
     ############################
     
     

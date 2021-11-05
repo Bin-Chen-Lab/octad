@@ -4,6 +4,8 @@
 #' @importFrom reshape2 melt
 #' @importFrom plotly ggplotly add_annotations layout as_widget
 #' @import octad.db ggplot2 
+#' @importFrom ExperimentHub ExperimentHub
+
 ####### topLineEval #######
 topLineEval <- function(topline = c(''),
                                                 mysRGES=''){
@@ -15,7 +17,11 @@ topLineEval <- function(topline = c(''),
     }
 
 mysRGES$pert_iname <- toupper(mysRGES$pert_iname)
-CTRPv2.ic50 <- data.table::dcast.data.table(octad.db::CTRPv2.sensprof, drugid ~ cellid, value.var = "ic50_recomputed", fun.aggregate = median)
+
+CTRPv2.ic50 <- data.table::dcast.data.table(ExperimentHub()[["EH7264"]], drugid ~ cellid,
+value.var = "ic50_recomputed", fun.aggregate = median) #bioconductor replace
+#CTRPv2.ic50 <- data.table::dcast.data.table(octad.db::CTRPv2.sensprof, drugid ~ cellid,
+		#value.var = "ic50_recomputed", fun.aggregate = median) #bioconductor replace
 
 colnames(CTRPv2.ic50) <- gsub("[^0-9A-Za-z///' ]","",colnames(CTRPv2.ic50))
 colnames(CTRPv2.ic50) <- toupper(colnames(CTRPv2.ic50))
@@ -38,8 +44,10 @@ CTRP.IC50.medianIC50$Group.1=NULL
 CTRP.IC50.medianIC50 <- CTRP.IC50.medianIC50[is.finite(CTRP.IC50.medianIC50$medIC50),]
 
     
-    
-CTRPv2.auc     <- data.table::dcast.data.table(octad.db::CTRPv2.sensprof, drugid ~ cellid, value.var = "auc_recomputed", fun.aggregate = median)
+CTRPv2.auc     <- data.table::dcast.data.table(ExperimentHub()[["EH7264"]],
+		drugid ~ cellid, value.var = "auc_recomputed", fun.aggregate = median)  
+#CTRPv2.auc     <- data.table::dcast.data.table(octad.db::CTRPv2.sensprof,
+#		drugid ~ cellid, value.var = "auc_recomputed", fun.aggregate = median) #bioconductor replace
 
 colnames(CTRPv2.auc) <- gsub("[^0-9A-Za-z///' ]","",colnames(CTRPv2.auc))
 colnames(CTRPv2.auc) <- toupper(colnames(CTRPv2.auc))

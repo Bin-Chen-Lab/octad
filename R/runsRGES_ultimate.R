@@ -3,6 +3,8 @@
 #' @importFrom dplyr summarise id desc
 #' @importFrom plotly group_by
 #' @import octad.db
+#' @importFrom ExperimentHub ExperimentHub
+
 
 #### runsRGES #######
 runsRGES <- function(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
@@ -110,14 +112,23 @@ stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
     }
 
     if(!missing(cells)){
-        lincs_sig_info$cell_id = toupper(octad.db::lincs_sig_info$cell_id)
-        lincs_sig_info = subset(octad.db::lincs_sig_info,cell_id %in% cells)
+		
+		lincs_sig_info=ExperimentHub()[["EH7270"]]
+        lincs_sig_info$cell_id = toupper(lincs_sig_info$cell_id)
+		#lincs_sig_info$cell_id = toupper(octad.db::lincs_sig_info$cell_id) #bioconductor replace
+		
+		lincs_sig_info = subset(lincs_sig_info,cell_id %in% cells)
+        #lincs_sig_info = subset(octad.db::lincs_sig_info,cell_id %in% cells) #bioconductor replace
+		
+		
     }else if(!missing(cells)&nrow(lincs_sig_info)==0){
         stop('Wrong cell line name. List of possible cell lines is available via command unique(octad.db::lincs_sig_info$cell_id)')
     }else if(missing(cells)){
         cells='' #plug for older code version
     }
-     lincs_signatures=octad.db::lincs_signatures
+	
+		lincs_signatures=ExperimentHub()[["EH7271"]] 
+		#lincs_signatures=octad.db::lincs_signatures #bioconductor replace
 #    }else{
         #don't bother
  #     load(paste0(data,"lincs_signatures_cmpd_landmark_GSE92742.RData"))
@@ -126,7 +137,11 @@ stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
     if (choose_fda_drugs) {
         #fda_drugs = read.csv("data/repurposing_drugs_20170327.txt", stringsAsFactors = F,sep='\t')
         #load('data/fda_drugs.rda')
-        fda_drugs=octad.db::fda_drugs
+		
+		fda_drugs=ExperimentHub()[["EH7269"]] 
+        #fda_drugs=octad.db::fda_drugs #bioconductor replace
+		
+		
         lincs_sig_info_FDA <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(pert_iname) %in% tolower(fda_drugs$pert_iname))
         FDAdf <- select(lincs_sig_info_FDA, pert_id, pert_iname)
         FDAdf <- unique(FDAdf[,seq_len(2)])
