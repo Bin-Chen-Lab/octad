@@ -25,13 +25,14 @@ Phenotype data frame `phenoDF ` contains tissue types including normal tissue, a
 
 To list all available samples from the octad database, use the phenoDF data frame. 
 ```{r eval=TRUE} 
+library(octad)
 head(ExperimentHub()[["EH7274"]])
 #head(octad.db::phenoDF)
 ```
 To select HCC samples, subset the phenoDF:
 ```{r eval=TRUE} 
 #select data
-
+library(octad)
 phenoDF=(ExperimentHub()[["EH7274"]]) #
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
@@ -40,6 +41,7 @@ The sample ids will be stored in the character vector case_id.
 The code can be easily modified to select for other cancers or a set of samples based on mutations and copy numbers (e.g., TP53 mutation or MYC amplification). It is also recommended to use the R package cgdsr to select TCGA samples based on more clinical and molecular features.
 ```{r eval=TRUE} 
 #choose breast invasive carcinoma samples with PIK3CA mutation 
+library(octad)
 phenoDF=(ExperimentHub()[["EH7274"]]) #
 BIC_with_PIK3_primary=subset(phenoDF,cancer=='breast invasive carcinoma'&sample.type == 'primary'&grepl('PIK3CA',mutation_list))
 ```
@@ -62,6 +64,7 @@ control_id =subset(phenoDF,cancer=='liver lepatocellular carcinoma'&
    
 Alternatively, it is possible to select the samples manually:  
 ```{r eval=TRUE} 
+library(octad)
 phenoDF=(ExperimentHub()[["EH7274"]]) #
 HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') 
 control_id=HCC_adjacent$sample.id
