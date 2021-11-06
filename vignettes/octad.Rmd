@@ -154,10 +154,11 @@ library(octad)
 library(ExperimentHub)
 
 phenoDF=(ExperimentHub()[["EH7274"]]) #
+CCLE.log2.read.count.matrixs=ExperimentHub()[["EH7261"]]
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 cell_line_computed=computeCellLine(case_id=case_id,
-                    returnDF=TRUE,source='octad.small')
+                    returnDF=FALSE,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
