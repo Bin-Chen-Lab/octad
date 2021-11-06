@@ -9,7 +9,9 @@
 #### runsRGES #######
 runsRGES <- function(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
                                          cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000){
-    getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor){
+    
+	lincs_sig_info=ExperimentHub()[["EH7270"]] #bioconductor addition
+	getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor){
         
         sRGES <- RGES
         pert_time <- ifelse(pert_time < 24, "short", "long")
