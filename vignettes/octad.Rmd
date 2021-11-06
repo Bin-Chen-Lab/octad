@@ -149,7 +149,7 @@ head(sRGES)
 ## Validate results using published pharmacogenomics data
 As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in 860 cancer cell lines, we may leverage this database for further in silico validation of our predictions, even without running any biological experiment. We use the HepG2 cell line to validate the prediction of HCC drugs.  
 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 library(octad)
 library(ExperimentHub)
 
@@ -161,7 +161,7 @@ cell_line_computed=computeCellLine(case_id=case_id,
                     returnDF=FALSE,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 library(octad)
 library(ExperimentHub)
 
