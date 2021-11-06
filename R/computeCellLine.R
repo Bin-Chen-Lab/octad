@@ -4,13 +4,8 @@
 #' @importFrom ExperimentHub ExperimentHub
 
 ####### computeCellLine #######
-computeCellLine <- function(case_id =case_id,
-                                                        expSet=NULL,
-                                                        LINCS_overlaps = TRUE,
-                            source='octad.small',
-                            file=NULL,
-                                                        returnDF = FALSE){
-
+computeCellLine <- function(case_id =case_id,expSet=NULL,LINCS_overlaps = TRUE,source='octad.small',file=NULL,returnDF = FALSE){
+	CCLE.log2.read.count.matrixs=ExperimentHub()[["EH7261"]] #bioconductor addon
     #STOPS
     if(missing(case_id)){
         stop('Case ids vector input not found')
