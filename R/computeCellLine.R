@@ -84,12 +84,13 @@ stop('Expression data not sourced, please, modify expSet option')
         #CCLE.median<- apply(octad.db::CCLE.overlaps,1,median)
     }else{
 		
-		CCLE.log2.read.count.matrixs=ExperimentHub()[["EH7261"]]
+		CCLE.log2.read.count.matrixs=ExperimentHub()[["EH7261"]] #bioconductor addon
 		CCLE.median = apply(CCLE.log2.read.count.matrix,1,median)
         #CCLE.median = apply(octad.db::CCLE.log2.read.count.matrix,1,median)
     }
     CCLE.expressed.gene <- names(CCLE.median)[CCLE.median > 1]
 	
+	CCLE.log2.read.count.matrixs=ExperimentHub()[["EH7261"]] #bioconductor addon
 	tmp <- CCLE.log2.read.count.matrix[CCLE.expressed.gene,]
     #tmp <- octad.db::CCLE.log2.read.count.matrix[CCLE.expressed.gene,]
 	
