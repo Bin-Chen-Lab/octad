@@ -25,14 +25,14 @@ The function produces 3 feils in the output directory:
 }
 \examples{
 #select samples
-phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
-HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data
-control_id=HCC_adjacent$sample.id #select cases
+#phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
+#HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+#case_id=HCC_primary$sample.id #select cases
+#HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data
+#control_id=HCC_adjacent$sample.id #select cases
 #compute DE
-res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
-res=subset(res,abs(log2FoldChange)>2&padj<0.001)
+#res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
+#res=subset(res,abs(log2FoldChange)>2&padj<0.001)
 #Compute sRGES
 #sRGES=runsRGES(res,max_gene_size=50)
 #Pick up cell lines

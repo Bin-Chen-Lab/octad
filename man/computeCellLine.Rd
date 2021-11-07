@@ -30,8 +30,6 @@
 phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
  HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
  case_id=HCC_primary$sample.id #select cases
- cell_line_computed=computeCellLine(case_id=case_id,returnDF=TRUE)
- computeCellLine(case_id,returnDF=TRUE,source='octad.small')
-
+ cell_line_computed=computeCellLine(case_id=case_id,returnDF=FALSE,source='octad.small')
 }
 \keyword{octadDrugEnrichment}

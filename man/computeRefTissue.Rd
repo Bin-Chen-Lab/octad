@@ -42,8 +42,5 @@ Besides, if \code{output=TRUE}, two files are created in the working directory:
  #by default output=TRUE and outputFolder option is empty,
  #which creates control corMatrix.csv to working directory
  control_id=computeRefTissue(case_id,outputFolder='',output=TRUE, expSet = "octad",control_size = 50)
- #increase number of samples
- control_id=computeRefTissue(case_id, control_size = 100)
-
 }
 \keyword{computeRefTissue}
