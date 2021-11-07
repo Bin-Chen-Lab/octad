@@ -188,7 +188,7 @@ After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enr
 library(octad)
 library(ExperimentHub)
 
-phenoDF=(ExperimentHub()[["EH7274"]]) #
+phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 control_id=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&

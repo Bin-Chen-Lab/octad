@@ -25,6 +25,7 @@ The function produces 3 feils in the output directory:
 }
 \examples{
 #select samples
+phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data

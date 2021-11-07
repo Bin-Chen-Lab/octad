@@ -33,6 +33,7 @@ Besides, if \code{output=TRUE}, two files are created in the working directory:
 }
 \examples{
  #select data
+ phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
  HCC_primary=subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
  sample.type == 'primary'&data.source == 'TCGA')
  #select cases

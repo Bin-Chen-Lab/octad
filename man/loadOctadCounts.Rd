@@ -21,6 +21,7 @@
   \code{\link{diffExp}}.
 }
 \examples{
+phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
  #load expression data for raw counts or tpm values.
  HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
