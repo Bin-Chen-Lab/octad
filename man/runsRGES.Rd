@@ -29,13 +29,9 @@ Besides, a number of additional files in the sourced directory:
   \code{\link{diffExp}, \link{octadDrugEnrichment}, \link{computeCellLine}, \link{topLineEval}}
 }
 \examples{
-phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
-HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data
-control_id=HCC_adjacent$sample.id #select cases
-res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
-res=subset(res,abs(log2FoldChange)>2)
+#load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function
+res=res_example
+res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 #run sRGES computation
 runsRGES(dz_signature=res)
 }

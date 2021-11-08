@@ -26,14 +26,9 @@ Following files are created:
   \code{\link{runsRGES}}
 }
 \examples{
-phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
-HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data
-control_id=HCC_adjacent$sample.id #select cases
-res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
-res=subset(res,abs(log2FoldChange)>2)
-#run sRGES computation
+#load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function
+res=res_example
+res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 sRGES = runsRGES(dz_signature=res)
 #run drug enrichment 
 octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets','mesh',

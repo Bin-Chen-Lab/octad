@@ -39,6 +39,6 @@ HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type 
 case_id=HCC_primary$sample.id #select cases
 HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') #select data
 control_id=HCC_adjacent$sample.id #select cases
-res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
+res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
 }
 \keyword{diffExp}
