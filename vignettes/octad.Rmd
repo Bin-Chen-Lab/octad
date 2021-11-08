@@ -10,7 +10,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-### Eugene Chekalin, Billy Zeng, Patrick Newbury, Benjamin Glicksberg, Jing Xing, Ke Liu, Dimitri Joseph, Bin Chen
+### Evgenii Chekalin, Billy Zeng, Patrick Newbury, Benjamin Glicksberg, Jing Xing, Ke Liu, Dimitri Joseph, Bin Chen
 Edited on September 28, 2020; Compiled on September 29, 2020
 
 # Package overview
@@ -132,15 +132,8 @@ Launch the sRGES computation. It takes a few minutes to compute RGES scores. Aft
 library(octad)
 library(ExperimentHub)
 
-phenoDF=(ExperimentHub()[["EH7274"]]) #
-
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
-control_id=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
-           sample.type == 'adjacent' & data.source == 'TCGA') 
-control_id=control_id$sample.id
-res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
-head(res)
+#load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
+res=res_example
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 sRGES=runsRGES(res,max_gene_size=100,permutations=10000)
 
@@ -149,12 +142,12 @@ head(sRGES)
 ## Validate results using published pharmacogenomics data
 As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in 860 cancer cell lines, we may leverage this database for further in silico validation of our predictions, even without running any biological experiment. We use the HepG2 cell line to validate the prediction of HCC drugs.  
 
-```{r eval=FALSE} 
+```{r eval=TRUE} 
 library(octad)
 library(ExperimentHub)
 
 phenoDF=(ExperimentHub()[["EH7274"]]) #
-CCLE.log2.read.count.matrixs=ExperimentHub()[["EH7261"]]
+#CCLE.log2.read.count.matrixs=ExperimentHub()[["EH7261"]]
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 cell_line_computed=computeCellLine(case_id=case_id,
@@ -165,16 +158,8 @@ cell_line_computed=computeCellLine(case_id=case_id,
 library(octad)
 library(ExperimentHub)
 
-phenoDF=(ExperimentHub()[["EH7274"]]) #
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
-control_id=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
-           sample.type == 'adjacent' & data.source == 'TCGA') 
-control_id=control_id$sample.id
-res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
-head(res)
-res=subset(res,abs(log2FoldChange)>1&padj<0.001)
-sRGES=runsRGES(res,max_gene_size=100,permutations=10000)
+#load example sRGES computed by runsRGES() function for HCC vs liver adjacent tissues on octad.small dataset computed in previous example
+sRGES=sRGES_example
 topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
@@ -188,16 +173,8 @@ After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enr
 library(octad)
 library(ExperimentHub)
 
-phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
-control_id=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
-           sample.type == 'adjacent' & data.source == 'TCGA') 
-control_id=control_id$sample.id
-res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
-head(res)
-res=subset(res,abs(log2FoldChange)>1&padj<0.001)
-sRGES=runsRGES(res,max_gene_size=100,permutations=10000)
+#load example sRGES computed by runsRGES() function for HCC vs liver adjacent tissues on octad.small dataset computed in previous example
+sRGES=sRGES_example
 octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets','mesh','ChemCluster'))
 ```
 This analysis provides much information for following candidate selection and experiment design. First, the candidates selected from the same enriched class (i.e., MeSH term, target) are more likely to be true positive than those randomly selected from the top list. Second, when the ideal candidate is not available, it is reasonable to choose an alternative from the same class. Sometimes, it is necessary to choose a new drug for testing (e.g., a second generation of one inhibitor for the same target). Lastly, since many compounds have multiple MOAs, this analysis would help interpret the MOA of promising compounds. 
