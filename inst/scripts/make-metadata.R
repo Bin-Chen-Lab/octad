@@ -14,7 +14,9 @@ meta <- data.frame(Title=c('CCLE.log2.read.count.matrix',
                            'phenoDF',
                            'random_gsea_score',
                            'tsne',
-                           'octad.counts.and.tpm.h5'
+                           'octad.counts.and.tpm.h5',
+                           'res_example.rda',
+                           'sRGES_example.rda'
 ),
 Description=c(
 'log2-transformed matrix containing expression of 56,318 genes in 1,019 cell lines provided in CCLE database',
@@ -33,7 +35,9 @@ Description=c(
 'data.frame with samples from the OCTAD database including tissue of origin, sample type (tumor-derived or healthy-derived), cancer, orginal source (e.g. TCGA), mutation and stage data if available',
 'precomputed permutated gsea scores for chembl, mesh and ChemCluster databases that are used for drug enrichment analysis',
 '2 dimension tSNE for every sample in the OCTAD database along with sample.id, cancer type and source of the initial data',
-'expression (TPM and raw counts) matrix of 60,498 genes and 19,127 samples'
+'expression (TPM and raw counts) matrix of 60,498 genes and 19,127 samples',
+'example of differential expression analysis of HCC vs adjacent liver for OCTAD performed on genes contained in LINCs database',
+'example of RGES computed from DE analysis of HCC vs adjacent liver for OCTAD performed on genes contained in LINCs database'
 ),
 BiocVersion='3.15',
 Genome='hg19',
@@ -55,7 +59,9 @@ SourceUrl=c(
   'https://chenlab-data-public.s3.amazonaws.com/octad/octad.db/phenoDF.rda',
   'https://chenlab-data-public.s3.amazonaws.com/octad/octad.db/random_gsea_score.rda',
   'https://chenlab-data-public.s3.amazonaws.com/octad/octad.db/tsne.rda',
-  'https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5'
+  'https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5',
+  'https://chenlab-data-public.s3.amazonaws.com/octad/octad.db/res_example.rda',
+  'https://chenlab-data-public.s3.amazonaws.com/octad/octad.db/sRGES_example.rda'
 ),
 SourceVersion=Sys.time(),
 Species="Homo sapiens",
@@ -80,9 +86,11 @@ RDataClass=c(
   'data.frame',
   'list',
   'data.frame',
+  'data.frame',
+  'data.frame',
   'data.frame'
 ),
-DispatchClass=c(rep('Rda',16),'H5File'),
+DispatchClass=c(rep('Rda',16),'H5File',rep('Rda',2)),
 RDataPath=c('octad.db/CCLE.log2.read.count.matrix.rda',
   'octad.db/CCLE.overlaps.rda',
   'octad.db/CCLE.sample.meta.rda',
@@ -99,7 +107,9 @@ RDataPath=c('octad.db/CCLE.log2.read.count.matrix.rda',
   'octad.db/phenoDF.rda',
   'octad.db/random_gsea_score.rda',
   'octad.db/tsne.rda',
-  'octad.db/octad.counts.and.tpm.h5'
+  'octad.db/octad.counts.and.tpm.h5',
+  'octad.db/res_example.rda',
+  'octad.db/sRGES_example.rda'
 ),
 Location_Prefix='https://chenlab-data-public.s3.amazonaws.com/octad/'
 )
