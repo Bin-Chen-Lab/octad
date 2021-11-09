@@ -25,7 +25,7 @@ A data.frame with 963 rows and 18 variables:
 }
 }
 \usage{
-res_example
+head(res_example)
 }
 \description{
 Differential expression example for HCC vs adjacent liver tissue computed in diffExp() function

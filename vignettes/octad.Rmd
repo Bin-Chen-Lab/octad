@@ -60,20 +60,15 @@ control_id=computeRefTissue(case_id,outputFolder='',output=TRUE,adjacent=TRUE,so
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 control_id =subset(phenoDF,cancer=='liver lepatocellular carcinoma'&
            sample.type == 'adjacent' & data.source == 'TCGA')  
+#Alternatively, it is possible to select the samples manually: 
+HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') 
+control_id=HCC_adjacent$sample.id
 #by default the autoencoder is used. User can use expression data to compute reference tissue  
 #expression_log2=loadOctadCounts(sample_vector=phenoDF$sample.id,
 #        type='tpm',file='octad.counts.and.tpm.h5')  
 #control_id=computeRefTissue(case_id, control_size = 50,expSet=expression_log2,source='side')  
 ```  
    
-Alternatively, it is possible to select the samples manually:  
-```{r eval=TRUE} 
-library(octad)
-library(ExperimentHub)
-phenoDF=(ExperimentHub()[["EH7274"]]) #
-HCC_adjacent=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'adjacent'&data.source == 'TCGA') 
-control_id=HCC_adjacent$sample.id
-```
  
 The relationships among case, control and other samples can be visualised through a t-SNE matrix precomputed based on the features derived from autoencoder. 
 ```{r eval=TRUE} 
@@ -109,7 +104,7 @@ res=diffExp(case_id,control_id,source='octad.whole',
 ```
 We can also perform DE analysis using an external dataset. Below is an example to perform DE analysis between tumor and non-tumor samples using the count data downloaded from GEO [GSE144269](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE144269).
 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 library(octad)
 library(ExperimentHub)
 

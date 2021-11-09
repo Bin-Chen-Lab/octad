@@ -16,7 +16,7 @@ A tibble with 12,442 rows and 6 variables:
 }
 }
 \usage{
-sRGES_example
+head(sRGES_example)
 }
 \description{
 Data of computed example sRGEs for HCC vs liver adjacent tissues on octad.small dataset

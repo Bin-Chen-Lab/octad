@@ -26,13 +26,10 @@ Following files are created:
   \code{\link{runsRGES}}
 }
 \examples{
-#load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function
-res=res_example
-res=subset(res,abs(log2FoldChange)>1&padj<0.001)
-sRGES = runsRGES(dz_signature=res)
+#load example sRGES computed by runsRGES() function for HCC vs liver adjacent tissues on octad.small dataset
+sRGES=sRGES_example
 #run drug enrichment 
-octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets','mesh',
-                      'ChemCluster'))
+octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets'))
 
 }
 \keyword{octadDrugEnrichment}
