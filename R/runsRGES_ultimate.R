@@ -10,7 +10,7 @@
 runsRGES <- function(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
                                          cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000){
     
-	#lincs_sig_info=ExperimentHub()[["EH7270"]] #bioconductor addition
+	lincs_sig_info=ExperimentHub()[["EH7270"]] #bioconductor addition
 	getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor){
         
         sRGES <- RGES
@@ -115,7 +115,7 @@ stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
 
     if(!missing(cells)){
 		
-		lincs_sig_info=ExperimentHub()[["EH7270"]]
+		#lincs_sig_info=ExperimentHub()[["EH7270"]]
         lincs_sig_info$cell_id = toupper(lincs_sig_info$cell_id)
 		#lincs_sig_info$cell_id = toupper(octad.db::lincs_sig_info$cell_id) #bioconductor replace
 		
