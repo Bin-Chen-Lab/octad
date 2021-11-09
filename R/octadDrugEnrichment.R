@@ -30,7 +30,6 @@ cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
 #    load(paste0(dataFolder,'random_gsea_score.RData'))
     
     #load required random scores from octad.db
-  #bioconductor addon
     cmpd_sets=ExperimentHub()[[row.names(subset(data.frame,title==paste0("cmpd_sets_", target_type_selected)))]] #bioconductor addon
     #cmpd_sets = get(paste0("cmpd_sets_", target_type_selected), asNamespace('octad.db'))
     cmpdSets = cmpd_sets$cmpd.sets
