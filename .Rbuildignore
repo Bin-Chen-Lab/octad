@@ -1,6 +1,2 @@
-<<<<<<< HEAD
-^.*\.Rproj$
-=======
 ^octad\.Rproj$
->>>>>>> origin/master
 ^\.Rproj\.user$
