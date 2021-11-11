@@ -33,6 +33,6 @@ Besides, a number of additional files in the sourced directory:
 res=ExperimentHub()[["EH7278"]]
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 #run sRGES computation
-runsRGES(dz_signature=res)
+runsRGES(dz_signature=res,choose_fda_drugs = FALSE,max_gene_size=100,permutations=1000)
 }
 \keyword{sRGES}
