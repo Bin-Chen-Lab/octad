@@ -14,6 +14,7 @@ diffExp <- function(case_id='',control_id='',source='octad.small',file='octad.co
                                         parallel_cores = 2,
                     output=TRUE,
                     outputFolder='', annotate=TRUE){
+eh=ExperimentHub()
 
 remLowExpr <- function(counts,counts_phenotype){
     x <-DGEList(counts = round(counts), group = counts_phenotype$sample_type )
@@ -67,7 +68,7 @@ rm(case_counts)
 #control_id = samples[samples %in% control_id]
 #H5close()
 
-octad.LINCS.counts=ExperimentHub()[["EH7273"]]
+octad.LINCS.counts=eh[["EH7273"]]
 expSet=octad.LINCS.counts[,c(case_id,control_id)]
 
 #expSet=octad.db::octad.LINCS.counts[,c(case_id,control_id)]# bioconductor replace
@@ -225,7 +226,7 @@ stop('Expression data not sourced, please, modify expSet option')
 #load(merged_gene_info)
 if(annotate==TRUE){
 	
-	merged_gene_info=ExperimentHub()[["EH7272"]]
+	merged_gene_info=eh[["EH7272"]]
     #merged_gene_info=octad.db::merged_gene_info #bioconductor replace
 	
 	

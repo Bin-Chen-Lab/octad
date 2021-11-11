@@ -7,18 +7,17 @@
 #' @importFrom ExperimentHub ExperimentHub
 
 ####### topLineEval #######
-topLineEval <- function(topline = c(''),
-                                                mysRGES=''){
+topLineEval <- function(topline = c(''),mysRGES=''){
 
     toplineName = paste(topline,collapse='_')
     cell.line.folder <- paste0("CellLineEval")
     if (!dir.exists(cell.line.folder)) {
         dir.create(cell.line.folder)
     }
-
+eh=ExperimentHub()
 mysRGES$pert_iname <- toupper(mysRGES$pert_iname)
 
-CTRPv2.ic50 <- data.table::dcast.data.table(ExperimentHub()[["EH7264"]], drugid ~ cellid,
+CTRPv2.ic50 <- data.table::dcast.data.table(eh[["EH7264"]], drugid ~ cellid,
 value.var = "ic50_recomputed", fun.aggregate = median) #bioconductor replace
 #CTRPv2.ic50 <- data.table::dcast.data.table(octad.db::CTRPv2.sensprof, drugid ~ cellid,
 		#value.var = "ic50_recomputed", fun.aggregate = median) #bioconductor replace
@@ -44,7 +43,7 @@ CTRP.IC50.medianIC50$Group.1=NULL
 CTRP.IC50.medianIC50 <- CTRP.IC50.medianIC50[is.finite(CTRP.IC50.medianIC50$medIC50),]
 
     
-CTRPv2.auc     <- data.table::dcast.data.table(ExperimentHub()[["EH7264"]],
+CTRPv2.auc     <- data.table::dcast.data.table(eh[["EH7264"]],
 		drugid ~ cellid, value.var = "auc_recomputed", fun.aggregate = median)  
 #CTRPv2.auc     <- data.table::dcast.data.table(octad.db::CTRPv2.sensprof,
 #		drugid ~ cellid, value.var = "auc_recomputed", fun.aggregate = median) #bioconductor replace

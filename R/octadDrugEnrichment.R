@@ -6,6 +6,7 @@
 
 octadDrugEnrichment <- function(sRGES=NULL,target_type='chembl_targets',enrichFolder='enrichFolder'){
 #    require(GSVA)
+eh=ExperimentHub()
 if(missing(sRGES)){
 stop('sRGES input not found')
 }
@@ -17,7 +18,7 @@ options(warn=-1)
  if (!dir.exists(enrichFolder)) {
         dir.create(enrichFolder)
     }
-data.frame=as.data.frame(mcols(query(ExperimentHub(), "octad.db")))['title']
+data.frame=as.data.frame(mcols(query(eh, "octad.db")))['title']
 for(target_type_selected in target_type){
 cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
     enrichFolder.n <- paste(enrichFolder,target_type_selected,sep='/')
@@ -30,12 +31,12 @@ cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
 #    load(paste0(dataFolder,'random_gsea_score.RData'))
     
     #load required random scores from octad.db
-    cmpd_sets=ExperimentHub()[[row.names(subset(data.frame,title==paste0("cmpd_sets_", target_type_selected)))]] #bioconductor addon
+    cmpd_sets=eh[[row.names(subset(data.frame,title==paste0("cmpd_sets_", target_type_selected)))]] #bioconductor addon
     #cmpd_sets = get(paste0("cmpd_sets_", target_type_selected), asNamespace('octad.db'))
     cmpdSets = cmpd_sets$cmpd.sets
     names(cmpdSets) = cmpd_sets$cmpd.set.names
 	
-	random_gsea_score=ExperimentHub()[["EH7275"]]
+	random_gsea_score=eh[["EH7275"]]
     #random_gsea_score=octad.db::random_gsea_score #bioconductor replace
 	
 	

@@ -18,12 +18,13 @@ computeRefTissue <- function(case_id = NULL,
                              output=TRUE){
   
 #    require(dplyr)
+eh=ExperimentHub()
 if(missing(case_id)){
 stop('Case ids vector input not found')
 }
 if(source=='octad'){
 
-expSet=ExperimentHub()[["EH7265"]]
+expSet=eh[["EH7265"]]
 #expSet=octad.db::EncoderDF #bioconductor replace
 
 case_id=case_id[case_id %in% colnames(expSet)] 
@@ -31,7 +32,7 @@ case_id=case_id[case_id %in% colnames(expSet)]
 if(adjacent==TRUE){
 
 
-phenoDF=ExperimentHub()[["EH7274"]]
+phenoDF=eh[["EH7274"]]
 adjacent_ids = as.vector(subset(phenoDF,sample.type == "adjacent")$sample.id) #bioconductor replace
 #adjacent_ids = as.vector(subset(octad.db::phenoDF,sample.type == "adjacent")$sample.id) #bioconductor replace
 
