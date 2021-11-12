@@ -9,7 +9,7 @@
 #### runsRGES #######
 runsRGES <- function(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
                                          cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000){
-    eh=ExperimentHub()
+  eh=ExperimentHub()
 	lincs_sig_info=eh[["EH7270"]] #bioconductor addition
 	getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor){
         
@@ -125,9 +125,9 @@ if(!missing(cells)){
     }	
 	
 	lincs_signatures=eh[["EH7271"]] 
-		#lincs_signatures=octad.db::lincs_signatures #bioconductor replace
+	#lincs_signatures=octad.db::lincs_signatures #bioconductor replace
 #    }else{
-        #don't bother
+    #don't bother
  #     load(paste0(data,"lincs_signatures_cmpd_landmark_GSE92742.RData"))
  # }
     
@@ -185,10 +185,8 @@ if(!missing(cells)){
     #print(paste('finished loading in', round(Sys.time()-start,2),units(Sys.time()-start)))
     #start=Sys.time()
     
-parallel=FALSE
-if(!parallel){
-	#require(lme4)
-	#require(Rfast)
+#parallel=FALSE
+#if(!parallel){ in case of parallel implementation for later release
 	dz_cmap_scores <- NULL
 	#count <- 0
         
@@ -200,7 +198,7 @@ if(!parallel){
 	
 	cat(paste('Started sRGES computation. Average computation time ~1-3mins.'),'\n')
 	start_time=Sys.time()   
-	cat(paste('mem check 1'),'\n')
+#	cat(paste('mem check 1'),'\n')
 	####slow loop#### NO SLOW LOOP ANYMORE! :)
 	pb <- txtProgressBar(min = 1, max = permutations, style = 3) #set progressbar
 	i=0
@@ -209,13 +207,13 @@ if(!parallel){
         
 #loop_time=Sys.time()
 cmap_exp_signature=data.frame(ids = gene.list, rank = cmap_exp_sig[,as.vector(sig.ids)])
-cat(paste('mem check 2'),'\n')
+#cat(paste('mem check 2'),'\n')
 cmap_exp_sig=as.data.frame(cmap_exp_sig)
 cmap_exp_sig$ids=NULL
-cat(paste('mem check 3'),'\n')
+#cat(paste('mem check 3'),'\n')
 dz_cmap_scores=apply(cmap_exp_sig[as.vector(sig.ids)],2,
             FUN=function(x) cmap_score_ultimate(dz_genes_up$Symbol,dz_genes_down$Symbol,drug_signature=x))
-cat(paste('mem check 4'),'\n')
+#cat(paste('mem check 4'),'\n')
 #for (exp_id in sig.ids) {
  # i=i+1
  # setTxtProgressBar(pb, i) 
@@ -245,42 +243,42 @@ cat(paste('mem check 4'),'\n')
     
         #random scores
 #        N_PERMUTATIONS <- 10000 #default 100000
-cat(paste('mem check 5'),'\n')
+#cat(paste('mem check 5'),'\n')
 lincs_signatures=eh[["EH7271"]] 
 
-cat(paste('mem check 6'),'\n')
+#cat(paste('mem check 6'),'\n')
 random_sig_ids <- sample(colnames(lincs_signatures),permutations,replace=TRUE)
 #count <- 0
 random_cmap_scores <- NULL
 
-cat(paste('mem check 7'),'\n')
+#cat(paste('mem check 7'),'\n')
 cmap_exp_signature=as.data.frame(Rfast::colRanks(-1 * lincs_signatures[, as.character(random_sig_ids)], method = "max"))
 rm(lincs_signatures) #free some memory
 
-cat(paste('mem check 8'),'\n')
+#cat(paste('mem check 8'),'\n')
 random_cmap_scores=apply(cmap_exp_signature,2,
 	FUN=function(x) cmap_score_ultimate(
 	sample(1:length(dz_genes_up$Symbol),replace=TRUE),
 	sample(1:length(dz_genes_down$Symbol),replace=TRUE),
 	drug_signature=x))
 
-cat(paste('mem check 9'),'\n')		
+#cat(paste('mem check 9'),'\n')		
 p <- sapply(dz_cmap_scores, function(score){
     sum(random_cmap_scores < score)/length(random_cmap_scores)
     })
 
-cat(paste('mem check 10'),'\n')      
+#cat(paste('mem check 10'),'\n')      
 padj <- p.adjust(p, "fdr")
 results <- data.frame(id = sig.ids, cmap_score = dz_cmap_scores, p, padj)
 
-cat(paste('mem check 11'),'\n')        
+#cat(paste('mem check 11'),'\n')        
 results <- merge(results, lincs_sig_info, by = "id")
 results <- results[order(results$cmap_score),]
 write.csv(results, output_path)
         
 ####################
 #summarize RGES
-cat(paste('mem check 12'),'\n')
+#cat(paste('mem check 12'),'\n')
 lincs_drug_prediction <- read.csv(output_path)
         
 #should use pert_dose > 0.01
@@ -293,12 +291,12 @@ lincs_drug_prediction_pairs <- subset(lincs_drug_prediction_pairs, id.x != id.y 
 #difference of RGES to the reference 
 lincs_drug_prediction_pairs$cmap_diff <- lincs_drug_prediction_pairs$cmap_score.x - lincs_drug_prediction_pairs$cmap_score.y
 lincs_drug_prediction_pairs$dose <- round(log(lincs_drug_prediction_pairs$pert_dose.y, 2), 1)
-cat(paste('mem check 13'),'\n')       
+#cat(paste('mem check 13'),'\n')       
 #estimate difference
 lincs_drug_prediction_pairs$dose_bin <- ifelse(lincs_drug_prediction_pairs$pert_dose.y < 10, "low", "high")
 diff <- tapply(lincs_drug_prediction_pairs$cmap_diff, paste(lincs_drug_prediction_pairs$dose_bin, lincs_drug_prediction_pairs$pert_time.y), mean)
 
-cat(paste('mem check 14'),'\n')        
+#cat(paste('mem check 14'),'\n')        
 #ignore weighting cell lines
 if (!missing(weight_cell_line)){
 	lincs_cell_line_weight <- weight_cell_line
@@ -309,11 +307,11 @@ if (!missing(weight_cell_line)){
         }
 pred$RGES <- sapply(1:nrow(pred), function(id){getsRGES(pred$cmap_score[id], pred$medcor[id], pred$pert_dose[id], pred$pert_time[id], diff, max(pred$medcor))})
 
-cat(paste('mem check 14'),'\n')        
+#cat(paste('mem check 14'),'\n')        
 cmpd_freq <- table(pred$pert_iname)
 pred <- subset(pred, pert_iname %in% names(cmpd_freq[cmpd_freq > 0]))
 
-cat(paste('mem check 15'),'\n')      
+#cat(paste('mem check 15'),'\n')      
 pred_merged <- pred %>% 
 group_by(pert_iname) %>% 
 dplyr::summarise(
@@ -334,5 +332,5 @@ if (choose_fda_drugs){
 cat('\n',paste('Finished computations in', round(Sys.time()-start_time,2),units(Sys.time()-start_time),',writing output'),'\n')
 #start=Sys.time()
 return(pred_merged)
-    }
+#    } end of do.parallel
 }

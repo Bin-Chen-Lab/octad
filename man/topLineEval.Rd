@@ -24,7 +24,8 @@ The function produces 3 feils in the output directory:
   \code{\link{runsRGES}}
 }
 \examples{
-#load example sRGES computed by runsRGES() function for HCC vs liver adjacent tissues on octad.small dataset
+#load example sRGES computed by runsRGES() function for HCC 
+#vs liver adjacent tissues on octad.small dataset
 sRGES=ExperimentHub()[["EH7279"]]
 #Pick up cell lines
 #topLineEval(topline = c('HEPG2'),mysRGES = sRGES)

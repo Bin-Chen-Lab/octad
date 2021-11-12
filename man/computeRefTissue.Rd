@@ -5,7 +5,9 @@
 Compute reference control samples from OCTAD database using precomputed \code{EncoderDF} models. 
 }
 \usage{
- computeRefTissue(case_id=NULL,adjacent=FALSE,source='octad',n_varGenes = 500,method='varGenes',expSet=NULL,control_size = length(case_id),outputFolder='',cor_cutoff='0',output=TRUE)
+ computeRefTissue(case_id=NULL,adjacent=FALSE,source='octad',n_varGenes = 500,
+ method='varGenes',expSet=NULL,control_size = length(case_id),
+ outputFolder='',cor_cutoff='0',output=TRUE)
 
 
 }
@@ -33,14 +35,16 @@ Besides, if \code{output=TRUE}, two files are created in the working directory:
 }
 \examples{
  #select data
- phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
+ phenoDF=(ExperimentHub()[["EH7274"]])
  HCC_primary=subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
  sample.type == 'primary'&data.source == 'TCGA')
  #select cases
  case_id=HCC_primary$sample.id
- #computing reference tissue, by default using small autoEncoder, but can use custom expression set,
+ #computing reference tissue, by default using small autoEncoder,
+ #but can use custom expression set,
  #by default output=TRUE and outputFolder option is empty,
  #which creates control corMatrix.csv to working directory
- control_id=computeRefTissue(case_id,outputFolder='',output=TRUE, expSet = "octad",control_size = 50)
+ control_id=computeRefTissue(case_id,outputFolder='',output=TRUE,
+ expSet = "octad",control_size = 50)
 }
 \keyword{computeRefTissue}

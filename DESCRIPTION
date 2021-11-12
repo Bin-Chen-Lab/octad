@@ -54,8 +54,7 @@ Imports:
     data.table, 
     htmlwidgets, 
     plotly, 
-    reshape2,
-    ExperimentHub
+    reshape2
 Suggests: 
     knitr,
     rmarkdown

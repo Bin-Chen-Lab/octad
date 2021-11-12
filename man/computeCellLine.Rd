@@ -7,7 +7,8 @@
 
 }
 \usage{
- computeCellLine(case_id =case_id,expSet=NULL,LINCS_overlaps = TRUE,source='octad.small',file=NULL,returnDF = FALSE)
+ computeCellLine(case_id =case_id,expSet=NULL,LINCS_overlaps = TRUE,
+ source='octad.small',file=NULL,returnDF = FALSE)
 
 }
 \arguments{
@@ -27,8 +28,9 @@
  \code{\link{runsRGES}}
 }
 \examples{
-phenoDF=(ExperimentHub()[["EH7274"]]) #bioconductor submission plug
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+phenoDF=(ExperimentHub()[["EH7274"]])
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
+sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 cell_line_computed=computeCellLine(case_id=case_id,returnDF=FALSE,source='octad.small')
 }

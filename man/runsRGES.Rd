@@ -6,7 +6,7 @@
 }
 \usage{
  runsRGES(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
-                     cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000)
+cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000)
 }
 \arguments{
   \item{dz_signature}{disease signature. Make sure input data frame has a gene \code{Symbol} column, otherwise an error is produced. It must be an UPPERCASE gene symbol.}
@@ -29,7 +29,8 @@ Besides, a number of additional files in the sourced directory:
   \code{\link{diffExp}, \link{octadDrugEnrichment}, \link{computeCellLine}, \link{topLineEval}}
 }
 \examples{
-#load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function
+#load differential expression example for HCC 
+#vs adjacent liver tissue computed in diffExp() function
 res=ExperimentHub()[["EH7278"]]
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 #run sRGES computation
