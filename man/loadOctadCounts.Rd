@@ -23,7 +23,7 @@
 \examples{
 phenoDF=(ExperimentHub()[["EH7274"]])
 #load expression data for raw counts or tpm values.
-#HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data
 #case_id=HCC_primary$sample.id #select cases
 #expression_tmp=loadOctadCounts(case_id,type='tpm',file='octad.counts.and.tpm.h5')

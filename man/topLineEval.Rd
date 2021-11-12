@@ -28,7 +28,7 @@ The function produces 3 feils in the output directory:
 #vs liver adjacent tissues on octad.small dataset
 sRGES=ExperimentHub()[["EH7279"]]
 #Pick up cell lines
-#topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
+topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
 
 }
 \keyword{octadDrugEnrichment}

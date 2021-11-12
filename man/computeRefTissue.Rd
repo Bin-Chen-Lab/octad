@@ -34,17 +34,17 @@ Besides, if \code{output=TRUE}, two files are created in the working directory:
  \code{\link{diffExp}}.
 }
 \examples{
- #select data
- phenoDF=(ExperimentHub()[["EH7274"]])
- HCC_primary=subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
- sample.type == 'primary'&data.source == 'TCGA')
- #select cases
- case_id=HCC_primary$sample.id
- #computing reference tissue, by default using small autoEncoder,
- #but can use custom expression set,
- #by default output=TRUE and outputFolder option is empty,
- #which creates control corMatrix.csv to working directory
- control_id=computeRefTissue(case_id,outputFolder='',output=TRUE,
- expSet = "octad",control_size = 50)
+#select data
+phenoDF=(ExperimentHub()[["EH7274"]])
+HCC_primary=subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
+sample.type == 'primary'&data.source == 'TCGA')
+#select cases
+case_id=HCC_primary$sample.id
+#computing reference tissue, by default using small autoEncoder,
+#but can use custom expression set,
+#by default output=TRUE and outputFolder option is empty,
+#which creates control corMatrix.csv to working directory
+control_id=computeRefTissue(case_id,outputFolder='',output=TRUE,
+expSet = "octad",control_size = 50)
 }
 \keyword{computeRefTissue}
