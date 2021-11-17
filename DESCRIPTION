@@ -1,11 +1,13 @@
 Package: octad.db
 Title: Open Cancer TherApeutic Discovery (OCTAD) database
-Version: 0.99.15
+Version: 0.99.16
 Authors@R: 
     c(person(given = "E.",
            family = "Chekalin",
            role = c("aut", "cre"),
            email = "eygen.chekalin@gmail.com"),
+           person(given = "S.",
+           family = "Paithankar",role =c("aut")),
            person(given = "B.",
            family = "Zeng",role =c("aut")),
            person(given = "B.",
