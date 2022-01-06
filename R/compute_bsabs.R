@@ -1,5 +1,5 @@
 #' @export
-#' @importFrom cluster pam
+#' @importFrom cluster pam silhouette
 
 compute_bsabs=function(antigene_1,antigene_2=NULL,data_input,pheno_input){
 #data=data_input
@@ -49,8 +49,8 @@ for (x in 1:nrow(result_table)){
   j=result_table[x,2]
     counter=counter+1
 	#cat(paste0(round(counter/nrow(result_table)*100,3),'%'),'\n') #counter
-	setTxtProgressBar(pb, counter) 
-	
+	setTxtProgressBar(pb, counter)
+
     if(i!=j){
 ##########define centers and dist
 distance=sqrt(sum((pam(data_input[which(pheno_input=='case'),c(j,i)], 1)$medoids-
@@ -67,7 +67,7 @@ table_temp=rbind(pam(data_input[which(pheno_input=='case'),c(j,i)], 1)$medoids,
                  pam(data_input[which(pheno_input=='control'),c(j,i)], 1)$medoids)
 #Boolean logic to check the position of clusters
 result_table[result_table$antigen_1==i&result_table$antigen_2==j,'case_greater']=paste0(table_temp[1,]>table_temp[2,],collapse ='_')
- 
+
 #angle to between 45 and metoids
 m1=lm(table_temp[,i]~table_temp[,j])$coefficients[2]
 cos_to_45=1/(1+(abs((1-m1)/(1+m1*1)))^2)
