@@ -9,12 +9,13 @@ In addition, you will need octad package. It can be find [there](https://github.
 
 Install the package:
 ```
-devtools::install_github('Lionir/bsAbsFinder',build_vignettes = TRUE)
+devtools::install_github('Lionir/bsAbsFinder')
 ```
 
 # Examples
 
 ```
+library(basabsfinder)
 ################################
 #load expression data for raw counts or tpm values.
 ################################
