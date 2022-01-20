@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 Package: octad
 Title: Open Cancer TherApeutic Discovery (OCTAD)
 Version: 0.99.41
+=======
+Package: octad.db
+Title: Open Cancer TherApeutic Discovery (OCTAD) database
+Version: 0.99.17
+>>>>>>> origin/master
 Authors@R: 
     c(person(given = "E.",
            family = "Chekalin",
@@ -27,6 +33,7 @@ Authors@R:
            role ="aut",
            email = "chenbi12@msu.edu")
            )
+<<<<<<< HEAD
 Description: OCTAD provides a platform for virtually screening compounds targeting precise cancer patient groups. The essential idea is to identify drugs that reverse the gene expression signature of disease by tamping down over-expressed genes and stimulating weakly expressed ones. The package offers deep-learning based reference tissue selection, disease gene expression signature creation, pathway enrichment analysis, drug reversal potency scoring, cancer cell line selection, drug enrichment analysis and in silico hit validation. It currently covers ~20,000 patient tissue samples covering 50 cancer types, and expression profiles for ~12,000 distinct compounds.
 License: Artistic-2.0
 Encoding: UTF-8
@@ -62,3 +69,18 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 biocViews: Classification, GeneExpression, Pharmacogenetics, Pharmacogenomics, Software, GeneSetEnrichment
+=======
+Description: Open Cancer TherApeutic Discovery (OCTAD) package implies sRGES approach for the drug discovery. The essential idea is to identify drugs that reverse the gene expression signature of a disease by tamping down over-expressed genes and stimulating weakly expressed ones. The following package contains all required precomputed data for whole OCTAD pipeline computation. 
+License: Artistic-2.0
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Depends: 
+    R (>= 4.1)
+biocViews: ExperimentData, CancerData, ExperimentHub, SequencingData, ExpressionData
+VignetteBuilder: knitr
+Suggests: 
+    knitr,
+    rmarkdown
+>>>>>>> origin/master
