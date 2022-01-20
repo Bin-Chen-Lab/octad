@@ -15,7 +15,7 @@ devtools::install_github('Lionir/bsAbsFinder')
 # Examples
 
 ```
-library(basabsfinder)
+library(bsabsfinder)
 ################################
 #load expression data for raw counts or tpm values.
 ################################
