@@ -1,6 +1,10 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ^basabsfinder\.Rproj$
 =======
 ^octad\.Rproj$
+>>>>>>> origin/master
+=======
+^.*\.Rproj$
 >>>>>>> origin/master
 ^\.Rproj\.user$
