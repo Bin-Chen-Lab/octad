@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 
 #' @importFrom    rhdf5 h5read H5close
 #' @import RUVSeq edgeR DESeq2 EDASeq stats
 #' @importFrom    dplyr everything left_join
 #' @importFrom    Biobase pData
 
+=======
+#' @export
+#' @importFrom    rhdf5 h5read H5close
+#' @import RUVSeq edgeR DESeq2 EDASeq stats
+#' @importFrom    dplyr everything left_join
+#' @importFrom magrittr %>%
+#' @importFrom ExperimentHub ExperimentHub
+>>>>>>> origin/master
 
 diffExp <- function(case_id='',control_id='',source='octad.small',file='octad.counts.and.tpm.h5',
                                         normalize_samples=TRUE,
@@ -14,6 +23,10 @@ diffExp <- function(case_id='',control_id='',source='octad.small',file='octad.co
                                         parallel_cores = 2,
                     output=TRUE,
                     outputFolder='', annotate=TRUE){
+<<<<<<< HEAD
+=======
+eh=ExperimentHub()
+>>>>>>> origin/master
 
 remLowExpr <- function(counts,counts_phenotype){
     x <-DGEList(counts = round(counts), group = counts_phenotype$sample_type )
@@ -66,7 +79,17 @@ rm(case_counts)
 #rownames(normal_counts) = transcripts
 #control_id = samples[samples %in% control_id]
 #H5close()
+<<<<<<< HEAD
 expSet=octad.db::octad.LINCS.counts[,c(case_id,control_id)]
+=======
+
+octad.LINCS.counts=eh[["EH7273"]]
+expSet=octad.LINCS.counts[,c(case_id,control_id)]
+
+#expSet=octad.db::octad.LINCS.counts[,c(case_id,control_id)]# bioconductor replace
+
+
+>>>>>>> origin/master
 #expSet = cbind(normal_counts, case_counts)
 #rm(normal_counts) # free up some memory
 #rm(case_counts)
@@ -200,7 +223,11 @@ stop('Expression data not sourced, please, modify expSet option')
         vfit <- limma::lmFit(v, design)
         vfit <- limma::contrasts.fit(vfit, contrasts=contr.matrix)
         efit <- limma::eBayes(vfit)
+<<<<<<< HEAD
         #plotSA(efit, main="Final model: Mean−variance trend")
+=======
+        #plotSA(efit, main="Final model: Mean variance trend")
+>>>>>>> origin/master
 
         tfit <- limma::treat(vfit, lfc=1) #not_sure
         dt <- limma::decideTests(tfit)
@@ -218,7 +245,15 @@ stop('Expression data not sourced, please, modify expSet option')
     }
 #load(merged_gene_info)
 if(annotate==TRUE){
+<<<<<<< HEAD
     merged_gene_info=octad.db::merged_gene_info
+=======
+	
+	merged_gene_info=eh[["EH7272"]]
+    #merged_gene_info=octad.db::merged_gene_info #bioconductor replace
+	
+	
+>>>>>>> origin/master
         merged_gene_info$ensembl<-as.vector(merged_gene_info$ensembl)
         merged_gene_info$V1=NULL #modify it when will have time
         merged_gene_info$Symbol=merged_gene_info$gene #modify it when will have time

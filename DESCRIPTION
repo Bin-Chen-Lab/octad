@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Package: bsabsfinder
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9001
@@ -16,3 +17,69 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Depends: 
     R (>= 2.10)
+=======
+Package: octad
+Title: Open Cancer TherApeutic Discovery (OCTAD)
+Version: 0.99.39
+Authors@R: 
+    c(person(given = "E.",
+           family = "Chekalin",
+           role = c("aut", "cre"),
+           email = "eygen.chekalin@gmail.com"),
+           person(given = "S.",
+           family = "Paithankar",role =c("aut")),
+           person(given = "B.",
+           family = "Zeng",role =c("aut")),
+           person(given = "B.",
+           family = "Glicksberg",role ="ctb"),
+           person(given = "P.",
+           family = "Newbury",role ="ctb"),
+           person(given = "J.",
+           family = "Xing",role ="ctb"),
+           person(given = "K.",
+           family = "Liu",role ="ctb"),
+           person(given = "A.",
+           family = "Wen",role ="ctb"),
+            person(given = "D.",
+           family = "Joseph",role ="ctb"),
+           person(given = "B.",
+           family = "Chen",
+           role ="aut",
+           email = "chenbi12@msu.edu")
+           )
+Description: OCTAD provides a platform for virtually screening compounds targeting precise cancer patient groups. The essential idea is to identify drugs that reverse the gene expression signature of disease by tamping down over-expressed genes and stimulating weakly expressed ones. The package offers deep-learning based reference tissue selection, disease gene expression signature creation, pathway enrichment analysis, drug reversal potency scoring, cancer cell line selection, drug enrichment analysis and in silico hit validation. It currently covers ~20,000 patient tissue samples covering 50 cancer types, and expression profiles for ~12,000 distinct compounds.
+License: Artistic-2.0
+Encoding: UTF-8
+LazyData: false
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Depends: 
+    R (>= 4.1.0),
+    magrittr,
+    dplyr,
+    ggplot2,
+    edgeR,
+    RUVSeq,
+    DESeq2,
+    limma,
+    rhdf5,
+    doParallel,
+    foreach,
+    Rfast,
+    octad.db,
+    stats,
+    httr,
+    ExperimentHub
+Imports:
+    EDASeq, 
+    GSVA, 
+    data.table, 
+    htmlwidgets, 
+    plotly, 
+    reshape2
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+biocViews: Classification, GeneExpression, Pharmacogenetics, Pharmacogenomics, Software, GeneSetEnrichment
+>>>>>>> origin/master
