@@ -8,6 +8,13 @@ To install the package run the following code:
 ```{r eval=FALSE} 
 devtools::install_github('Bin-Chen-Lab/octad.db')
 ``` 
+# Bioconductor installiation after the package will be released
+To install the package run the following code:
+```{r eval=FALSE} 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("octad.db")
+``` 
 
 # Please note, this is a support package for the main package ```octad``` which can be obtained [there](https://github.com/Bin-Chen-Lab/octad)
 
@@ -15,4 +22,4 @@ devtools::install_github('Bin-Chen-Lab/octad.db')
   
 ###  Contacts and citation
   If you use our work, please cite the [OCTAD paper](https://www.nature.com/articles/s41596-020-00430-z). Both OCTAD package and website was developed by [Bin Chen laboratory](http://binchenlab.org/).
-Examples and questions can be addressed to Eugene Chekalin, PhD, chekali1@msu.edu or Bin Chen, PhD, PI, bin.chen@hc.msu.edu
+Examples and questions can be addressed to Evgenii Chekalin, PhD, chekali1@msu.edu or Bin Chen, PhD, PI, bin.chen@hc.msu.edu

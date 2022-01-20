@@ -1,2 +1,3 @@
-Changes in version 0.99.0 (2021-10-19)
-+ Submitted to Bioconductor
+# octad.db 0.99.17
+
+* Submitted to Bioconductor
