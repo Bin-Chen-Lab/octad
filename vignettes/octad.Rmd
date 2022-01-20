@@ -48,7 +48,7 @@ Use the function `computeRefTissue` to compute appropriate normal tissues via co
 #computing top 50 reference tissues 
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
-control_id=computeRefTissue(case_id,outputFolder='',output=TRUE,adjacent=TRUE,source = "octad",control_size = 50)  
+control_id=computeRefTissue(case_id,outputFolder=tempdir(),output=TRUE,adjacent=TRUE,source = "octad",control_size = 50)  
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 ```  
    
@@ -69,7 +69,7 @@ p2 <- ggplot(tsne, aes(X, Y, color = type)) + geom_point(alpha = 0.4)+
 ## Compute gene differential expression between case and control samples
 Differential expression can be computed via edgeR, limma + voom, or DESeq2. By default, we use edgeR in the analysis. Since the function `diffExp` computes differentially expressed genes between `case_id` and `control_id` within the same data matrix, it can be used to find differentially expressed genes between any two groups of samples. By default, a small dataset containing only 978 genes shared with the LINCS database is used.
 ```{r eval=TRUE} 
-res=diffExp(case_id,control_id,source='octad.small',output=TRUE)
+res=diffExp(case_id,control_id,source='octad.small',output=TRUE,outputFolder=tempdir())
 head(res)
 #Use simple subset to filter the DE results:
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
@@ -77,7 +77,7 @@ res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 To use the whole OCTAD dataset from [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) as input, make sure the required .h5 file is stored in the R working directory or the whole path to the file is specified:
 ```{r eval=FALSE} 
 res=diffExp(case_id,control_id,source='octad.whole',
-    output=TRUE,n_topGenes=10000,file='octad.counts.and.tpm.h5')
+    output=TRUE,outputFolder=tempdir(),n_topGenes=10000,file='octad.counts.and.tpm.h5')
 ```
 We can also perform DE analysis using an external dataset. Below is an example to perform DE analysis between tumor and non-tumor samples using the count data downloaded from GEO [GSE144269](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE144269).
 
@@ -88,7 +88,7 @@ data$entrez_id=NULL
 samples=colnames(data) #define the case and control cohorts, A samples were obtained from tumors, B samples were obtained from adjacent tissue
 case_id=samples[grepl('A_S',samples)]
 control_id=samples[grepl('B_S',samples)]
-res=diffExp(case_id,control_id,source='side',output=TRUE,n_topGenes=10000,
+res=diffExp(case_id,control_id,source='side',output=TRUE,outputFolder=tempdir(),n_topGenes=10000,
     expSet=log2(as.matrix(data)+1),annotate=FALSE) #compute DE
 ```
 The `diffExp` function will produce `data.frame` with DE results. Please note that option `annotate` is not required to be `TRUE`, but in this case annotation will be performed. If using custom expression matrix, please make sure `expSet row.names` contains Ensembl IDs that are used to assign gene names and gene descriptions. 

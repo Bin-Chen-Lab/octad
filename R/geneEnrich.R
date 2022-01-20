@@ -36,7 +36,6 @@ geneEnrich=function(gene_list=NULL,database_list=NULL,output=FALSE){
                                                                     nrow=length(raw_return[[j]]), byrow=TRUE)) 
         colnames(result_temp)= c('Rank', 'Term name', 'P-value', 'Z-score', 'Combined score', 'FDR', 'Old p-value', 'Old adjusted p-value')
         result_temp$genes=genes
-#        result_temp$FDR=p.adjust(result_temp$`P-value`,method='fdr')
         
         if(output==TRUE){ #write result to working directory
             write.csv(result_temp,file=paste0(j,'_GO_enrichment.csv'))
@@ -44,5 +43,5 @@ geneEnrich=function(gene_list=NULL,database_list=NULL,output=FALSE){
         
         GO_enriched[[j]]=result_temp
     } #End of database obtaining
-    return(GO_enriched)
-} #End of function
+return(GO_enriched)
+} #EOF
