@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Web version:
 http://octad.org/
 
@@ -7,7 +6,6 @@ Before library installation install required Bioconductor and CRAN packages thro
 ```r
 bioconductor_packages=c('edgeR','RUVSeq','DESeq2','limma','rhdf5','artMS')
 
-#For R version 3.5> use BiocManager to install required bioconductor packages: 
 if (length(setdiff(bioconductor_packages, rownames(installed.packages()))) > 0) {
   if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
