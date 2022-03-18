@@ -27,10 +27,8 @@ To list all available samples from the octad database, use the phenoDF data fram
 To select HCC samples, subset the phenoDF:
 ```{r eval=TRUE} 
 #select data
-library(octad)
-library(ExperimentHub)
-eh=ExperimentHub()
-phenoDF=eh[["EH7274"]] #
+library(octad,quietly=TRUE)
+phenoDF=.eh[["EH7274"]] #
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 
@@ -48,14 +46,14 @@ Use the function `computeRefTissue` to compute appropriate normal tissues via co
 #computing top 50 reference tissues 
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
-control_id=computeRefTissue(case_id,outputFolder=tempdir(),output=TRUE,adjacent=TRUE,source = "octad",control_size = 50)  
+control_id=computeRefTissue(case_id,output=FALSE,adjacent=TRUE,source = "octad",control_size = 50)  
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 ```  
    
  
 The relationships among case, control and other samples can be visualised through a t-SNE matrix precomputed based on the features derived from autoencoder. 
 ```{r eval=TRUE} 
-tsne=eh[["EH7276"]] #
+tsne=.eh[["EH7276"]] #
 #tsne <- octad.db::tsne
 tsne$type <- "others"
 tsne$type[tsne$sample.id %in% case_id] <- "case"
@@ -69,29 +67,12 @@ p2 <- ggplot(tsne, aes(X, Y, color = type)) + geom_point(alpha = 0.4)+
 ## Compute gene differential expression between case and control samples
 Differential expression can be computed via edgeR, limma + voom, or DESeq2. By default, we use edgeR in the analysis. Since the function `diffExp` computes differentially expressed genes between `case_id` and `control_id` within the same data matrix, it can be used to find differentially expressed genes between any two groups of samples. By default, a small dataset containing only 978 genes shared with the LINCS database is used.
 ```{r eval=TRUE} 
-res=diffExp(case_id,control_id,source='octad.small',output=TRUE,outputFolder=tempdir())
+res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
 head(res)
 #Use simple subset to filter the DE results:
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 ```
-To use the whole OCTAD dataset from [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) as input, make sure the required .h5 file is stored in the R working directory or the whole path to the file is specified:
-```{r eval=FALSE} 
-res=diffExp(case_id,control_id,source='octad.whole',
-    output=TRUE,outputFolder=tempdir(),n_topGenes=10000,file='octad.counts.and.tpm.h5')
-```
-We can also perform DE analysis using an external dataset. Below is an example to perform DE analysis between tumor and non-tumor samples using the count data downloaded from GEO [GSE144269](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE144269).
-
-```{r eval=FALSE} 
-data=data.table::fread(('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE144nnn/GSE144269/suppl/GSE144269_RSEM_GeneCounts.txt.gz'),header=TRUE)
-row.names(data)=data$entrez_id
-data$entrez_id=NULL
-samples=colnames(data) #define the case and control cohorts, A samples were obtained from tumors, B samples were obtained from adjacent tissue
-case_id=samples[grepl('A_S',samples)]
-control_id=samples[grepl('B_S',samples)]
-res=diffExp(case_id,control_id,source='side',output=TRUE,outputFolder=tempdir(),n_topGenes=10000,
-    expSet=log2(as.matrix(data)+1),annotate=FALSE) #compute DE
-```
-The `diffExp` function will produce `data.frame` with DE results. Please note that option `annotate` is not required to be `TRUE`, but in this case annotation will be performed. If using custom expression matrix, please make sure `expSet row.names` contains Ensembl IDs that are used to assign gene names and gene descriptions. 
+The `diffExp` function will produce `data.frame` with DE results. Please note that option `annotate` is not required to be `TRUE`, but in this case annotation will be performed. If using custom expression matrix, please make sure `expSet row.names` contains Ensembl IDs that are used to assign gene names and gene descriptions. By default the small dataset containing 978 genes used to compute DE. To compute DE for the whole 60k genes or custom expression matrix refer to section "Compute DE full dataset and custom expression matrix".
 
 ## Compute reverse gene expression scores
 The `runsRGES` function is used to identify the drugs that potentially reverses the disease signature. Use the code below to choose significant genes; this works by keeping genes that have low adjusted P-values and high log-fold changes.   
@@ -99,7 +80,7 @@ Launch the sRGES computation. It takes a few minutes to compute RGES scores. Aft
 
 ```{r eval=TRUE} 
 #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
-sRGES=runsRGES(res,max_gene_size=100,permutations=10000)
+sRGES=runsRGES(res,max_gene_size=100,permutations=10000,outputFolder=tempdir())
 
 head(sRGES)
 ```
@@ -111,7 +92,7 @@ cell_line_computed=computeCellLine(case_id=case_id,returnDF=FALSE,source='octad.
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
-topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
+topLineEval(topline = c('HEPG2'),mysRGES = sRGES,outputFolder=paste0(tempdir(),'/'))
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
 1. *_auc_insilico_validation.html (correlation between drug AUC in the specified cell line and sRGES)
@@ -121,15 +102,38 @@ topLineEval(topline = c('HEPG2'),mysRGES = sRGES)
 After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enrichment analysis to identify interesting drug classes whose member drugs are significantly enriched at the top of the prediction. Example drug classes include anti-inflammatories, EGFR inhibitors, and dipines (calcium channel blockers). OCTAD provides MESH, CHEMBL, and CHEM_CLUSTER for MeSH term enrichment, target enrichment, and chemical structure enrichment, respectively. The enrichment score is calculated using ssGSEA and its significance is computed by a permutation test. 
 
 ```{r eval=TRUE} 
-octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets','mesh','ChemCluster'))
+octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets','mesh','ChemCluster'),enrichFolder=paste0(tempdir(),'/'))
 ```
 This analysis provides much information for following candidate selection and experiment design. First, the candidates selected from the same enriched class (i.e., MeSH term, target) are more likely to be true positive than those randomly selected from the top list. Second, when the ideal candidate is not available, it is reasonable to choose an alternative from the same class. Sometimes, it is necessary to choose a new drug for testing (e.g., a second generation of one inhibitor for the same target). Lastly, since many compounds have multiple MOAs, this analysis would help interpret the MOA of promising compounds. 
+
+
+
+## Compute DE full dataset and custom expression matrix
+To use the whole OCTAD dataset from [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) as input, make sure the required .h5 file is stored in the R working directory or the whole path to the file is specified:
+```{r eval=FALSE} 
+res=diffExp(case_id,control_id,source='octad.whole',
+    output=FALSE,n_topGenes=10000,file='octad.counts.and.tpm.h5')
+```
+We can also perform DE analysis using an external dataset. Below is an example to perform DE analysis between tumor and non-tumor samples using the count data downloaded from GEO [GSE144269](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE144269).
+
+```{r eval=FALSE} 
+data=data.table::fread(('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE144nnn/GSE144269/suppl/GSE144269_RSEM_GeneCounts.txt.gz'),header=TRUE)
+row.names(data)=data$entrez_id
+data$entrez_id=NULL
+samples=colnames(data) #define the case and control cohorts, A samples were obtained from tumors, B samples were obtained from adjacent tissue
+case_id=samples[grepl('A_S',samples)]
+control_id=samples[grepl('B_S',samples)]
+res=diffExp(case_id,control_id,source='side',output=FALSE,outputFolder=tempdir(),n_topGenes=10000,
+    expSet=log2(as.matrix(data)+1),annotate=FALSE) #compute DE
+```
+The `diffExp` function will produce `data.frame` with DE results. Please note that option `annotate` is not required to be `TRUE`, but in this case annotation will be performed. If using custom expression matrix, please make sure `expSet row.names` contains Ensembl IDs that are used to assign gene names and gene descriptions. 
+
 
 # Web-version and citation
 Alternatively the database and the pipeline is available via website of the OCTAD project: http://octad.org/.
 If you use our work, please cite the [OCTAD paper](https://www.biorxiv.org/content/10.1101/821546v1). Both OCTAD package and website was developed by [Bin Chen laboratory](http://binchenlab.org/).
 octad package is github available via [link](https://github.com/Bin-Chen-Lab/octad_desktop)
-
+After the package will be accepted to the bioconductor, it will be available on the [bioconductor website](https://bioconductor.org/)
 # Session information
 Here is the output of sessionInfo on the system where this document was compiled:
 ```{r eval=TRUE} 

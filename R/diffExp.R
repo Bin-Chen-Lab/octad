@@ -5,13 +5,19 @@
 #' @importFrom magrittr %>%
 #' @importFrom ExperimentHub ExperimentHub
 
-diffExp = function(case_id='',control_id='',source='octad.small',
+diffExp = function(case_id=NULL,control_id=NULL,source='octad.small',
 			file='octad.counts.and.tpm.h5',normalize_samples=TRUE,
 			k=1,expSet=NULL,n_topGenes=500,
 			DE_method='edgeR',parallel_cores = 2,
 			output=TRUE,outputFolder='', annotate=TRUE){
-			
-eh=ExperimentHub()
+if(missing(case_id)){
+	stop('Case ids vector input not found')
+}
+if(missing(case_id)){
+	stop('Case ids vector input not found')
+}
+
+
 remLowExpr = function(counts,counts_phenotype){
     x =DGEList(counts = round(counts), group = counts_phenotype$sample_type )
     cpm_x = cpm(x)
@@ -28,7 +34,7 @@ if(missing(case_id)|missing(control_id)){
 
 
 if(source=='octad.whole'){
-	print(paste('loading whole octad expression data for',length(c(case_id,control_id)),'samples',sep=' '))
+	message('loading whole octad expression data for',length(c(case_id,control_id)),'samples',sep=' ')
 	transcripts = as.character(rhdf5::h5read(file, "meta/transcripts"))
 	samples = as.character(rhdf5::h5read(file, "meta/samples"))
 	case_counts = rhdf5::h5read(file, "data/count", index=list(1:length(transcripts), which(samples %in% case_id)))
@@ -46,8 +52,8 @@ if(source=='octad.whole'){
 	rm(case_counts)
 
 	}else if(source=='octad.small'){
-		print('loading small octad set containing only expression for 978 LINCS genes')
-		octad.LINCS.counts=eh[["EH7273"]]
+		message('loading small octad set containing only expression for 978 LINCS genes')
+		octad.LINCS.counts=suppressMessages(.eh[["EH7273"]])
 		expSet=octad.LINCS.counts[,c(case_id,control_id)]
 #expSet=octad.db::octad.LINCS.counts[,c(case_id,control_id)]# bioconductor replace
 	}else if(source!='octad.small'&source!='octad.small'&missing(expSet)){
@@ -88,7 +94,7 @@ if (normalize_samples == TRUE){
 
 if(DE_method=='DESeq2'){
 #library('DESeq2')
-	print('computing DE via DESeq')
+	message('computing DE via DESeq')
 	row.names(counts_phenotype) = counts_phenotype$sample
 	coldata = counts_phenotype
 	if (normalize_samples == TRUE){
@@ -104,7 +110,7 @@ if(DE_method=='DESeq2'){
 		dds = DESeq2::DESeq(dds, parallel = TRUE)
 		}else{
 			dds = DESeq2::DESeq(dds)
-		}	
+		}
 
 	rnms = DESeq2::resultsNames(dds)
 	resRaw = DESeq2::results(dds, contrast=c("sample_type","case","control"))
@@ -112,7 +118,7 @@ if(DE_method=='DESeq2'){
 	res$identifier = row.names(res)
 	res = res %>% select(identifier,everything())
 	}else if(DE_method=='edgeR'){
-		print('computing DE via edgeR')
+		message('computing DE via edgeR')
         #construct model matrix based on whether there was normalization ran
 		if(normalize_samples == TRUE){
 			if(k==1){
@@ -142,7 +148,7 @@ if(DE_method=='DESeq2'){
 	res = res %>% select(identifier,everything())
     }else if(DE_method=='limma'){
         #according to https://support.bioconductor.org/p/86461/, LIMMA + VOOM will not use normalized data
-        print('computing DE via limma')
+        message('computing DE via limma')
         x = counts
         nsamples = ncol(x)
         lcpm = edgeR::cpm(x, log=TRUE)
@@ -169,8 +175,8 @@ if(DE_method=='DESeq2'){
         colnames(res) =c("log2FoldChange", "AveExpr", "t", "pvalue", "padj")
         res$identifier = row.names(res)
     }
-if(annotate==TRUE){	
-	merged_gene_info=eh[["EH7272"]]
+if(annotate==TRUE){
+	merged_gene_info=suppressMessages(.eh[["EH7272"]])
     #merged_gene_info=octad.db::merged_gene_info #bioconductor replace
     merged_gene_info$ensembl=as.vector(merged_gene_info$ensembl)
 	merged_gene_info$V1=NULL #modify it when will have time

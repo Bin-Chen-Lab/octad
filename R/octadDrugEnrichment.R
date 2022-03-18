@@ -6,7 +6,6 @@
 
 octadDrugEnrichment = function(sRGES=NULL,target_type='chembl_targets',enrichFolder='enrichFolder'){
 #    require(GSVA)
-eh=ExperimentHub()
 if(missing(sRGES)){
 	stop('sRGES input not found')
 	}
@@ -18,32 +17,32 @@ options(warn=-1)
 if (!dir.exists(enrichFolder)) {
 	dir.create(enrichFolder)
 }
-data.frame=as.data.frame(mcols(query(eh, "octad.db")))['title']
+data.frame=suppressMessages(as.data.frame(mcols(query(.eh, "octad.db")))['title'])
 for(target_type_selected in target_type){
 	cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
 	enrichFolder.n = paste(enrichFolder,target_type_selected,sep='/')
    if (!dir.exists(enrichFolder.n)) {
 	dir.create(enrichFolder.n)
 }
-     
+
     #load required random scores from octad.db
-	cmpd_sets=eh[[row.names(subset(data.frame,title==paste0("cmpd_sets_", target_type_selected)))]] #bioconductor replace
+	cmpd_sets=suppressMessages(.eh[[row.names(subset(data.frame,title==paste0("cmpd_sets_", target_type_selected)))]]) #bioconductor replace
     #cmpd_sets = get(paste0("cmpd_sets_", target_type_selected), asNamespace('octad.db'))
 	cmpdSets = cmpd_sets$cmpd.sets
-	names(cmpdSets) = cmpd_sets$cmpd.set.names	
-	random_gsea_score=eh[["EH7275"]]
+	names(cmpdSets) = cmpd_sets$cmpd.set.names
+	random_gsea_score=suppressMessages(.eh[["EH7275"]])
     #random_gsea_score=octad.db::random_gsea_score #bioconductor replace
-	
-	
+
+
     ############################
-    
-    
+
+
     drug_pred = sRGES
-    
+
     rgess = matrix(-1*drug_pred$sRGES, ncol = 1)
     rownames(rgess) = drug_pred$pert_iname
     gsea_results = GSVA::gsva(rgess, cmpdSets, method = "ssgsea",    parallel.sz=8,ssgsea.norm = TRUE,verbose=FALSE)
-    
+
     gsea_results = merge(random_gsea_score[[target_type_selected]], gsea_results,by='row.names')
     row.names(gsea_results)=gsea_results$Row.names
     gsea_results$Row.names=NULL
@@ -51,7 +50,7 @@ for(target_type_selected in target_type){
 #calculating p.value
     gsea_p = apply(gsea_results, 1, function(x){
         sum(x[seq_len(ncol(random_gsea_score[[target_type_selected]]))] > x[ncol(random_gsea_score[[target_type_selected]])+1])/ncol(random_gsea_score[[target_type_selected]])
-    })    
+    })
     gsea_p = data.frame(target = names(gsea_p),score = gsea_summary, p = gsea_p, padj = p.adjust(gsea_p, method = 'fdr'))
     gsea_p = gsea_p[order(gsea_p$padj), ]
     write.csv(gsea_p, paste0(enrichFolder.n, "/enriched_", target_type_selected, ".csv"),row.names = FALSE)
@@ -90,4 +89,4 @@ if(nrow(gsea_p)>0){
     }else cat(paste('No signigicant enrichment found for',target_type_selected),'\n')
 }
 options(warn=0)
-    }    
+    }

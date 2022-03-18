@@ -1,12 +1,11 @@
 #' @export
 #' @importFrom foreach foreach %do%
-#' @importFrom rhdf5 h5read 
+#' @importFrom rhdf5 h5read
 #' @importFrom ExperimentHub ExperimentHub
 
 ####### computeCellLine #######
 computeCellLine = function(case_id =case_id,expSet=NULL,LINCS_overlaps = TRUE,source='octad.small',file=NULL,returnDF = FALSE){
     #STOPS
-	eh=ExperimentHub()
 if(missing(case_id)){
 	stop('Case ids vector input not found')
 }
@@ -31,7 +30,7 @@ pick.out.cell.line = function(expr.of.samples,expr.of.cell.lines,marker.gene){
 	list(cell.line.median.cor=cell.line.median.cor,best.cell.line=best.cell.line,compare.fdr.vec=fdr.vec,correlation.matrix = correlation.matrix )
     }
 if(source=='octad.whole'){
-	print(paste('loading whole octad expression data for',length(c(case_id)),'samples',sep=' '))
+	message('loading whole octad expression data for',length(c(case_id)),'samples',sep=' ')
 	transcripts = as.character(rhdf5::h5read(file, "meta/transcripts"))
 	samples = as.character(rhdf5::h5read(file, "meta/samples"))
 	case_counts = rhdf5::h5read(file, "data/count", index=list(1:length(transcripts), which(samples %in% case_id)))
@@ -40,35 +39,35 @@ if(source=='octad.whole'){
 	case_id = samples[samples %in% case_id]
 	H5close()
 	case_counts = cbind(case_counts)
-	print(paste('computing correlation between cell lines and selected samples',sep=' '))
+	message('computing correlation between cell lines and selected samples',sep=' ')
 	}else if(source=='octad.small'){
-		print(paste('loading whole octad expression data for',length(c(case_id)),'samples',sep=' '))	
-		octad.LINCS.counts=eh[["EH7273"]]
-		case_counts=octad.LINCS.counts[,c(case_id)]	
-		print(paste('computing correlation between cell lines and selected samples',sep=' '))
+		message('loading whole octad expression data for',length(c(case_id)),'samples',sep=' ')
+		octad.LINCS.counts=suppressMessages(.eh[["EH7273"]])
+		case_counts=octad.LINCS.counts[,c(case_id)]
+		message('computing correlation between cell lines and selected samples',sep=' ')
 	}else if(source!='octad'&missing(expSet)){
 		stop('Expression data not sourced, please, modify expSet option')
 	}else if(source != "octad.whole"|source != "octad.small"){
         case_counts=expSet[,case_id]
     }
 
-if(LINCS_overlaps == TRUE){	
-	CCLE.overlaps=eh[["EH7262"]]
+if(LINCS_overlaps == TRUE){
+	CCLE.overlaps=suppressMessages(.eh[["EH7262"]])
 	CCLE.median= apply(CCLE.overlaps,1,median)
-    }else{	
-		CCLE.log2.read.count.matrix=eh[["EH7261"]] #bioconductor addon
+    }else{
+		CCLE.log2.read.count.matrix=suppressMessages(.eh[["EH7261"]]) #bioconductor addon
 		CCLE.median = apply(CCLE.log2.read.count.matrix,1,median)
         #CCLE.median = apply(octad.db::CCLE.log2.read.count.matrix,1,median)
     }
 CCLE.expressed.gene = names(CCLE.median)[CCLE.median > 1]
-CCLE.log2.read.count.matrix=eh[["EH7261"]] #bioconductor addon
+CCLE.log2.read.count.matrix=suppressMessages(.eh[["EH7261"]]) #bioconductor addon
 tmp = CCLE.log2.read.count.matrix[CCLE.expressed.gene,]
-    #tmp = octad.db::CCLE.log2.read.count.matrix[CCLE.expressed.gene,]	
+    #tmp = octad.db::CCLE.log2.read.count.matrix[CCLE.expressed.gene,]
 tmp.rank = apply(tmp,2,rank)
 rank.mean = apply(tmp.rank,1,mean)
 rank.sd = apply(tmp.rank,1,sd)
-CCLE.rna.seq.marker.gene.1000 = names(sort(rank.sd,decreasing =TRUE))[1:1000]	
-TCGA.vs.CCLE.polyA.expression.correlation.result = pick.out.cell.line(case_counts, CCLE.overlaps,CCLE.rna.seq.marker.gene.1000)   
+CCLE.rna.seq.marker.gene.1000 = names(sort(rank.sd,decreasing =TRUE))[1:1000]
+TCGA.vs.CCLE.polyA.expression.correlation.result = pick.out.cell.line(case_counts, CCLE.overlaps,CCLE.rna.seq.marker.gene.1000)
 correlation.dataframe = TCGA.vs.CCLE.polyA.expression.correlation.result$cell.line.median.cor %>% as.data.frame()
 colnames(correlation.dataframe) = "cor"
 cell.line.folder = "CellLineEval/"
@@ -77,7 +76,7 @@ if (!dir.exists(cell.line.folder)) {
 }
 write.csv(correlation.dataframe, file = paste0(cell.line.folder,"CellLineCorrelations.csv"))
 topline = data.frame(medcor = TCGA.vs.CCLE.polyA.expression.correlation.result$cell.line.median.cor) # could also do first
- 
+
 if(returnDF == TRUE){
 	return(topline)
     }else{
