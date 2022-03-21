@@ -101,7 +101,7 @@ topLineEval(topline = c('HEPG2'),mysRGES = sRGES,outputFolder=paste0(tempdir(),'
 ## Compute drug enrichment
 After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enrichment analysis to identify interesting drug classes whose member drugs are significantly enriched at the top of the prediction. Example drug classes include anti-inflammatories, EGFR inhibitors, and dipines (calcium channel blockers). OCTAD provides MESH, CHEMBL, and CHEM_CLUSTER for MeSH term enrichment, target enrichment, and chemical structure enrichment, respectively. The enrichment score is calculated using ssGSEA and its significance is computed by a permutation test. 
 
-```{r eval=FALSE} 
+```{r eval=TRUE} 
 octadDrugEnrichment(sRGES = sRGES, target_type='chembl_targets',enrichFolder=paste0(tempdir(),'/'))
 ```
 This analysis provides much information for following candidate selection and experiment design. First, the candidates selected from the same enriched class (i.e., MeSH term, target) are more likely to be true positive than those randomly selected from the top list. Second, when the ideal candidate is not available, it is reasonable to choose an alternative from the same class. Sometimes, it is necessary to choose a new drug for testing (e.g., a second generation of one inhibitor for the same target). Lastly, since many compounds have multiple MOAs, this analysis would help interpret the MOA of promising compounds. 

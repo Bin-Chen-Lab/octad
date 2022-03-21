@@ -17,7 +17,8 @@ options(warn=-1)
 if (!dir.exists(enrichFolder)) {
 	dir.create(enrichFolder)
 }
-data.frame=suppressMessages(as.data.frame(mcols(query(.eh, "octad.db")))['title'])
+eh_dataframe=suppressMessages(as.data.frame(mcols(query(.eh, "octad.db")))['title'])
+random_gsea_score=suppressMessages(.eh[["EH7275"]])
 for(target_type_selected in target_type){
 	cat(paste('Running enrichment for',target_type_selected,sep=' '),'\n')
 	enrichFolder.n = paste(enrichFolder,target_type_selected,sep='/')
@@ -26,11 +27,10 @@ for(target_type_selected in target_type){
 }
 
     #load required random scores from octad.db
-	cmpd_sets=suppressMessages(.eh[[row.names(subset(data.frame,title==paste0("cmpd_sets_", target_type_selected)))]]) #bioconductor replace
+	cmpd_sets=suppressMessages(.eh[[row.names(subset(eh_dataframe,title==paste0("cmpd_sets_", target_type_selected)))]]) #bioconductor replace
     #cmpd_sets = get(paste0("cmpd_sets_", target_type_selected), asNamespace('octad.db'))
 	cmpdSets = cmpd_sets$cmpd.sets
 	names(cmpdSets) = cmpd_sets$cmpd.set.names
-	random_gsea_score=suppressMessages(.eh[["EH7275"]])
     #random_gsea_score=octad.db::random_gsea_score #bioconductor replace
 
 
