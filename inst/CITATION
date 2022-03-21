@@ -1,0 +1,47 @@
+## -*- R -*-
+## FIXME: Change to using 'bibentry' see e.g., .../copula/inst/CITATION !
+
+citHeader("To cite the R package 'octad' or 'octad.db' in publications use:")
+
+PKG <- "octad.db"
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
+vers <- paste("R package version", meta$Version)
+url <- paste0("https://github.com/Bin-Chen-Lab/", PKG)
+
+citEntry(entry	= "Manual",
+	 title	= "OCTAD: an open workspace for virtually screening therapeutics targeting precise cancer patient groups using gene expression features",
+	 author = c(person(given = "E.",
+           family = "Chekalin",
+           role = c("aut", "cre"),
+           email = "eygen.chekalin@gmail.com"),
+           person(given = "S.",
+           family = "Paithankar",role =c("aut")),
+           person(given = "B.",
+           family = "Zeng",role =c("aut")),
+           person(given = "B.",
+           family = "Glicksberg",role ="ctb"),
+           person(given = "P.",
+           family = "Newbury",role ="ctb"),
+           person(given = "J.",
+           family = "Xing",role ="ctb"),
+           person(given = "K.",
+           family = "Liu",role ="ctb"),
+           person(given = "A.",
+           family = "Wen",role ="ctb"),
+            person(given = "D.",
+           family = "Joseph",role ="ctb"),
+           person(given = "B.",
+           family = "Chen",
+           role ="aut",
+           email = "chenbi12@msu.edu")
+           ),
+	 year = year,
+         url = url,
+	 note = paste(vers,"---",
+	 "For new features, see the 'Changelog' file (in the package source)"),
+## FIXME:  rather give the URL to the manual on CRAN ???
+##	   url = "http://stat.ethz.ch/CRAN/src/contrib/........",
+	 textVersion = paste0(
+             "Zeng, B., Glickberg, B., Newbury, P, Chekalin, E., Xing, J., Liu, K., Wen, A., Chow, C., Chen, B., (",
+             year, ").  OCTAD: an open workspace for virtually screening therapeutics targeting precise cancer patient groups using gene expression features ", vers, ".")
+         )
