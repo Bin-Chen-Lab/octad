@@ -36,6 +36,15 @@ Finally, install the package:
 ```
 devtools::install_github('Bin-Chen-Lab/octad',build_vignettes = TRUE)
 ```
+
+# Bioconductor installation after the package will be released
+To install the package run the following code:
+```
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("octad")
+``` 
+
 # Additional data
 By default, octad package uses expression data for 978 genes from the LINCS dataset. However, it can influence the result and we advice using whole octad database. To obtatin whole results for DE, downloading of the additional OCTAD database [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) from the AWS link is required.
 

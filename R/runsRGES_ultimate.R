@@ -16,7 +16,8 @@ if(missing(dz_signature)){
 if(is.null(dz_signature$Symbol)|is.null(dz_signature$log2FoldChange)){
 	stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
 }
-
+cat(paste('Started sRGES computation. Average computation time ~1-3mins.'),'\n')
+start_time=Sys.time()
 lincs_sig_info=suppressMessages(.eh[["EH7270"]]) #bioconductor addition
 getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor){
 	sRGES <- RGES
@@ -167,8 +168,7 @@ dz_cmap_scores <- NULL
 cmap_exp_sig <- Rfast::colRanks(-1 * lincs_signatures, method = "max")
 names.list <- list(rownames(lincs_signatures),colnames(lincs_signatures))
 dimnames(cmap_exp_sig) <- names.list
-cat(paste('Started sRGES computation. Average computation time ~1-3mins.'),'\n')
-start_time=Sys.time()
+
 pb <- txtProgressBar(min = 1, max = permutations, style = 3) #set progressbar
 i=0
 time_vector=0
