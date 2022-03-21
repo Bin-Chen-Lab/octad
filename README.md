@@ -2,37 +2,12 @@
 http://octad.org/
 
 # How to Install
-Before library installation install required Bioconductor and CRAN packages through this code:
-```r
-bioconductor_packages=c('edgeR','RUVSeq','DESeq2','limma','rhdf5','artMS')
-
-if (length(setdiff(bioconductor_packages, rownames(installed.packages()))) > 0) {
-  if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-  BiocManager::install(setdiff(bioconductor_packages, rownames(installed.packages())))
-}
-
-packages=c('magrittr','dplyr','ggplot2','doParallel','foreach','lme4','Rfast','httr','data.table')
-if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-  install.packages(setdiff(packages, rownames(installed.packages())))  
-}
-```
-Next, install the octad.db, package with all required files for computation available via link  [octad.db](https://chenlab-data-public.s3.amazonaws.com/octad/octad.db_0.99.0.tar.gz%3Fdl%3D0)
+Before library installation install required octad.db, package with all required files for computation:
 ```
 devtools::install_github('Bin-Chen-Lab/octad.db',build_vignettes = TRUE)
 ```
 It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
-
-```
-install.packages("path%to%octad.db_0.99.0.tar.gz", repos = NULL, type="source")
-```
-Or without downloading the distributive:
-```
-install.packages("https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.db_0.99.0.tar.gz",
-                 method="libcurl",repos=NULL,type="source")
-```
-It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
-Finally, install the package:
+Install the package:
 ```
 devtools::install_github('Bin-Chen-Lab/octad',build_vignettes = TRUE)
 ```
