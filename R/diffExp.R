@@ -88,7 +88,9 @@ if (normalize_samples == TRUE){
 	i = which(!(rownames(set) %in% rownames(top)[1:min(n_topGenes,dim(top)[1])]))
 	empirical = rownames(set)[i]
 	stopifnot(length(empirical)>0)
+	if(output==TRUE){
 	write.csv(data.frame(empirical),file=paste0(outputFolder,"computedEmpGenes.csv"))
+	}
 	set1 = RUVSeq::RUVg(set,empirical,k=k)
     }
 
