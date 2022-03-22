@@ -5,7 +5,7 @@
   Compute differential expression for case vs control samples. Will produce the file \code{computedEmpGenes.csv} listing empiricaly differentially expressed genes used for RNA-Seq normalization.
 }
 \usage{
-  diffExp(case_id='',control_id='',source='octad.small',
+  diffExp(case_id=NULL,control_id=NULL,source='octad.small',
   file='octad.counts.and.tpm.h5',normalize_samples=TRUE,k=1,
   expSet=NULL,n_topGenes=500,DE_method='edgeR',
   parallel_cores = 2,output=FALSE,outputFolder='', annotate=TRUE)
@@ -34,7 +34,7 @@
   \code{\link{computeRefTissue},\link{runsRGES},\link{geneEnrich}}.
 }
 \examples{
-phenoDF=.eh[["EH7274"]]
+data(phenoDF) #load data.frame with samples included in the OCTAD database
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases

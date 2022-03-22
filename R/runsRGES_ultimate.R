@@ -8,7 +8,7 @@
 
 #### runsRGES #######
 runsRGES <- function(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500,
-                                         cells=NULL,output=FALSE,outputFolder='',weight_cell_line=NULL,permutations=10000){
+cells=NULL,output=FALSE,outputFolder='',weight_cell_line=NULL,permutations=10000){
 
 if(missing(dz_signature)){
 	stop('Disease signature input not found')

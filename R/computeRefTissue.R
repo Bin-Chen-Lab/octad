@@ -4,18 +4,9 @@
 #' @importFrom dplyr select arrange mutate desc
 #' @importFrom ExperimentHub ExperimentHub
 
-computeRefTissue <- function(case_id = NULL,
-                             adjacent=FALSE,
-                             source='octad',n_varGenes = 500,
-                             method='varGenes', #random
-                             expSet=NULL,
-                             #site_selection = 'top',
-                             #top site or any cor cutoff>quantile,
-                             #all will select samples from 90th percentile
-                             control_size = length(case_id),
-                             outputFolder='',
-                             cor_cutoff='0', #greater or equal than the cutoff
-                             output=TRUE){
+computeRefTissue <- function(case_id = NULL,adjacent=FALSE,source='octad',n_varGenes = 500,
+                             method='varGenes',expSet=NULL,control_size = length(case_id),
+                             outputFolder='',cor_cutoff='0',output=TRUE){
 
 #    require(dplyr)
 if(missing(case_id)){

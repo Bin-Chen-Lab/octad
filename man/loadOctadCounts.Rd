@@ -21,7 +21,7 @@
   \code{\link{diffExp}}.
 }
 \examples{
-phenoDF=.eh[["EH7274"]]
+data(phenoDF) #load data.frame with samples included in the OCTAD database
 #load expression data for raw counts or tpm values.
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data

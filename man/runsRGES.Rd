@@ -5,8 +5,8 @@
   Compute sRGES, a score indicating the reveral potency of each drug. It first computes RGES (Reverse Gene Expression Score) for individual instances and then summarizes RGES of invididual drugs (one drug may have multiple instances under different treatment conditions). 
 }
 \usage{
- runsRGES(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
-cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000,output=FALSE)
+ runsRGES(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500,
+cells=NULL,output=FALSE,outputFolder='',weight_cell_line=NULL,permutations=10000)
 }
 \arguments{
   \item{dz_signature}{disease signature. Make sure input data frame has a gene \code{Symbol} column, otherwise an error is produced. It must be an UPPERCASE gene symbol.}
@@ -32,7 +32,7 @@ Besides, a number of additional files in the sourced directory:
 \examples{
 #load differential expression example for HCC 
 #vs adjacent liver tissue computed in diffExp() function
-res=.eh[["EH7278"]]
+data(res_example)
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 #run sRGES computation
 runsRGES(dz_signature=res,choose_fda_drugs = FALSE,max_gene_size=100,permutations=1000)

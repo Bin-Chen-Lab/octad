@@ -9,7 +9,7 @@ diffExp = function(case_id=NULL,control_id=NULL,source='octad.small',
 			file='octad.counts.and.tpm.h5',normalize_samples=TRUE,
 			k=1,expSet=NULL,n_topGenes=500,
 			DE_method='edgeR',parallel_cores = 2,
-			output=TRUE,outputFolder='', annotate=TRUE){
+			output=FALSE,outputFolder='', annotate=TRUE){
 if(missing(case_id)){
 	stop('Case ids vector input not found')
 }
