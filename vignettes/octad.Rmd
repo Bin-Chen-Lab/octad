@@ -28,7 +28,7 @@ To select HCC samples, subset the phenoDF:
 ```{r eval=TRUE} 
 #select data
 library(octad,quietly=TRUE)
-data(phenoDF) #load data.frame with samples included in the OCTAD database
+phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database
 if (!dir.exists(tempdir())){ #store output into tempdir
   dir.create(tempdir())
 }

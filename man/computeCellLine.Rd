@@ -27,10 +27,10 @@
  \code{\link{runsRGES}}
 }
 \examples{
-data(phenoDF) #load data.frame with samples included in the OCTAD database
+phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
-cell_line_computed=computeCellLine(case_id=case_id,returnDF=FALSE,source='octad.small')
+cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
 }
 \keyword{octadDrugEnrichment}
