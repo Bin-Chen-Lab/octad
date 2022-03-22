@@ -34,7 +34,7 @@
   \code{\link{computeRefTissue},\link{runsRGES},\link{geneEnrich}}.
 }
 \examples{
-phenoDF=(ExperimentHub()[["EH7274"]])
+phenoDF=.eh[["EH7274"]]
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases

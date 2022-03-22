@@ -27,7 +27,7 @@ Following files are created:
 }
 \examples{
 #load example sRGES computed by runsRGES() function for HCC vs liver adjacent tissues on octad.small dataset
-sRGES=ExperimentHub()[["EH7279"]]
+sRGES=.eh[["EH7279"]]
 #run drug enrichment 
 octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets'))
 
