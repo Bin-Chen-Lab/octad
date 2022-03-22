@@ -8,7 +8,7 @@
   diffExp(case_id='',control_id='',source='octad.small',
   file='octad.counts.and.tpm.h5',normalize_samples=TRUE,k=1,
   expSet=NULL,n_topGenes=500,DE_method='edgeR',
-  parallel_cores = 2,output=TRUE,outputFolder='', annotate=TRUE)
+  parallel_cores = 2,output=FALSE,outputFolder='', annotate=TRUE)
 }
 \arguments{
   \item{case_id}{vector of cases used for differential expression.}

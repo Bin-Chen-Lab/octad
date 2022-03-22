@@ -28,12 +28,12 @@ To select HCC samples, subset the phenoDF:
 ```{r eval=TRUE} 
 #select data
 library(octad,quietly=TRUE)
-phenoDF=.eh[["EH7274"]] #
+if (!dir.exists(tempdir())){ #store output into tempdir
+  dir.create(tempdir())
+}
+head(phenoDF) #list all data included within the package
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
-
-#choose breast invasive carcinoma samples with PIK3CA mutation 
-BIC_with_PIK3_primary=subset(phenoDF,cancer=='breast invasive carcinoma'&sample.type == 'primary'&grepl('PIK3CA',mutation_list))
 ```
 The sample ids will be stored in the character vector case_id. 
 The code can be easily modified to select for other cancers or a set of samples based on mutations and copy numbers (e.g., TP53 mutation or MYC amplification). It is also recommended to use the R package cgdsr to select TCGA samples based on more clinical and molecular features.
@@ -50,7 +50,7 @@ control_id=computeRefTissue(case_id,output=FALSE,adjacent=TRUE,source = "octad",
    
  
 The relationships among case, control and other samples can be visualised through a t-SNE matrix precomputed based on the features derived from autoencoder. 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 tsne=.eh[["EH7276"]] #
 #tsne <- octad.db::tsne
 tsne$type <- "others"
@@ -78,7 +78,7 @@ Launch the sRGES computation. It takes a few minutes to compute RGES scores. Aft
 
 ```{r eval=TRUE} 
 #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
-sRGES=runsRGES(res,max_gene_size=100,permutations=10000,outputFolder=tempdir())
+sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE,outputFolder = tempdir())
 
 head(sRGES)
 ```
@@ -86,11 +86,11 @@ head(sRGES)
 As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in 860 cancer cell lines, we may leverage this database for further in silico validation of our predictions, even without running any biological experiment. We use the HepG2 cell line to validate the prediction of HCC drugs.  
 
 ```{r eval=TRUE} 
-cell_line_computed=computeCellLine(case_id=case_id,returnDF=FALSE,source='octad.small')
+cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
-topLineEval(topline = c('HEPG2'),mysRGES = sRGES,outputFolder=paste0(tempdir(),'/'))
+topLineEval(topline = c('HEPG2'),mysRGES = sRGES,outputFolder=tempdir())
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
 1. *_auc_insilico_validation.html (correlation between drug AUC in the specified cell line and sRGES)

@@ -6,14 +6,13 @@
 }
 \usage{
  runsRGES(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500, 
-cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000)
+cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000,output=FALSE)
 }
 \arguments{
   \item{dz_signature}{disease signature. Make sure input data frame has a gene \code{Symbol} column, otherwise an error is produced. It must be an UPPERCASE gene symbol.}
 \item{choose_fda_drugs}{if \code{TRUE}, only FDA approved drugs are used.}
 \item{max_gene_size}{maximum number of disease genes used for drug prediction. By default 50 for each side (up/down).}
 \item{cells}{cell ids in \code{lincs_sig_info} file used for prediction. By default, all cell lines are used.}
-\item{outputFolder}{folder path to store drug results, by default write results to working directory.}
 \item{weight_cell_line}{by default \code{NULL}, if \code{!NULL}, an output object from \code{computeCellLine} is estimated (see example).}
 \item{permutations}{number of permutations, by default 10000.}
 }
@@ -22,6 +21,8 @@ cells=NULL,outputFolder=NULL,weight_cell_line=NULL,permutations=10000)
 Besides, a number of additional files in the sourced directory: 
 \item{dz_sig_used.csv}{contains genes in the disease signature used for computing reverse gene expression scores.}
 \item{sRGES.csv}{contains the same data as returned data.frame.}
+  \item{output}{if \code{TRUE}, output files is produced.}
+  \item{outputFolder}{folder path to store drug results, by default write results to working directory.}
 \item{all__lincs_score.csv}{includes information of RGES.}
 }
 

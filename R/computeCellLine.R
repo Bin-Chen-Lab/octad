@@ -4,7 +4,7 @@
 #' @importFrom ExperimentHub ExperimentHub
 
 ####### computeCellLine #######
-computeCellLine = function(case_id =case_id,expSet=NULL,LINCS_overlaps = TRUE,source='octad.small',file=NULL,returnDF = FALSE){
+computeCellLine = function(case_id =case_id,expSet=NULL,LINCS_overlaps = TRUE,source='octad.small',file=NULL,output = FALSE,outputFolder=''){
     #STOPS
 if(missing(case_id)){
 	stop('Case ids vector input not found')
@@ -70,15 +70,16 @@ CCLE.rna.seq.marker.gene.1000 = names(sort(rank.sd,decreasing =TRUE))[1:1000]
 TCGA.vs.CCLE.polyA.expression.correlation.result = pick.out.cell.line(case_counts, CCLE.overlaps,CCLE.rna.seq.marker.gene.1000)
 correlation.dataframe = TCGA.vs.CCLE.polyA.expression.correlation.result$cell.line.median.cor %>% as.data.frame()
 colnames(correlation.dataframe) = "cor"
-cell.line.folder = "CellLineEval/"
+cell.line.folder = paste(outputFolder,"CellLineEval/",sep='/')
 if (!dir.exists(cell.line.folder)) {
 	dir.create(cell.line.folder)
 }
-write.csv(correlation.dataframe, file = paste0(cell.line.folder,"CellLineCorrelations.csv"))
+
 topline = data.frame(medcor = TCGA.vs.CCLE.polyA.expression.correlation.result$cell.line.median.cor) # could also do first
 
-if(returnDF == TRUE){
+if(output == TRUE){
 	return(topline)
+  write.csv(correlation.dataframe, file = paste0(cell.line.folder,"CellLineCorrelations.csv"))
     }else{
         topline = rownames(topline)[1]
         return(topline)

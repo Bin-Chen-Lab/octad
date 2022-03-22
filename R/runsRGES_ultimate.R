@@ -8,7 +8,7 @@
 
 #### runsRGES #######
 runsRGES <- function(dz_signature=NULL,choose_fda_drugs = FALSE,max_gene_size=500,
-                                         cells=NULL,outputFolder='',weight_cell_line=NULL,permutations=10000){
+                                         cells=NULL,output=FALSE,outputFolder='',weight_cell_line=NULL,permutations=10000){
 
 if(missing(dz_signature)){
 	stop('Disease signature input not found')
@@ -16,8 +16,16 @@ if(missing(dz_signature)){
 if(is.null(dz_signature$Symbol)|is.null(dz_signature$log2FoldChange)){
 	stop('Either Symbol or log2FoldChange collumn in Disease signature is missing')
 }
+  
 cat(paste('Started sRGES computation. Average computation time ~1-3mins.'),'\n')
 start_time=Sys.time()
+#write paths
+output_path <- paste0(outputFolder,"/all_",paste(cells,collapse='_'),"_lincs_score.csv")
+sRGES_output_path <- paste0(outputFolder,"sRGES",paste(cells,collapse='_'),".csv")
+sRGES_output_path_drug <- paste0(outputFolder,"sRGES_FDAapproveddrugs.csv")
+dz_sig_output_path <- paste0(outputFolder,"dz_sig_used.csv") 
+
+
 lincs_sig_info=suppressMessages(.eh[["EH7270"]]) #bioconductor addition
 getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor){
 	sRGES <- RGES
@@ -123,18 +131,16 @@ if (choose_fda_drugs) {
 	lincs_sig_info_FDA <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(pert_iname) %in% tolower(fda_drugs$pert_iname))
 	FDAdf <- select(lincs_sig_info_FDA, pert_id, pert_iname)
 	FDAdf <- unique(FDAdf[,seq_len(2)])
+	
+	if(output==TRUE){
 	write.csv(FDAdf,file = paste0(outputFolder,"FDA_approved_drugs.csv"),row.names = FALSE)
-	lincs_sig_info <- subset(lincs_sig_info,id %in% colnames(lincs_signatures))
+	}
+	  lincs_sig_info <- subset(lincs_sig_info,id %in% colnames(lincs_signatures))
     }else{
         lincs_sig_info <- subset(lincs_sig_info, id %in% colnames(lincs_signatures))
     }
 
 
-    #write paths
-output_path <- paste0(outputFolder,"/all_",paste(cells,collapse='_'),"_lincs_score.csv")
-sRGES_output_path <- paste0(outputFolder,"sRGES",paste(cells,collapse='_'),".csv")
-sRGES_output_path_drug <- paste0(outputFolder,"sRGES_FDAapproveddrugs.csv")
-dz_sig_output_path <- paste0(outputFolder,"dz_sig_used.csv")
 
 #remove duplicate instances
 lincs_sig_info <- lincs_sig_info[!duplicated(lincs_sig_info$id),]
@@ -159,8 +165,9 @@ if (nrow(dz_genes_down) > max_gene_size){
 	dz_genes_down <- dz_genes_down %>% head(max_gene_size)
     }
 
+if(output==TRUE){
 write.csv(rbind(dz_genes_up, dz_genes_down),    dz_sig_output_path)
-
+}
 #parallel=FALSE
 #if(!parallel){ in case of parallel implementation for later release
 dz_cmap_scores <- NULL
@@ -203,8 +210,10 @@ results <- data.frame(id = sig.ids, cmap_score = dz_cmap_scores, p, padj)
 
 results <- merge(results, lincs_sig_info, by = "id")
 results <- results[order(results$cmap_score),]
-write.csv(results, output_path)
 
+#if(output==TRUE){
+write.csv(results, output_path)
+#}
 ####################
 #summarize RGES
 lincs_drug_prediction <- read.csv(output_path)
@@ -245,12 +254,16 @@ median = median(RGES),
 sd = sd(RGES))
 pred_merged$sRGES <- pred_merged$mean
 pred_merged <- pred_merged[order(pred_merged$sRGES), ]
-write.csv(pred_merged, sRGES_output_path)
 
+if(output==TRUE){
+  write.csv(pred_merged, sRGES_output_path)
+}
 if (choose_fda_drugs){
 	pred_merged_drug <- merge(fda_drugs, pred_merged, by = "pert_iname")
 	pred_merged_drug <- pred_merged_drug[order(pred_merged_drug$sRGES), ]
-	write.csv(pred_merged_drug, sRGES_output_path_drug)
+	if(ouput==TRUE){
+	  write.csv(pred_merged_drug, sRGES_output_path_drug)
+	}
 	}
 cat('\n',paste('Finished computations in', round(Sys.time()-start_time,2),units(Sys.time()-start_time),',writing output'),'\n')
 return(pred_merged)
