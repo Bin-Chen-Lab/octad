@@ -21,8 +21,8 @@ cells=NULL,output=FALSE,outputFolder='',weight_cell_line=NULL,permutations=10000
 Besides, a number of additional files in the sourced directory: 
 \item{dz_sig_used.csv}{contains genes in the disease signature used for computing reverse gene expression scores.}
 \item{sRGES.csv}{contains the same data as returned data.frame.}
-  \item{output}{if \code{TRUE}, output files is produced.}
-  \item{outputFolder}{folder path to store drug results, by default write results to working directory.}
+\item{output}{if \code{TRUE}, output files is produced.}
+\item{outputFolder}{folder path to store drug results, by default write results to working directory.}
 \item{all__lincs_score.csv}{includes information of RGES.}
 }
 
@@ -32,7 +32,7 @@ Besides, a number of additional files in the sourced directory:
 \examples{
 #load differential expression example for HCC 
 #vs adjacent liver tissue computed in diffExp() function
-data(res_example)
+res=.eh[["EH7278"]]
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 #run sRGES computation
 runsRGES(dz_signature=res,choose_fda_drugs = FALSE,max_gene_size=100,permutations=1000)

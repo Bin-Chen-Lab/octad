@@ -6,12 +6,13 @@
 
 }
 \usage{
-  topLineEval(topline,mysRGES)
+  topLineEval(topline='',mysRGES=NULL,outputFolder="")
 
 }
 \arguments{
   \item{topline}{list of cell lines to be used for prediction.}
   \item{mysRGES}{sRGES data.frame produced by \code{runsRGES}.}
+  \item{outputFolder}{Path to store results.}.}
 }
 \value{
 The function produces 3 feils in the output directory:
