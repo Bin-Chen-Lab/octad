@@ -41,12 +41,21 @@ The code can be easily modified to select for other cancers or a set of samples 
 
 ## Compute or select control samples
 Use the function `computeRefTissue` to compute appropriate normal tissues via comparing gene expression features between case samples and normal tissue samples. Users can select adjacent normal tissue samples if available. By default, features from the precomputed `AutoEncoder` file are used, but other features such as top varying genes across samples can be employed as well. Pairwise Spearman correlation is computed between every case sample and every normal sample using these features. For each normal sample, its median correlation with all case samples is then computed. Top correlated normal samples (defined by control_size) are then selected as control.   
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 #computing top 50 reference tissues 
 
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
 control_id=computeRefTissue(case_id,output=FALSE,adjacent=TRUE,source = "octad",control_size = 50)  
+# use adjacent normal tissue samples as control_id allow you to avoid running this function    
+```  
+There is also an availability to select control samples by hand:
+```{r eval=TRUE} 
+#computing top 50 reference tissues 
+
+HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
+case_id=HCC_primary$sample.id #select cases
+control_id=subset(phenoDF,biopsy.site=='LIVER'&sample.type=='normal')$sample.id[1:50] #select first 50 samples from healthy liver
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 ```  
    
@@ -92,7 +101,7 @@ cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
-topLineEval(topline = c('HEPG2'),mysRGES = sRGES,outputFolder=tempdir())
+topLineEval(topline = 'HEPG2',mysRGES = sRGES,outputFolder=tempdir())
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
 1. *_auc_insilico_validation.html (correlation between drug AUC in the specified cell line and sRGES)
