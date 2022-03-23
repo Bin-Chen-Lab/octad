@@ -7,7 +7,7 @@
 #' @importFrom ExperimentHub ExperimentHub
 
 ####### topLineEval #######
-topLineEval = function(topline = c(''),mysRGES=NULL,outputFolder=''){
+topLineEval = function(topline = NULL,mysRGES=NULL,outputFolder=''){
 if(missing(mysRGES)){
 	stop('sRGES signature input not found')
 }

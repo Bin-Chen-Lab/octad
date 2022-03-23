@@ -6,7 +6,7 @@
 
 }
 \usage{
-  topLineEval(topline='',mysRGES=NULL,outputFolder="")
+  topLineEval(topline=NULL,mysRGES=NULL,outputFolder="")
 
 }
 \arguments{
@@ -27,7 +27,7 @@ The function produces 3 feils in the output directory:
 \examples{
 #load example sRGES computed by runsRGES() function for HCC 
 #vs liver adjacent tissues on octad.small dataset
-data(sRGES_example)
+sRGES=.eh[["EH7279"]] #load example sRGES
 #Pick up cell lines
 topLineEval(topline = 'HEPG2',mysRGES = sRGES,outputFolder=tempdir())
 
