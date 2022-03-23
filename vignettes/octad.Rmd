@@ -87,7 +87,7 @@ The `diffExp` function will produce `data.frame` with DE results. Please note th
 The `runsRGES` function is used to identify the drugs that potentially reverses the disease signature. Use the code below to choose significant genes; this works by keeping genes that have low adjusted P-values and high log-fold changes.   
 Launch the sRGES computation. It takes a few minutes to compute RGES scores. After the job is finished, it will output files all_lincs_score.csv (RGES of individual profiles), sRGES.csv (summarized RGES of individual drugs) and dz_sig_used.csv (signature genes used for drug prediction). LINCS also provides the imputed expression of the whole transcriptome based on the 978 genes. We will add it in the future when its usage is fully evaluated. There is no good way available to choose an optimal sRGES threshold, but empirically < -0.2 is good to go
 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
 res=.eh[["EH7278"]]
 res=subset(res,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset
@@ -103,6 +103,7 @@ cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
+sRGES=.eh[["EH7279"]] #load example sRGES
 topLineEval(topline = 'HEPG2',mysRGES = sRGES,outputFolder=tempdir())
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
