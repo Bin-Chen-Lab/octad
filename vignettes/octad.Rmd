@@ -75,7 +75,7 @@ p2 <- ggplot(tsne, aes(X, Y, color = type)) + geom_point(alpha = 0.4)+
 ```
 ## Compute gene differential expression between case and control samples
 Differential expression can be computed via edgeR, limma + voom, or DESeq2. By default, we use edgeR in the analysis. Since the function `diffExp` computes differentially expressed genes between `case_id` and `control_id` within the same data matrix, it can be used to find differentially expressed genes between any two groups of samples. By default, a small dataset containing only 978 genes shared with the LINCS database is used.
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
 head(res)
 #Use simple subset to filter the DE results:
@@ -89,6 +89,8 @@ Launch the sRGES computation. It takes a few minutes to compute RGES scores. Aft
 
 ```{r eval=TRUE} 
 #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
+res=.eh[["EH7278"]]
+res=subset(res,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset
 sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE,outputFolder = tempdir())
 
 head(sRGES)
