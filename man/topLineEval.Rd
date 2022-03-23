@@ -29,7 +29,7 @@ The function produces 3 feils in the output directory:
 #vs liver adjacent tissues on octad.small dataset
 data(sRGES_example)
 #Pick up cell lines
-topLineEval(topline = c('HEPG2'),mysRGES = sRGES_example)
+topLineEval(topline = 'HEPG2',mysRGES = sRGES,outputFolder=tempdir())
 
 }
 \keyword{octadDrugEnrichment}
