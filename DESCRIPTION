@@ -1,6 +1,6 @@
 Package: octad
 Title: Open Cancer TherApeutic Discovery (OCTAD)
-Version: 0.99.70
+Version: 0.99.71
 Authors@R: 
     c(person(given = "E.",
            family = "Chekalin",
@@ -55,7 +55,9 @@ Imports:
     data.table, 
     htmlwidgets, 
     plotly, 
-    reshape2
+    reshape2,grDevices,
+    graphics,
+    utils
 Suggests: 
     knitr,
     rmarkdown
