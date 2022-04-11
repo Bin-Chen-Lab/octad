@@ -31,7 +31,7 @@
 }
 
 \seealso{
-  \code{\link{computeRefTissue},\link{runsRGES},\link{geneEnrich}}.
+  \code{\link{computeRefTissue},\link{runsRGES}}.
 }
 \examples{
 phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database

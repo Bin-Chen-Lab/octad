@@ -5,13 +5,14 @@
 Perform enrichment analysis of drug hits based on chemical structures, drug-targets, and pharmacological classifications. An enrichment score calculated using ssGSEA and a p-value computed through a permutation test are provided. 
 }
 \usage{
-  octadDrugEnrichment(sRGES=NULL,target_type='chembl_targets',enrichFolder='enrichFolder')
+  octadDrugEnrichment(sRGES=NULL,target_type='chembl_targets',enrichFolder='enrichFolder',outputFolder=NULL)
 
 }
 \arguments{
  \item{sRGES}{sRGES data frame produced by \code{runsRGES}.}
  \item{target_type}{one or several of \code{'chembl_targets','mesh','ChemCluster'} databases selected. By deafult only 'chembl_targets' will be used.}
  \item{enrichFolder}{folder to store output.}
+ \item{outputFolder}{path where to store enrichFolder, in case of \code{NULL} will be stored in work directory.}
 }
 \value{
 Following files are created: 

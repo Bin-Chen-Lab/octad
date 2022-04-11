@@ -1,6 +1,5 @@
 #' Open Cancer TherApeutic Discovery (OCTAD) database package
 #'
-#' @section Description:
 #' Open Cancer TherApeutic Discovery (OCTAD) package implies sRGES approach for the drug discovery. 
 #' The essential idea is to identify drugs that reverse the gene expression signature of a disease by tamping down over-expressed genes and stimulating weakly expressed ones. 
 #' The following package contains all required precomputed data for whole OCTAD pipeline computation. 
