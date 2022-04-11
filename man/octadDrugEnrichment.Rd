@@ -26,7 +26,7 @@ Following files are created:
   \code{\link{runsRGES}}
 }
 \examples{
-sRGES=.eh[["EH7279"]] #load example sRGES
+sRGES=sRGES=.eh[['EH7279']] #load example sRGES
 #run drug enrichment 
 octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets'))
 

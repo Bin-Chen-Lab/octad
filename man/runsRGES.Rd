@@ -32,7 +32,7 @@ Besides, a number of additional files in the sourced directory:
 \examples{
 #load differential expression example for HCC 
 #vs adjacent liver tissue computed in diffExp() function
-res=.eh[["EH7278"]]
+res=sRGES=.eh[['EH7278']]
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
 #run sRGES computation
 sRGES=runsRGES(dz_signature=res,max_gene_size=100,permutations=1000,output=FALSE,outputFolder = tempdir())

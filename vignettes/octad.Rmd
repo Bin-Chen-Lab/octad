@@ -27,11 +27,8 @@ To list all available samples from the octad database, use the phenoDF data fram
 To select HCC samples, subset the phenoDF:
 ```{r eval=TRUE} 
 #select data
-library(octad,quietly=TRUE)
-phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database
-if (!dir.exists(tempdir())){ #store output into tempdir
-  dir.create(tempdir())
-}
+suppressMessages(library(octad))
+phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database. 
 head(phenoDF) #list all data included within the package
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
@@ -43,27 +40,20 @@ The code can be easily modified to select for other cancers or a set of samples 
 Use the function `computeRefTissue` to compute appropriate normal tissues via comparing gene expression features between case samples and normal tissue samples. Users can select adjacent normal tissue samples if available. By default, features from the precomputed `AutoEncoder` file are used, but other features such as top varying genes across samples can be employed as well. Pairwise Spearman correlation is computed between every case sample and every normal sample using these features. For each normal sample, its median correlation with all case samples is then computed. Top correlated normal samples (defined by control_size) are then selected as control.   
 ```{r eval=TRUE} 
 #computing top 50 reference tissues 
-
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
 control_id=computeRefTissue(case_id,output=FALSE,adjacent=TRUE,source = "octad",control_size = 50)  
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 ```  
 There is also an availability to select control samples by hand:
 ```{r eval=TRUE} 
 #computing top 50 reference tissues 
-
-HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
-case_id=HCC_primary$sample.id #select cases
 control_id=subset(phenoDF,biopsy.site=='LIVER'&sample.type=='normal')$sample.id[1:50] #select first 50 samples from healthy liver
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 ```  
    
  
 The relationships among case, control and other samples can be visualised through a t-SNE matrix precomputed based on the features derived from autoencoder. 
-```{r eval=FALSE} 
-tsne=.eh[["EH7276"]] #
-#tsne <- octad.db::tsne
+```{r eval=TRUE} 
+tsne=.eh[["EH7276"]] #Download file with tsneresults for all samples in the octad.db once. After this it will be cached and no additional download required.
 tsne$type <- "others"
 tsne$type[tsne$sample.id %in% case_id] <- "case"
 tsne$type[tsne$sample.id %in% control_id] <- "control"
@@ -87,9 +77,8 @@ The `diffExp` function will produce `data.frame` with DE results. Please note th
 The `runsRGES` function is used to identify the drugs that potentially reverses the disease signature. Use the code below to choose significant genes; this works by keeping genes that have low adjusted P-values and high log-fold changes.   
 Launch the sRGES computation. It takes a few minutes to compute RGES scores. After the job is finished, it will output files all_lincs_score.csv (RGES of individual profiles), sRGES.csv (summarized RGES of individual drugs) and dz_sig_used.csv (signature genes used for drug prediction). LINCS also provides the imputed expression of the whole transcriptome based on the 978 genes. We will add it in the future when its usage is fully evaluated. There is no good way available to choose an optimal sRGES threshold, but empirically < -0.2 is good to go
 
-```{r eval=FALSE} 
-#load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
-res=.eh[["EH7278"]]
+```{r eval=TRUE} 
+res=octad.db::res_example #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
 res=subset(res,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset
 sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE,outputFolder = tempdir())
 
@@ -103,7 +92,7 @@ cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
-sRGES=.eh[["EH7279"]] #load example sRGES
+sRGES=octad.db::sRGES_example #load example sRGES from octad.db
 topLineEval(topline = 'HEPG2',mysRGES = sRGES,outputFolder=tempdir())
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
@@ -146,6 +135,7 @@ Alternatively the database and the pipeline is available via website of the OCTA
 If you use our work, please cite the [OCTAD paper](https://www.biorxiv.org/content/10.1101/821546v1). Both OCTAD package and website was developed by [Bin Chen laboratory](http://binchenlab.org/).
 octad package is github available via [link](https://github.com/Bin-Chen-Lab/octad_desktop)
 After the package will be accepted to the bioconductor, it will be available on the [bioconductor website](https://bioconductor.org/)
+
 # Session information
 Here is the output of sessionInfo on the system where this document was compiled:
 ```{r eval=TRUE} 
