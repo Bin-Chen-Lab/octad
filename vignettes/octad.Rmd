@@ -78,8 +78,8 @@ The `runsRGES` function is used to identify the drugs that potentially reverses 
 Launch the sRGES computation. It takes a few minutes to compute RGES scores. After the job is finished, it will output files all_lincs_score.csv (RGES of individual profiles), sRGES.csv (summarized RGES of individual drugs) and dz_sig_used.csv (signature genes used for drug prediction). LINCS also provides the imputed expression of the whole transcriptome based on the 978 genes. We will add it in the future when its usage is fully evaluated. There is no good way available to choose an optimal sRGES threshold, but empirically < -0.2 is good to go
 
 ```{r eval=TRUE} 
-res=octad.db::res_example #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
-res=subset(res,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset
+data("res_example",package='octad.db') #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
+res=subset(res_example,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset
 sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE,outputFolder = tempdir())
 
 head(sRGES)
@@ -92,8 +92,8 @@ cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
-sRGES=octad.db::sRGES_example #load example sRGES from octad.db
-topLineEval(topline = 'HEPG2',mysRGES = sRGES,outputFolder=tempdir())
+data("sRGES_example",package='octad.db') #load example sRGES from octad.db
+topLineEval(topline = 'HEPG2',mysRGES = sRGES_example,outputFolder=tempdir())
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
 1. *_auc_insilico_validation.html (correlation between drug AUC in the specified cell line and sRGES)
@@ -110,8 +110,9 @@ This analysis provides much information for following candidate selection and ex
 
 
 ## Compute DE full dataset and custom expression matrix
-To use the whole OCTAD dataset from [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) as input, make sure the required .h5 file is stored in the R working directory or the whole path to the file is specified:
+To use the whole OCTAD dataset from octad.counts.and.tpm.h5 as input, make sure the required .h5 file is downloaded and stored in the R working directory or the whole path to the file is specified:
 ```{r eval=FALSE} 
+.eh[['EH7277']]
 res=diffExp(case_id,control_id,source='octad.whole',
     output=FALSE,n_topGenes=10000,file='octad.counts.and.tpm.h5')
 ```

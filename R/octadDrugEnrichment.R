@@ -84,7 +84,7 @@ octadDrugEnrichment = function(sRGES = NULL, target_type = "chembl_targets", enr
             if (length(target_drugs_score) < 3) {
               next
             }
-            pdf(paste0(enrichFolder.n, "/top_enriched_", top_target, "_", target_type_selected, ".pdf"))
+            pdf(file.path(enrichFolder.n,paste0("/top_enriched_", top_target, "_", target_type_selected, ".pdf")))
             limma::barcodeplot(sRGES$sRGES, target_drugs_score, main = top_target, xlab = "sRGES")
             dev.off()
           }
@@ -100,8 +100,12 @@ octadDrugEnrichment = function(sRGES = NULL, target_type = "chembl_targets", enr
               write.csv(clusterdf, file = file.path(enrichFolder.n, "drugstructureclusters.csv"), row.names = FALSE)
             }
           }
-          cat(paste("Done for", target_type_selected, "for", nrow(gsea_p[which(gsea_p$padj <= 0.05), ]), "genes"), "\n")
-        } else cat(paste("No signigicant enrichment found for", target_type_selected), "\n")
+          msg=paste("Done for", target_type_selected, "for", nrow(gsea_p[which(gsea_p$padj <= 0.05), ]), "genes")
+          message(msg)
+        } else {
+            msg=paste("No signigicant enrichment found for", target_type_selected)
+            message(msg) 
+          }
       }
     }
   }

@@ -153,7 +153,7 @@ topLineEval = function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
   
   
   # logging cortests
-  con = file.path(cell.line.folder, paste0(toplineName, "_drug_sensitivity_insilico_results.txt"))
+  con = file(paste0(cell.line.folder,toplineName,"_drug_sensitivity_insilico_results.txt"))
   sink(con, append = TRUE)
   sink(con, append = TRUE, type = "message")
   

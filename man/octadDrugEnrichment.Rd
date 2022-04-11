@@ -26,9 +26,9 @@ Following files are created:
   \code{\link{runsRGES}}
 }
 \examples{
-sRGES=sRGES=.eh[['EH7279']] #load example sRGES
+data("sRGES_example",package='octad.db') #load example sRGES
 #run drug enrichment 
-octadDrugEnrichment(sRGES = sRGES, target_type = c('chembl_targets'))
+octadDrugEnrichment(sRGES = sRGES_example, target_type = c('chembl_targets'))
 
 }
 \keyword{octadDrugEnrichment}
