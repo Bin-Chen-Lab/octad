@@ -1,25 +1,12 @@
 # Web version:
 http://octad.org/
 
-# Bioconductor installation after the package will be released
-To install the package run the following code:
+# How to Install
 ```
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("octad")
 ``` 
-
-# How to Install
-Before library installation install required octad.db, package with all required files for computation:
-```
-devtools::install_github('Bin-Chen-Lab/octad.db',build_vignettes = TRUE)
-```
-It takes a few minutes to install the package and verify files. Afterward, the pipeline will be ready to run. 
-Install the package:
-```
-devtools::install_github('Bin-Chen-Lab/octad',build_vignettes = TRUE)
-```
-
 
 
 # Additional data

@@ -18,7 +18,7 @@ As the field of precision medicine progresses, we start to tailor treatments for
 
 
 # Workflow
-We use Hepatocellular Carcinoma (HCC) to illustrate the utility of the desktop pipeline. We provide the code and data for investigating differential expression, pathway enrichment, drug prediction and hit selection, and in silico validation. In this workflow, we will select case tissue samples from our compiled TCGA data and compute control tissue samples from the GTEx data. Note that the compiled data  contains adjacent normal samples which can also serve as control tissues. By default, the octad package uses Small OCTAD dataset containing expression values only for LINCS 978 landmark genes required for sRGES score computation. To download the full expression values, please refer to the link [octad.counts.and.tpm.h5](https://chenlab-data-public.s3-us-west-2.amazonaws.com/octad/octad.counts.and.tpm.h5) (~3G). We recommend to use the full expression matrix. By default, computated results are stored in the working directory. 
+We use Hepatocellular Carcinoma (HCC) to illustrate the utility of the desktop pipeline. We provide the code and data for investigating differential expression, pathway enrichment, drug prediction and hit selection, and in silico validation. In this workflow, we will select case tissue samples from our compiled TCGA data and compute control tissue samples from the GTEx data. Note that the compiled data  contains adjacent normal samples which can also serve as control tissues. By default, the octad package uses Small OCTAD dataset containing expression values only for LINCS 978 landmark genes required for sRGES score computation. To download the full expression values, please refer to the link [octad.counts.and.tpm.h5](https://experimenthub.bioconductor.org/fetch/7327) (~3G). We recommend to use the full expression matrix. By default, computated results are stored in the temporary directory. 
 ## Select case samples
 Choosing cases (tumor samples from the phenoDF data.frame) and controls (corresponding samples treated as background such as normal tissue, adjacent normal tissue or tumor tissue samples without a specific mutation)  is critical to achieving the best results. Several methods are included in the provided code which demonstrates multiple control sample selection methods. There are no built-in validation steps to evaluate case samples. Visualization of cases in a t-SNE (t-Distributed Stochastic Neighbor Embedding)  plot could help understand their relations with other OCTAD samples. Samples sharing similar transcriptomic profiles tend to cluster together in the t-SNE plot. The cases scattering in multiple clusters are not recommended to choose as a group.
 Phenotype data frame `phenoDF ` contains tissue types including normal tissue, adjacent normal tissue, primary cancer, recurrent cancer, and metastatic cancer. 
@@ -89,6 +89,7 @@ As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in
 
 ```{r eval=TRUE} 
 cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
+head(cell_line_computed)
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
@@ -136,7 +137,7 @@ The `diffExp` function will produce `data.frame` with DE results. Please note th
 Alternatively the database and the pipeline is available via website of the OCTAD project: http://octad.org/.
 If you use our work, please cite the [OCTAD paper](https://www.biorxiv.org/content/10.1101/821546v1). Both OCTAD package and website was developed by [Bin Chen laboratory](http://binchenlab.org/).
 octad package is github available via [link](https://github.com/Bin-Chen-Lab/octad_desktop)
-After the package will be accepted to the bioconductor, it will be available on the [bioconductor website](https://bioconductor.org/)
+After the package will be accepted to the bioconductor, it will be available on the [bioconductor](https://bioconductor.org/packages/octad)
 
 # Session information
 Here is the output of sessionInfo on the system where this document was compiled:

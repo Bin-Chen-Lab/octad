@@ -16,11 +16,11 @@ computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad",
     # if we pick adjacent, filter them out
     if (adjacent == TRUE) {
       phenoDF = suppressMessages(.eh[["EH7274"]])
-      adjacent_ids = as.vector(subset(phenoDF, sample.type == "adjacent")$sample.id)  #bioconductor replace
-      normal_id = as.vector(subset(phenoDF, sample.type == "normal")$sample.id)  #bioconductor replace
+      adjacent_ids = as.vector(subset(phenoDF, phenoDF$sample.type == "adjacent")$sample.id)  #bioconductor replace
+      normal_id = as.vector(subset(phenoDF, phenoDF$sample.type == "normal")$sample.id)  #bioconductor replace
       normal_id = c(adjacent_ids, normal_id)
     } else {
-      normal_id = as.vector(subset(phenoDF, sample.type == "normal")$sample.id)  #bioconductor replace
+      normal_id = as.vector(subset(phenoDF, phenoDF$sample.type == "normal")$sample.id)  #bioconductor replace
     }
   } else if (source != "octad" & missing(expSet)) {
     stop("expSet is not supported")
@@ -29,7 +29,7 @@ computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad",
   }
   
   if (is.null(outputFolder)) {
-    outputFolder = getwd()
+    outputFolder = tempdir()
   }
   
   normal_id = normal_id[normal_id %in% colnames(expSet)]
@@ -42,13 +42,15 @@ computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad",
     expSet_case <- expSet[, as.vector(case_id)]
     # varGenes look at the top varying genes (IQR) within normal tissue expression and varies them to the case tissues
     iqr_gene <- apply(expSet_normal, 1, stats::IQR)  #get the IQR per gene
-    varying_genes <- order(iqr_gene, decreasing = TRUE)[1:min(n_varGenes, length(iqr_gene))]
+    varying_genes <- order(iqr_gene, decreasing = TRUE)[seq_len(min(n_varGenes, length(iqr_gene)))]
     
     # get the correlation matrix for each normal id and each case id
     normal_dz_cor <- cor(expSet_normal[varying_genes, ], expSet_case[varying_genes, ], method = "spearman")
     normal_dz_cor_each <- apply(normal_dz_cor, 1, median)  #getting the median correlation btw each normal tissue to the case overall
-    normal_dz_cor_eachDF = data.frame(cor = sort(normal_dz_cor_each, decreasing = TRUE)) %>%
-      dplyr::mutate(sample.id = row.names(.)) %>%
+    cor=data.frame(cor = sort(normal_dz_cor_each, decreasing = TRUE))
+    sample.id = row.names(cor)
+    normal_dz_cor_eachDF = cor %>%
+      dplyr::mutate(sample.id ) %>%
       dplyr::select(sample.id, cor)
     cutoff = stats::quantile(normal_dz_cor_eachDF$cor, probs = seq(0, 1, 0.05), na.rm = TRUE)[paste0(cor_cutoff, "%")]
     

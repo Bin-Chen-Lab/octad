@@ -3,6 +3,9 @@
 #' @importFrom limma barcodeplot
 #' @import octad.db
 #' @importFrom ExperimentHub ExperimentHub
+#' @importFrom S4Vectors mcols
+#' @importFrom AnnotationHub query
+
 
 octadDrugEnrichment = function(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL) {
   # require(GSVA)
@@ -15,14 +18,14 @@ octadDrugEnrichment = function(sRGES = NULL, target_type = "chembl_targets", enr
   options(warn = -1)
   
   if (is.null(outputFolder)) {
-    outputFolder = getwd()
+    outputFolder = tempdir()
   }
   
   
   if (!dir.exists(enrichFolder)) {
     dir.create(file.path(outputFolder, enrichFolder))
   }
-  eh_dataframe = suppressMessages(as.data.frame(mcols(query(.eh, "octad.db")))["title"])
+  eh_dataframe = suppressMessages(as.data.frame(S4Vectors::mcols(AnnotationHub::query(.eh, "octad.db")))["title"])
   random_gsea_score = suppressMessages(.eh[["EH7275"]])
   for (target_type_selected in target_type) {
     cat(paste("Running enrichment for", target_type_selected, sep = " "), "\n")
@@ -92,7 +95,7 @@ octadDrugEnrichment = function(sRGES = NULL, target_type = "chembl_targets", enr
             clusternames = as.character((gsea_p[which(gsea_p$padj <= 0.05), ])$target)
             if (length(clusternames) != 0) {
               topclusterlist = cmpdSets[clusternames]
-              cat(sapply(topclusterlist, toString), file = paste0(enrichFolder.n, "misc.csv"), sep = "\n")
+              cat(vapply(topclusterlist, toString), file = paste0(enrichFolder.n, "misc.csv"), sep = "\n")
               clusterdf = read.csv2(paste0(enrichFolder.n, "misc.csv"), header = FALSE)
               clusterdf$cluster = clusternames
               clusterdf$pval = (gsea_p[which(gsea_p$padj <= 0.05), ])$padj

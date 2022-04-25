@@ -4,6 +4,8 @@
 #' @importFrom    dplyr everything left_join
 #' @importFrom magrittr %>%
 #' @importFrom ExperimentHub ExperimentHub
+#' @importFrom Biobase pData 
+#' @importFrom utils globalVariables
 
 diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", file = "octad.counts.and.tpm.h5", normalize_samples = TRUE,
                    k = 1, expSet = NULL, n_topGenes = 500, DE_method = "edgeR", parallel_cores = 2, output = FALSE, outputFolder = NULL, annotate = TRUE) {
@@ -15,7 +17,7 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
   }
   
   if (is.null(outputFolder)) {
-    outputFolder = getwd()
+    outputFolder = tempdir()
   }
   
   remLowExpr = function(counts, counts_phenotype) {
@@ -37,11 +39,11 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     message("loading whole octad expression data for", length(c(case_id, control_id)), "samples", sep = " ")
     transcripts = as.character(rhdf5::h5read(file, "meta/transcripts"))
     samples = as.character(rhdf5::h5read(file, "meta/samples"))
-    case_counts = rhdf5::h5read(file, "data/count", index = list(1:length(transcripts), which(samples %in% case_id)))
+    case_counts = rhdf5::h5read(file, "data/count", index = list(seq_len(length(transcripts)), which(samples %in% case_id)))
     colnames(case_counts) = samples[samples %in% case_id]
     rownames(case_counts) = transcripts
     case_id = samples[samples %in% case_id]
-    normal_counts = rhdf5::h5read(file, "data/count", index = list(1:length(transcripts), which(samples %in% control_id)))
+    normal_counts = rhdf5::h5read(file, "data/count", index = list(seq_len(length(transcripts)), which(samples %in% control_id)))
     colnames(normal_counts) = samples[samples %in% control_id]
     rownames(normal_counts) = transcripts
     control_id = samples[samples %in% control_id]
@@ -73,7 +75,7 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
   # normalize samples using RUVSeq
   if (normalize_samples == TRUE) {
     # compute empirical genes
-    design = stats::model.matrix(~sample_type, data = pData(set))
+    design = stats::model.matrix(~sample_type, data = Biobase:::pData(set))
     y = edgeR::DGEList(counts = counts(set), group = counts_phenotype$sample)
     y = edgeR::calcNormFactors(y, method = "TMM")  #upperquartile generate Inf in the LGG case
     y = edgeR::estimateGLMCommonDisp(y, design)
@@ -82,7 +84,7 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     lrt = edgeR::glmLRT(fit, 2)  #defaults to compare case control
     
     top = edgeR::topTags(lrt, n = nrow(set))$table
-    i = which(!(rownames(set) %in% rownames(top)[1:min(n_topGenes, dim(top)[1])]))
+    i = which(!(rownames(set) %in% rownames(top)[seq_len(min(n_topGenes, dim(top)[1]))]))
     empirical = rownames(set)[i]
     stopifnot(length(empirical) > 0)
     if (output == TRUE) {
@@ -97,7 +99,7 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     row.names(counts_phenotype) = counts_phenotype$sample
     coldata = counts_phenotype
     if (normalize_samples == TRUE) {
-      dds = DESeq2::DESeqDataSetFromMatrix(countData = counts(set1), colData = pData(set1), design = ~sample_type + W_1)
+      dds = DESeq2::DESeqDataSetFromMatrix(countData = counts(set1), colData = Biobase:::pData(set1), design = ~sample_type + W_1)
     } else {
       dds = DESeq2::DESeqDataSetFromMatrix(countData = round(counts), colData = coldata, design = ~sample_type)
     }
@@ -112,23 +114,21 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     resRaw = DESeq2::results(dds, contrast = c("sample_type", "case", "control"))
     res = data.frame(resRaw)
     res$identifier = row.names(res)
-    res = res %>%
-      select(identifier, everything())
   } else if (DE_method == "edgeR") {
     message("computing DE via edgeR")
     # construct model matrix based on whether there was normalization ran
     if (normalize_samples == TRUE) {
       if (k == 1) {
-        design = stats::model.matrix(~sample_type + W_1, data = pData(set1))
+        design = stats::model.matrix(~sample_type + W_1, data = Biobase:::pData(set1))
       } else if (k == 2) {
-        design = stats::model.matrix(~sample_type + W_1 + W_2, data = pData(set1))
+        design = stats::model.matrix(~sample_type + W_1 + W_2, data = Biobase:::pData(set1))
       } else if (k == 3) {
-        design = stats::model.matrix(~sample_type + W_1 + W_2 + W_3, data = pData(set1))
+        design = stats::model.matrix(~sample_type + W_1 + W_2 + W_3, data = Biobase:::pData(set1))
       }
       dgList = edgeR::DGEList(counts = counts(set1), group = set1$sample_type)
       
     } else {
-      design = stats::model.matrix(~sample_type, data = pData(set))
+      design = stats::model.matrix(~sample_type, data = Biobase:::pData(set))
       dgList = edgeR::DGEList(counts = counts(set), group = set$sample_type)
     }
     dgList = edgeR::calcNormFactors(dgList, method = "TMM")  #using upperquartile seems to give issue for LGG
@@ -142,8 +142,6 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     colnames(res) = c("log2FoldChange", "logCPM", "LR", "pvalue")
     res$padj = p.adjust(res$pvalue)
     res$identifier = row.names(res)
-    res = res %>%
-      select(identifier, everything())
   } else if (DE_method == "limma") {
     # according to https://support.bioconductor.org/p/86461/, LIMMA + VOOM will not use normalized data
     message("computing DE via limma")
@@ -153,7 +151,7 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     group = counts_phenotype$sample_type
     design = model.matrix(~0 + group)
     colnames(design) = gsub("group", "", colnames(design))
-    contr.matrix = limma::makeContrasts(TumorvsNon = case - control, levels = colnames(design))
+    contr.matrix = limma::makeContrasts(TumorvsNon = design$case - design$control, levels = colnames(design))
     
     v = limma::voom(x, design, plot = FALSE)
     vfit = limma::lmFit(v, design)
