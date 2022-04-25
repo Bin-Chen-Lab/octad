@@ -1,6 +1,6 @@
 Package: octad
 Title: Open Cancer TherApeutic Discovery (OCTAD)
-Version: 0.99.73
+Version: 0.99.74
 Authors@R: 
     c(person(given = "E.",
            family = "Chekalin",
@@ -48,7 +48,10 @@ Depends:
     octad.db,
     stats,
     httr,
-    ExperimentHub
+    ExperimentHub,
+    AnnotationHub,
+    Biobase,
+    S4Vectors
 Imports:
     EDASeq, 
     GSVA, 
