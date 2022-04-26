@@ -29,7 +29,7 @@ octadDrugEnrichment = function(sRGES = NULL, target_type = "chembl_targets", enr
   random_gsea_score = suppressMessages(.eh[["EH7275"]])
   for (target_type_selected in target_type) {
     cat(paste("Running enrichment for", target_type_selected, sep = " "), "\n")
-    enrichFolder.n = file.path(enrichFolder, target_type_selected)
+    enrichFolder.n = file.path(outputFolder,enrichFolder, target_type_selected)
     if (!dir.exists(enrichFolder.n)) {
       dir.create(enrichFolder.n)
     }

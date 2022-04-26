@@ -10,7 +10,7 @@ BiocManager::install("octad")
 
 
 # Additional data
-By default, octad package uses expression data for 978 genes from the LINCS dataset. However, it can influence the result and we advice using whole octad database. To obtatin whole results for DE, downloading of the additional OCTAD database [octad.counts.and.tpm.h5]```.eh[['EH7277']]``` from the AWS link is required.
+By default, octad package uses expression data for 978 genes from the LINCS dataset. However, it can influence the result and we advice using whole octad database. To obtatin whole results for DE, downloading of the additional OCTAD database [octad.counts.and.tpm.h5](https://experimenthub.bioconductor.org/fetch/7327) from the AWS link is required.
 
 
 # Examples
