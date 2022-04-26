@@ -80,19 +80,19 @@ Launch the sRGES computation. It takes a few minutes to compute RGES scores. Aft
 ```{r eval=FALSE} 
 data("res_example",package='octad.db') #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
 res=subset(res_example,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset
-sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE,outputFolder = tempdir())
+sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE)
 
 head(sRGES)
 ```
 ## Validate results using published pharmacogenomics data
 As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in 860 cancer cell lines, we may leverage this database for further in silico validation of our predictions, even without running any biological experiment. We use the HepG2 cell line to validate the prediction of HCC drugs.  
 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
 head(cell_line_computed)
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 data("sRGES_example",package='octad.db') #load example sRGES from octad.db
 topLineEval(topline = 'HEPG2',mysRGES = sRGES_example)
 ```
@@ -103,7 +103,7 @@ topLineEval(topline = 'HEPG2',mysRGES = sRGES_example)
 ## Compute drug enrichment
 After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enrichment analysis to identify interesting drug classes whose member drugs are significantly enriched at the top of the prediction. Example drug classes include anti-inflammatories, EGFR inhibitors, and dipines (calcium channel blockers). OCTAD provides MESH, CHEMBL, and CHEM_CLUSTER for MeSH term enrichment, target enrichment, and chemical structure enrichment, respectively. The enrichment score is calculated using ssGSEA and its significance is computed by a permutation test. 
 
-```{r eval=TRUE} 
+```{r eval=FALSE} 
 data("sRGES_example",package='octad.db') 
 octadDrugEnrichment(sRGES = sRGES_example, target_type='chembl_targets')
 ```

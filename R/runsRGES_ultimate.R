@@ -6,7 +6,7 @@
 #' @importFrom ExperimentHub ExperimentHub
 #### runsRGES #######
 runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_size = 500, cells = NULL, output = FALSE,
-  outputFolder = NULL, weight_cell_line = NULL, permutations = 10000) {
+                     outputFolder = NULL, weight_cell_line = NULL, permutations = 10000) {
   if (missing(dz_signature)) {
     stop("Disease signature input not found")
   }
@@ -23,7 +23,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   sRGES_output_path <- file.path(outputFolder, paste0("sRGES", cells, ".csv", collapse = "_"))
   sRGES_output_path_drug <- file.path(outputFolder, "sRGES_FDAapproveddrugs.csv")
   dz_sig_output_path <- file.path(outputFolder, "dz_sig_used.csv")
-  lincs_sig_info <- suppressMessages(.eh[["EH7270"]])  #bioconductor addition
+  lincs_sig_info <- suppressMessages(.eh[["EH7270"]]) # bioconductor addition
   getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor) {
     sRGES <- RGES
     pert_time <- ifelse(pert_time < 24, "short", "long")
@@ -37,7 +37,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     if (pert_dose == "high" & pert_time == "short") {
       sRGES <- sRGES + diff[1]
     }
-    return(sRGES * cor/max_cor)
+    return(sRGES * cor / max_cor)
   }
   cmap_score_ultimate <- function(sig_up, sig_down, drug_signature) {
     num_genes <- length(drug_signature)
@@ -55,11 +55,11 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
       a_up <- 0
       b_up <- 0
       a_up <- max(vapply(seq_len(num_tags_up), function(j) {
-        j/num_tags_up - up_tags_position[j]/num_genes
-      },FUN.VALUE = numeric(1)))
+        j / num_tags_up - up_tags_position[j] / num_genes
+      }, FUN.VALUE = numeric(1)))
       b_up <- max(vapply(seq_len(num_tags_up), function(j) {
-        up_tags_position[j]/num_genes - (j - 1)/num_tags_up
-      },FUN.VALUE = numeric(1)))
+        up_tags_position[j] / num_genes - (j - 1) / num_tags_up
+      }, FUN.VALUE = numeric(1)))
       if (a_up > b_up) {
         ks_up <- a_up
       } else {
@@ -72,11 +72,11 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
       a_down <- 0
       b_down <- 0
       a_down <- max(vapply(seq_len(num_tags_down), function(j) {
-        j/num_tags_down - down_tags_position[j]/num_genes
-      },FUN.VALUE = numeric(1)))
+        j / num_tags_down - down_tags_position[j] / num_genes
+      }, FUN.VALUE = numeric(1)))
       b_down <- max(vapply(seq_len(num_tags_down), function(j) {
-        down_tags_position[j]/num_genes - (j - 1)/num_tags_down
-      },FUN.VALUE = numeric(1)))
+        down_tags_position[j] / num_genes - (j - 1) / num_tags_down
+      }, FUN.VALUE = numeric(1)))
       if (a_down > b_down) {
         ks_down <- a_down
       } else {
@@ -107,7 +107,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   } else if (!missing(cells) & nrow(lincs_sig_info) == 0) {
     stop("Wrong cell line name. List of possible cell lines is available via command unique(octad.db::lincs_sig_info$cell_id)")
   } else if (missing(cells)) {
-    cells <- ""  #plug for older code version
+    cells <- "" # plug for older code version
   }
   lincs_signatures <- suppressMessages(.eh[["EH7271"]])
   if (choose_fda_drugs) {
@@ -150,26 +150,34 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   cmap_exp_sig <- Rfast::colRanks(-1 * lincs_signatures, method = "max")
   names.list <- list(rownames(lincs_signatures), colnames(lincs_signatures))
   dimnames(cmap_exp_sig) <- names.list
-  pb <- txtProgressBar(min = 1, max = permutations, style = 3)  #set progressbar
+  pb <- txtProgressBar(min = 1, max = permutations, style = 3) # set progressbar
   i <- 0
   time_vector <- 0
   cmap_exp_signature <- data.frame(ids = gene.list, rank = cmap_exp_sig[, as.vector(sig.ids)])
   cmap_exp_sig <- as.data.frame(cmap_exp_sig)
   cmap_exp_sig$ids <- NULL
-  dz_cmap_scores <- apply(cmap_exp_sig[as.vector(sig.ids)], 2, FUN = function(x) cmap_score_ultimate(dz_genes_up$Symbol,
-    dz_genes_down$Symbol, drug_signature = x))
+  dz_cmap_scores <- apply(cmap_exp_sig[as.vector(sig.ids)], 2, FUN = function(x) {
+    cmap_score_ultimate(dz_genes_up$Symbol,
+      dz_genes_down$Symbol,
+      drug_signature = x
+    )
+  })
   # random scores
   lincs_signatures <- suppressMessages(.eh[["EH7271"]])
   random_sig_ids <- sample(colnames(lincs_signatures), permutations, replace = TRUE)
   random_cmap_scores <- NULL
   cmap_exp_signature <- as.data.frame(Rfast::colRanks(-1 * lincs_signatures[, as.character(random_sig_ids)],
-    method = "max"))
-  rm(lincs_signatures)  #free some memory
-  random_cmap_scores <- apply(cmap_exp_signature, 2, FUN = function(x) cmap_score_ultimate(sample(seq_len(length(dz_genes_up$Symbol)),
-    replace = TRUE), sample(seq_len(length(dz_genes_down$Symbol)), replace = TRUE), drug_signature = x))
+    method = "max"
+  ))
+  rm(lincs_signatures) # free some memory
+  random_cmap_scores <- apply(cmap_exp_signature, 2, FUN = function(x) {
+    cmap_score_ultimate(sample(seq_len(length(dz_genes_up$Symbol)),
+      replace = TRUE
+    ), sample(seq_len(length(dz_genes_down$Symbol)), replace = TRUE), drug_signature = x)
+  })
   p <- vapply(dz_cmap_scores, function(score) {
-    sum(random_cmap_scores < score)/length(random_cmap_scores)
-  },FUN.VALUE = numeric(1))
+    sum(random_cmap_scores < score) / length(random_cmap_scores)
+  }, FUN.VALUE = numeric(1))
   padj <- p.adjust(p, "fdr")
   results <- data.frame(id = sig.ids, cmap_score = dz_cmap_scores, p, padj)
   results <- merge(results, lincs_sig_info, by = "id")
@@ -180,18 +188,22 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   lincs_drug_prediction_subset <- subset(lincs_drug_prediction, lincs_drug_prediction$pert_dose > 0 & lincs_drug_prediction$pert_time %in%
     c(6, 24))
   # pairs that share the same drug and cell id
-  lincs_drug_prediction_pairs <- merge(lincs_drug_prediction_subset, lincs_drug_prediction_subset, by = c("pert_iname",
-    "cell_id"))
+  lincs_drug_prediction_pairs <- merge(lincs_drug_prediction_subset, lincs_drug_prediction_subset, by = c(
+    "pert_iname",
+    "cell_id"
+  ))
   # x is the reference
   lincs_drug_prediction_pairs <- subset(lincs_drug_prediction_pairs, lincs_drug_prediction_pairs$id.x != lincs_drug_prediction_pairs$id.y &
-    lincs_drug_prediction_pairs$pert_time.x == 24 & lincs_drug_prediction_pairs$pert_dose.x == 10)  #, select <- c('cmap_score.x', 'cmap_score.y', 'pert_dose.y', 'pert_time.y'))
+    lincs_drug_prediction_pairs$pert_time.x == 24 & lincs_drug_prediction_pairs$pert_dose.x == 10) # , select <- c('cmap_score.x', 'cmap_score.y', 'pert_dose.y', 'pert_time.y'))
   # difference of RGES to the reference
   lincs_drug_prediction_pairs$cmap_diff <- lincs_drug_prediction_pairs$cmap_score.x - lincs_drug_prediction_pairs$cmap_score.y
   lincs_drug_prediction_pairs$dose <- round(log(lincs_drug_prediction_pairs$pert_dose.y, 2), 1)
   # estimate difference
   lincs_drug_prediction_pairs$dose_bin <- ifelse(lincs_drug_prediction_pairs$pert_dose.y < 10, "low", "high")
-  diff <- tapply(lincs_drug_prediction_pairs$cmap_diff, paste(lincs_drug_prediction_pairs$dose_bin, lincs_drug_prediction_pairs$pert_time.y),
-    mean)
+  diff <- tapply(
+    lincs_drug_prediction_pairs$cmap_diff, paste(lincs_drug_prediction_pairs$dose_bin, lincs_drug_prediction_pairs$pert_time.y),
+    mean
+  )
   # ignore weighting cell lines
   if (!missing(weight_cell_line)) {
     lincs_cell_line_weight <- weight_cell_line
@@ -202,7 +214,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   }
   pred$RGES <- vapply(seq_len(nrow(pred)), function(id) {
     getsRGES(pred$cmap_score[id], pred$medcor[id], pred$pert_dose[id], pred$pert_time[id], diff, max(pred$medcor))
-  },FUN.VALUE = numeric(1))
+  }, FUN.VALUE = numeric(1))
   cmpd_freq <- table(pred$pert_iname)
   pred <- subset(pred, pred$pert_iname %in% names(cmpd_freq[cmpd_freq > 0]))
   pred_merged <- pred %>%
@@ -220,8 +232,10 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
       write.csv(pred_merged_drug, sRGES_output_path_drug)
     }
   }
-  msg <- paste("Finished computations in", round(Sys.time() - start_time, 2), units(Sys.time() - start_time),
-    ",writing output")
+  msg <- paste(
+    "Finished computations in", round(Sys.time() - start_time, 2), units(Sys.time() - start_time),
+    ",writing output"
+  )
   message(msg)
   return(pred_merged)
 }
