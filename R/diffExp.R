@@ -75,7 +75,7 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
   # normalize samples using RUVSeq
   if (normalize_samples == TRUE) {
     # compute empirical genes
-    design = stats::model.matrix(~sample_type, data = Biobase:::pData(set))
+    design = stats::model.matrix(~sample_type, data = Biobase::pData(set))
     y = edgeR::DGEList(counts = counts(set), group = counts_phenotype$sample)
     y = edgeR::calcNormFactors(y, method = "TMM")  #upperquartile generate Inf in the LGG case
     y = edgeR::estimateGLMCommonDisp(y, design)
@@ -99,7 +99,7 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     row.names(counts_phenotype) = counts_phenotype$sample
     coldata = counts_phenotype
     if (normalize_samples == TRUE) {
-      dds = DESeq2::DESeqDataSetFromMatrix(countData = counts(set1), colData = Biobase:::pData(set1), design = ~sample_type + W_1)
+      dds = DESeq2::DESeqDataSetFromMatrix(countData = counts(set1), colData = Biobase::pData(set1), design = ~sample_type + W_1)
     } else {
       dds = DESeq2::DESeqDataSetFromMatrix(countData = round(counts), colData = coldata, design = ~sample_type)
     }
@@ -119,16 +119,16 @@ diffExp = function(case_id = NULL, control_id = NULL, source = "octad.small", fi
     # construct model matrix based on whether there was normalization ran
     if (normalize_samples == TRUE) {
       if (k == 1) {
-        design = stats::model.matrix(~sample_type + W_1, data = Biobase:::pData(set1))
+        design = stats::model.matrix(~sample_type + W_1, data = Biobase::pData(set1))
       } else if (k == 2) {
-        design = stats::model.matrix(~sample_type + W_1 + W_2, data = Biobase:::pData(set1))
+        design = stats::model.matrix(~sample_type + W_1 + W_2, data = Biobase::pData(set1))
       } else if (k == 3) {
-        design = stats::model.matrix(~sample_type + W_1 + W_2 + W_3, data = Biobase:::pData(set1))
+        design = stats::model.matrix(~sample_type + W_1 + W_2 + W_3, data = Biobase::pData(set1))
       }
       dgList = edgeR::DGEList(counts = counts(set1), group = set1$sample_type)
       
     } else {
-      design = stats::model.matrix(~sample_type, data = Biobase:::pData(set))
+      design = stats::model.matrix(~sample_type, data = Biobase::pData(set))
       dgList = edgeR::DGEList(counts = counts(set), group = set$sample_type)
     }
     dgList = edgeR::calcNormFactors(dgList, method = "TMM")  #using upperquartile seems to give issue for LGG
