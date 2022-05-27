@@ -3,6 +3,11 @@ http://octad.org/
 
 # How to Install
 ```
+library(devtools)
+install_github("Bin-Chen-Lab/octad.db")
+install_github("Bin-Chen-Lab/octad")
+
+#After the package will be added to the bioconductor directory:
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("octad")
