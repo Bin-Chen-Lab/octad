@@ -186,7 +186,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
     
     dataCon1 <- count_norm[,c(which(counts_phenotype$sample_type=="case"))]
     dataCon2 <- count_norm[,c(which(counts_phenotype$sample_type== "control"))]
-    foldChanges <- log2(rowMeans(dataCon2)/rowMeans(dataCon1))
+    foldChanges <- log2(rowMeans(dataCon1)/rowMeans(dataCon2))
     res <- data.frame(log2FoldChange=foldChanges, pvalue=pvalues, padj=fdr)
     rownames(res)  <- rownames(count_norm)
     res$identifier <- row.names(res)
