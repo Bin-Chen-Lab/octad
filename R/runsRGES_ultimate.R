@@ -114,7 +114,8 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     fda_drugs <- suppressMessages(.eh[["EH7269"]])
     lincs_sig_info_FDA <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(lincs_sig_info$pert_iname) %in%
       tolower(fda_drugs$pert_iname))
-    FDAdf <- select(lincs_sig_info_FDA, lincs_sig_info_FDA$pert_id, lincs_sig_info_FDA$pert_iname)
+    #FDAdf <- select(lincs_sig_info_FDA, lincs_sig_info_FDA$pert_id, lincs_sig_info_FDA$pert_iname)
+    FDAdf <- select(lincs_sig_info_FDA, c("pert_id", "pert_iname")) #the code above does not work
     FDAdf <- unique(FDAdf[, seq_len(2)])
     if (output == TRUE) {
       write.csv(FDAdf, file = file.path(outputFolder, "FDA_approved_drugs.csv"), row.names = FALSE)
