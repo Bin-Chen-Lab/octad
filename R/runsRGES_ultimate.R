@@ -14,7 +14,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     stop("Either Symbol or log2FoldChange collumn in Disease signature is missing")
   }
   if (is.null(outputFolder)) {
-    outputFolder <- tempdir()
+    outputFolder <- getwd() #tempdir()
   }
   message("Started sRGES computation. Average computation time ~1-3mins.")
   start_time <- Sys.time()
