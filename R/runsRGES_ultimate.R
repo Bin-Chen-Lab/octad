@@ -13,6 +13,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   if (is.null(dz_signature$Symbol) | is.null(dz_signature$log2FoldChange)) {
     stop("Either Symbol or log2FoldChange collumn in Disease signature is missing")
   }
+<<<<<<< HEAD
   
   #output check
   if (output==TRUE&is.null(outputFolder)) {
@@ -24,6 +25,10 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     } else if (output==TRUE&dir.exists(outputFolder)){
       warning('Existing directory ', outputFolder, ' found, containtment might be overwritten')
     }
+=======
+  if (is.null(outputFolder)) {
+    outputFolder <- getwd() #tempdir()
+>>>>>>> origin/master
   }
   
   
@@ -127,8 +132,9 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     fda_drugs <- get_ExperimentHub_data("EH7269")
     lincs_sig_info_FDA <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(lincs_sig_info$pert_iname) %in%
       tolower(fda_drugs$pert_iname))
-    FDAdf <- select(lincs_sig_info_FDA, lincs_sig_info_FDA$pert_id, lincs_sig_info_FDA$pert_iname)
-    FDAdf <- unique(FDAdf[, seq_len(2)])
+    #FDAdf <- select(lincs_sig_info_FDA, lincs_sig_info_FDA$pert_id, lincs_sig_info_FDA$pert_iname)
+    FDAdf <- select(lincs_sig_info_FDA, c("pert_id", "pert_iname")) #the code above does not work
+    FDAdf <- unique(FDAdf) #[, seq_len(2)])
     if (output == TRUE) {
       write.csv(FDAdf, file = file.path(outputFolder, "FDA_approved_drugs.csv"), row.names = FALSE)
     }
@@ -244,9 +250,12 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   pred <- subset(pred, pred$pert_iname %in% names(cmpd_freq[cmpd_freq > 0]))
   pred_merged <- pred %>%
     group_by(pred$pert_iname) %>%
-    dplyr::summarise(mean = mean(pred$RGES), n = length(pred$RGES), median = median(pred$RGES), sd = sd(pred$RGES))
+    dplyr::summarise(mean = mean(RGES), n = length(RGES), median = median(RGES), sd = sd(RGES)) #replace pred$RGES with RGES
   pred_merged$sRGES <- pred_merged$mean
   pred_merged <- pred_merged[order(pred_merged$sRGES), ]
+  #rename first column
+  colnames(pred_merged)[1] = "pert_iname"
+  
   if (output == TRUE) {
     write.csv(pred_merged, sRGES_output_path)
   }

@@ -185,6 +185,31 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
     res <- tumorvsnormal
     colnames(res) <- c("log2FoldChange", "AveExpr", "t", "pvalue", "padj")
     res$identifier <- row.names(res)
+  }else if (DE_method == "wilcox"){
+    #adopt from https://rpubs.com/LiYumei/806213 where the author demonstrate wilcox is more appropriate when sample size is large (n>10)
+    y <- edgeR::DGEList(counts = counts(set), group = counts_phenotype$sample)
+    keep <- edgeR::filterByExpr(y)
+    y <- y[keep,keep.lib.sizes=FALSE]
+    ##Perform TMM normalization and transfer to CPM (Counts Per Million)
+    y <- edgeR::calcNormFactors(y,method="TMM")
+    count_norm <- edgeR::cpm(y)
+    count_norm <- as.data.frame(count_norm)
+    
+    
+    pvalues <- sapply(1:nrow(count_norm),function(i){
+      data <- cbind.data.frame(gene=as.numeric(t(count_norm[i,])),conditions = counts_phenotype$sample_type)
+      p <- wilcox.test(gene~conditions, data)$p.value
+      return(p)
+    })
+    fdr <- p.adjust(pvalues,method = "fdr")
+    
+    dataCon1 <- count_norm[,c(which(counts_phenotype$sample_type=="case"))]
+    dataCon2 <- count_norm[,c(which(counts_phenotype$sample_type== "control"))]
+    foldChanges <- log2(rowMeans(dataCon1)/rowMeans(dataCon2))
+    res <- data.frame(log2FoldChange=foldChanges, pvalue=pvalues, padj=fdr)
+    rownames(res)  <- rownames(count_norm)
+    res$identifier <- row.names(res)
+    
   }
   if (annotate == TRUE) {
     merged_gene_info <- suppressMessages(get_ExperimentHub_data("EH7272"))

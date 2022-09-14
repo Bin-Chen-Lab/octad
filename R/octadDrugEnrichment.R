@@ -7,7 +7,7 @@
 #' @importFrom AnnotationHub query
 
 
-octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL) {
+octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL, outputRank = F) {
   # require(GSVA)
   if (missing(sRGES)) {
     stop("sRGES input not found")
@@ -18,8 +18,12 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
   options(warn = -1)
 
   if (is.null(outputFolder)) {
+<<<<<<< HEAD
     outputFolder <- tempdir()
     message('outputFolder is NULL, writing output to tempdir()')
+=======
+    outputFolder <- getwd() #tempdir() using current working directory instead of temp folder
+>>>>>>> origin/master
   }
 
 
@@ -92,6 +96,12 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
             pdf(file.path(enrichFolder.n, paste0("/top_enriched_", top_target, "_", target_type_selected, ".pdf")))
             limma::barcodeplot(sRGES$sRGES, target_drugs_score, main = top_target, xlab = "sRGES")
             dev.off()
+            
+            #output detailed rank
+            if (outputRank){
+              write.csv(sRGES[sRGES$pert_iname %in% cmpdSets[[top_target]], c("pert_iname", "rank")],
+                        file.path(enrichFolder.n, paste0("/top_enriched_", top_target, "_", target_type_selected, ".csv")))
+            }
           }
           if (target_type_selected == "ChemCluster") {
             clusternames <- as.character((gsea_p[which(gsea_p$padj <= 0.05), ])$target)
