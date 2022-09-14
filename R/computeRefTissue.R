@@ -4,17 +4,17 @@
 #' @importFrom dplyr select arrange mutate desc
 #' @importFrom ExperimentHub ExperimentHub
 
-computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad", n_varGenes = 500, method = "varGenes", expSet = NULL,
+computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad", n_varGenes = 500, method = c("varGenes",'random'), expSet = NULL,
                              control_size = length(case_id), outputFolder = NULL, cor_cutoff = "0", output = TRUE) {
   if (missing(case_id)) {
     stop("Case ids vector input not found")
   }
   if (source == "octad") {
-    expSet <- suppressMessages(.eh[["EH7265"]])
+    expSet <- get_ExperimentHub_data("EH7265")
     case_id <- case_id[case_id %in% colnames(expSet)]
     # if we pick adjacent, filter them out
     if (adjacent == TRUE) {
-      phenoDF <- suppressMessages(.eh[["EH7274"]])
+      phenoDF <- get_ExperimentHub_data("EH7274")
       adjacent_ids <- as.vector(subset(phenoDF, phenoDF$sample.type == "adjacent")$sample.id) # bioconductor replace
       normal_id <- as.vector(subset(phenoDF, phenoDF$sample.type == "normal")$sample.id) # bioconductor replace
       normal_id <- c(adjacent_ids, normal_id)
@@ -26,13 +26,24 @@ computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad",
   } else if (source != "octad") {
     normal_id <- colnames(expSet)[!colnames(expSet) %in% case_id]
   }
-
-  if (is.null(outputFolder)) {
+  
+  
+  #output check
+  if (output==TRUE&is.null(outputFolder)) {
     outputFolder <- tempdir()
+    message('outputFolder is NULL, writing output to tempdir()')
+  }else if (output==TRUE&!is.null(outputFolder)){
+    if (output==TRUE&!dir.exists(outputFolder)) {
+      dir.create(outputFolder)
+    } else if (output==TRUE&dir.exists(outputFolder)){
+      warning('Existing directory ', outputFolder, ' found, containtment might be overwritten')
+    }
   }
 
   normal_id <- normal_id[normal_id %in% colnames(expSet)]
-
+  
+  
+  method=match.arg(method)
   if (method == "random") {
     GTEXid <- sample(normal_id, size = control_size)
     return(GTEXid)
@@ -61,9 +72,6 @@ computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad",
 
     if (output == TRUE) {
       if (nchar(outputFolder) > 0) {
-        if (!dir.exists(outputFolder)) {
-          dir.create(outputFolder)
-        }
         tryCatch(write.csv(normal_dz_cor, file = file.path(outputFolder, "case_normal_corMatrix.csv")), error = function(c) "failed to write case normal cor matrix csv. Try checking if your outputFolder string is correct or exists")
         tryCatch(write.csv(normal_dz_cor_eachDF, row.names = FALSE, paste0(outputFolder, "/case_normal_median_cor.csv")),
           error = function(c) "failed to write case normal median correlation csv. Try checking if your outputFolder string is correct or exists"
@@ -77,22 +85,4 @@ computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad",
     }
     return(GTEXid)
   }
-  if (output == TRUE) {
-    if (nchar(outputFolder) > 0) {
-      if (!dir.exists(outputFolder)) {
-        dir.create(outputFolder)
-      }
-      tryCatch(write.csv(normal_dz_cor, file = file.path(outputFolder, "case_normal_corMatrix.csv")), error = function(c) "failed to write case normal cor matrix csv. Try checking if your outputFolder string is correct or exists")
-      tryCatch(write.csv(normal_dz_cor_eachDF, row.names = FALSE, paste0(outputFolder, "/case_normal_median_cor.csv")),
-        error = function(c) "failed to write case normal median correlation csv. Try checking if your outputFolder string is correct or exists"
-      )
-    } else {
-      tryCatch(write.csv(normal_dz_cor, file = file.path(outputFolder, "case_normal_corMatrix.csv")), error = function(c) "failed to write case normal cor matrix csv. Try checking if your outputFolder string is correct or exists")
-
-      tryCatch(write.csv(normal_dz_cor_eachDF, row.names = FALSE, file.path(outputFolder, "case_normal_median_cor.csv")),
-        error = function(c) "failed to write case normal median correlation csv. Try checking if your outputFolder string is correct or exists"
-      )
-    }
-  }
-  return(GTEXid)
 }

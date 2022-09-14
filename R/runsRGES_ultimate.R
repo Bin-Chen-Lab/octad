@@ -13,17 +13,34 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   if (is.null(dz_signature$Symbol) | is.null(dz_signature$log2FoldChange)) {
     stop("Either Symbol or log2FoldChange collumn in Disease signature is missing")
   }
-  if (is.null(outputFolder)) {
+  
+  #output check
+  if (output==TRUE&is.null(outputFolder)) {
     outputFolder <- tempdir()
+    message('outputFolder is NULL, writing output to tempdir()')
+  }else if (output==TRUE&!is.null(outputFolder)){
+    if (output==TRUE&!dir.exists(outputFolder)) {
+      dir.create(outputFolder)
+    } else if (output==TRUE&dir.exists(outputFolder)){
+      warning('Existing directory ', outputFolder, ' found, containtment might be overwritten')
+    }
   }
+  
+  
   message("Started sRGES computation. Average computation time ~1-3mins.")
   start_time <- Sys.time()
   # write paths
-  output_path <- file.path(outputFolder, paste0("/all_", paste(cells, collapse = "_"), "_lincs_score.csv"))
-  sRGES_output_path <- file.path(outputFolder, paste0("sRGES", cells, ".csv", collapse = "_"))
-  sRGES_output_path_drug <- file.path(outputFolder, "sRGES_FDAapproveddrugs.csv")
-  dz_sig_output_path <- file.path(outputFolder, "dz_sig_used.csv")
-  lincs_sig_info <- suppressMessages(.eh[["EH7270"]]) # bioconductor addition
+  
+  if(output==TRUE){
+    output_path <- file.path(outputFolder, paste0("/all_", paste(cells, collapse = "_"), "_lincs_score.csv"))
+    sRGES_output_path <- file.path(outputFolder, paste0("sRGES", cells, ".csv", collapse = "_"))
+    sRGES_output_path_drug <- file.path(outputFolder, "sRGES_FDAapproveddrugs.csv")
+    dz_sig_output_path <- file.path(outputFolder, "dz_sig_used.csv")
+  }
+  
+  
+  
+  lincs_sig_info <- get_ExperimentHub_data("EH7270") # bioconductor addition
   getsRGES <- function(RGES, cor, pert_dose, pert_time, diff, max_cor) {
     sRGES <- RGES
     pert_time <- ifelse(pert_time < 24, "short", "long")
@@ -96,11 +113,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     }
     return(connectivity_score)
   }
-  if (!missing(outputFolder)) {
-    if (!dir.exists(outputFolder)) {
-      dir.create(outputFolder)
-    }
-  }
+  
   if (!missing(cells)) {
     lincs_sig_info$cell_id <- toupper(lincs_sig_info$cell_id)
     lincs_sig_info <- subset(lincs_sig_info, lincs_sig_info$cell_id %in% cells)
@@ -109,9 +122,9 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   } else if (missing(cells)) {
     cells <- "" # plug for older code version
   }
-  lincs_signatures <- suppressMessages(.eh[["EH7271"]])
+  lincs_signatures <- get_ExperimentHub_data("EH7271")
   if (choose_fda_drugs) {
-    fda_drugs <- suppressMessages(.eh[["EH7269"]])
+    fda_drugs <- get_ExperimentHub_data("EH7269")
     lincs_sig_info_FDA <- subset(lincs_sig_info, id %in% colnames(lincs_signatures) & tolower(lincs_sig_info$pert_iname) %in%
       tolower(fda_drugs$pert_iname))
     FDAdf <- select(lincs_sig_info_FDA, lincs_sig_info_FDA$pert_id, lincs_sig_info_FDA$pert_iname)
@@ -163,7 +176,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     )
   })
   # random scores
-  lincs_signatures <- suppressMessages(.eh[["EH7271"]])
+  lincs_signatures <- get_ExperimentHub_data("EH7271")
   random_sig_ids <- sample(colnames(lincs_signatures), permutations, replace = TRUE)
   random_cmap_scores <- NULL
   cmap_exp_signature <- as.data.frame(Rfast::colRanks(-1 * lincs_signatures[, as.character(random_sig_ids)],
@@ -182,9 +195,21 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   results <- data.frame(id = sig.ids, cmap_score = dz_cmap_scores, p, padj)
   results <- merge(results, lincs_sig_info, by = "id")
   results <- results[order(results$cmap_score), ]
-  write.csv(results, output_path)
-  #################### summarize RGES
+  
+  #################### bug plug
+  if(output==FALSE){
+  output_path <- file.path(tempdir(), paste0("/all_", paste(cells, collapse = "_"), "_lincs_score.csv"))
+  write.csv(results, output_path) #bugfix, otherwise empty input passed to lincs_drug_prediction, fix ASAP
   lincs_drug_prediction <- read.csv(output_path)
+  unlink(output_path) #delete csv plug
+  } else if(output==TRUE){
+    write.csv(results, output_path)
+    lincs_drug_prediction <- read.csv(output_path)
+  }
+
+
+  #################### summarize RGES   
+  #lincs_drug_prediction=results
   lincs_drug_prediction_subset <- subset(lincs_drug_prediction, lincs_drug_prediction$pert_dose > 0 & lincs_drug_prediction$pert_time %in%
     c(6, 24))
   # pairs that share the same drug and cell id
@@ -232,10 +257,6 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
       write.csv(pred_merged_drug, sRGES_output_path_drug)
     }
   }
-  msg <- paste(
-    "Finished computations in", round(Sys.time() - start_time, 2), units(Sys.time() - start_time),
-    ",writing output"
-  )
-  message(msg)
+  message( "Finished computations in", round(Sys.time() - start_time, 2), units(Sys.time() - start_time),",writing output")
   return(pred_merged)
 }

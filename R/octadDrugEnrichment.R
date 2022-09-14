@@ -19,23 +19,26 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
 
   if (is.null(outputFolder)) {
     outputFolder <- tempdir()
+    message('outputFolder is NULL, writing output to tempdir()')
   }
 
 
   if (!dir.exists(enrichFolder)) {
     dir.create(file.path(outputFolder, enrichFolder))
   }
-  eh_dataframe <- suppressMessages(as.data.frame(S4Vectors::mcols(AnnotationHub::query(.eh, "octad.db")))["title"])
-  random_gsea_score <- suppressMessages(.eh[["EH7275"]])
+  #eh_dataframe <- as.data.frame(S4Vectors::mcols(AnnotationHub::query(.eh, "octad.db")))["title"]
+  data('eh_dataframe',package='octad')
+  random_gsea_score <- get_ExperimentHub_data("EH7275")
   for (target_type_selected in target_type) {
-    cat(paste("Running enrichment for", target_type_selected, sep = " "), "\n")
+    message(paste("Running enrichment for", target_type_selected, sep = " "), "\n")
     enrichFolder.n <- file.path(outputFolder, enrichFolder, target_type_selected)
     if (!dir.exists(enrichFolder.n)) {
       dir.create(enrichFolder.n)
     }
 
     # load required random scores from octad.db
-    cmpd_sets <- suppressMessages(.eh[[row.names(subset(eh_dataframe, title == paste0("cmpd_sets_", target_type_selected)))]]) # bioconductor replace
+    eh_dataframe$object=row.names(eh_dataframe)
+    cmpd_sets <- get_ExperimentHub_data((eh_dataframe[eh_dataframe$title == paste0("cmpd_sets_", target_type_selected),'object']))
     cmpdSets <- cmpd_sets$cmpd.sets
     names(cmpdSets) <- cmpd_sets$cmpd.set.names
 
@@ -94,7 +97,7 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
             clusternames <- as.character((gsea_p[which(gsea_p$padj <= 0.05), ])$target)
             if (length(clusternames) != 0) {
               topclusterlist <- cmpdSets[clusternames]
-              cat(vapply(topclusterlist, toString), file = paste0(enrichFolder.n, "misc.csv"), sep = "\n")
+              message(vapply(topclusterlist, toString), file = paste0(enrichFolder.n, "misc.csv"), sep = "\n")
               clusterdf <- read.csv2(paste0(enrichFolder.n, "misc.csv"), header = FALSE)
               clusterdf$cluster <- clusternames
               clusterdf$pval <- (gsea_p[which(gsea_p$padj <= 0.05), ])$padj
@@ -102,11 +105,11 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
               write.csv(clusterdf, file = file.path(enrichFolder.n, "drugstructureclusters.csv"), row.names = FALSE)
             }
           }
-          msg <- paste("Done for", target_type_selected, "for", nrow(gsea_p[which(gsea_p$padj <= 0.05), ]), "genes")
-          message(msg)
+          #msg <- paste("Done for", target_type_selected, "for", nrow(gsea_p[which(gsea_p$padj <= 0.05), ]), "genes")
+          message("Done for", target_type_selected, "for", nrow(gsea_p[which(gsea_p$padj <= 0.05), ]), "genes")
         } else {
-          msg <- paste("No signigicant enrichment found for", target_type_selected)
-          message(msg)
+          #msg <- paste("No signigicant enrichment found for", target_type_selected)
+          message("No signigicant enrichment found for", target_type_selected)
         }
       }
     }

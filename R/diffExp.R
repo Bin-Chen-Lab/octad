@@ -8,7 +8,17 @@
 #' @importFrom utils globalVariables
 
 diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", file = "octad.counts.and.tpm.h5", normalize_samples = TRUE,
-                    k = 1, expSet = NULL, n_topGenes = 500, DE_method = "edgeR", parallel_cores = 2, output = FALSE, outputFolder = NULL, annotate = TRUE) {
+                    k = 1, expSet = NULL, n_topGenes = 500, DE_method = c("edgeR",'DESeq2'), parallel_cores = 2, output = FALSE, outputFolder = NULL, annotate = TRUE) {
+  
+  #STOPS
+  DE_method=match.arg(DE_method)
+  
+  if (DE_method == "DESeq2"){
+  message("computing DE via DESeq2")
+  } else if (DE_method == "edgeR"){
+  message("computing DE via edgeR")
+  }
+  
   if (missing(case_id)) {
     stop("Case ids vector input not found")
   }
@@ -16,9 +26,18 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
     stop("Case ids vector input not found")
   }
 
-  if (is.null(outputFolder)) {
+  #output check
+  if (output==TRUE&is.null(outputFolder)) {
     outputFolder <- tempdir()
+    message('outputFolder is NULL, writing output to tempdir()')
+  }else if (output==TRUE&!is.null(outputFolder)){
+    if (output==TRUE&!dir.exists(outputFolder)) {
+      dir.create(outputFolder)
+    } else if (output==TRUE&dir.exists(outputFolder)){
+      warning('Existing directory ', outputFolder, ' found, containtment might be overwritten')
+    }
   }
+  
 
   remLowExpr <- function(counts, counts_phenotype) {
     x <- DGEList(counts = round(counts), group = counts_phenotype$sample_type)
@@ -54,7 +73,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
     rm(case_counts)
   } else if (source == "octad.small") {
     message("loading small octad set containing only expression for 978 LINCS genes")
-    octad.LINCS.counts <- suppressMessages(.eh[["EH7273"]])
+    octad.LINCS.counts <- suppressMessages(get_ExperimentHub_data("EH7273"))
     expSet <- octad.LINCS.counts[, c(case_id, control_id)]
   } else if (source != "octad.small" & source != "octad.small" & missing(expSet)) {
     stop("Expression data not sourced, please, modify expSet option")
@@ -94,7 +113,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
 
   if (DE_method == "DESeq2") {
     # library('DESeq2')
-    message("computing DE via DESeq")
+    #message("computing DE via DESeq")
     row.names(counts_phenotype) <- counts_phenotype$sample
     coldata <- counts_phenotype
     if (normalize_samples == TRUE) {
@@ -114,7 +133,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
     res <- data.frame(resRaw)
     res$identifier <- row.names(res)
   } else if (DE_method == "edgeR") {
-    message("computing DE via edgeR")
+    #message("computing DE via edgeR")
     # construct model matrix based on whether there was normalization ran
     if (normalize_samples == TRUE) {
       if (k == 1) {
@@ -168,7 +187,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
     res$identifier <- row.names(res)
   }
   if (annotate == TRUE) {
-    merged_gene_info <- suppressMessages(.eh[["EH7272"]])
+    merged_gene_info <- suppressMessages(get_ExperimentHub_data("EH7272"))
     merged_gene_info$ensembl <- as.vector(merged_gene_info$ensembl)
     merged_gene_info$V1 <- NULL # modify it when will have time
     merged_gene_info$Symbol <- merged_gene_info$gene # modify it when will have time

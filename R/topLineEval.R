@@ -17,13 +17,17 @@ topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
 
   if (is.null(outputFolder)) {
     outputFolder <- tempdir()
+    message('outputFolder is NULL, writing output to tempdir()')
   }
 
 
   toplineName <- paste(topline, collapse = "_")
+
   cell.line.folder <- file.path(outputFolder, "CellLineEval")
-  if (!dir.exists(cell.line.folder)) {
+  if (!dir.exists(cell.line.folder)) { #check for overwrite
     dir.create(cell.line.folder)
+  } else if (dir.exists(cell.line.folder)){ #check for overwrite
+    warning('Existing directory', cell.line.folder, 'found, containtment might be overwritten')
   }
 
 
@@ -31,7 +35,7 @@ topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
 
   mysRGES$pert_iname <- toupper(mysRGES$pert_iname)
 
-  CTRPv2.ic50 <- data.table::dcast.data.table(suppressMessages(.eh[["EH7264"]]), drugid ~ cellid,
+  CTRPv2.ic50 <- data.table::dcast.data.table(get_ExperimentHub_data("EH7264"), drugid ~ cellid,
     value.var = "ic50_recomputed",
     fun.aggregate = median
   ) # bioconductor replace
@@ -54,7 +58,7 @@ topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
   CTRP.IC50.medianIC50 <- CTRP.IC50.medianIC50[is.finite(CTRP.IC50.medianIC50$medIC50), ]
 
 
-  CTRPv2.auc <- data.table::dcast.data.table(suppressMessages(.eh[["EH7264"]]), drugid ~ cellid,
+  CTRPv2.auc <- data.table::dcast.data.table(get_ExperimentHub_data("EH7264"), drugid ~ cellid,
     value.var = "auc_recomputed",
     fun.aggregate = median
   )

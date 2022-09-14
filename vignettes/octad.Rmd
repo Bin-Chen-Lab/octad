@@ -27,8 +27,8 @@ To list all available samples from the octad database, use the phenoDF data fram
 To select HCC samples, subset the phenoDF:
 ```{r eval=TRUE} 
 #select data
-suppressMessages(library(octad))
-phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database. 
+library(octad)
+phenoDF=get_ExperimentHub_data("EH7274") #load data.frame with samples included in the OCTAD database. 
 head(phenoDF) #list all data included within the package
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases
@@ -41,6 +41,7 @@ Use the function `computeRefTissue` to compute appropriate normal tissues via co
 ```{r eval=TRUE} 
 #computing top 50 reference tissues 
 control_id=computeRefTissue(case_id,output=FALSE,adjacent=TRUE,source = "octad",control_size = 50)  
+#please note, if \code{output = TRUE}, \code{outputFolder} variable must be specified, otherwise it will be written to \code{tempdir()}
 # use adjacent normal tissue samples as control_id allow you to avoid running this function    
 ```  
 There is also an availability to select control samples by hand:
@@ -53,7 +54,7 @@ control_id=subset(phenoDF,biopsy.site=='LIVER'&sample.type=='normal')$sample.id[
  
 The relationships among case, control and other samples can be visualised through a t-SNE matrix precomputed based on the features derived from autoencoder. 
 ```{r eval=TRUE} 
-tsne=.eh[["EH7276"]] #Download file with tsneresults for all samples in the octad.db once. After this it will be cached and no additional download required.
+tsne=get_ExperimentHub_data("EH7276") #Download file with tsneresults for all samples in the octad.db once. After this it will be cached and no additional download required.
 tsne$type <- "others"
 tsne$type[tsne$sample.id %in% case_id] <- "case"
 tsne$type[tsne$sample.id %in% control_id] <- "control"
@@ -62,11 +63,13 @@ tsne$type[tsne$sample.id %in% control_id] <- "control"
 p2 <- ggplot(tsne, aes(X, Y, color = type)) + geom_point(alpha = 0.4)+
     labs(title = paste ('TNSE PLOT'), x= 'TSNE Dim1', y='TSNE Dim2', caption="OCTAD")+
     theme_bw()
+p2
 ```
 ## Compute gene differential expression between case and control samples
 Differential expression can be computed via edgeR, limma + voom, or DESeq2. By default, we use edgeR in the analysis. Since the function `diffExp` computes differentially expressed genes between `case_id` and `control_id` within the same data matrix, it can be used to find differentially expressed genes between any two groups of samples. By default, a small dataset containing only 978 genes shared with the LINCS database is used.
 ```{r eval=FALSE} 
 res=diffExp(case_id,control_id,source='octad.small',output=FALSE)
+#please note, if \code{output = TRUE}, \code{outputFolder} variable must be specified, otherwise it will be written to \code{tempdir()}
 head(res)
 #Use simple subset to filter the DE results:
 res=subset(res,abs(log2FoldChange)>1&padj<0.001)
@@ -78,10 +81,10 @@ The `runsRGES` function is used to identify the drugs that potentially reverses 
 Launch the sRGES computation. It takes a few minutes to compute RGES scores. After the job is finished, it will output files all_lincs_score.csv (RGES of individual profiles), sRGES.csv (summarized RGES of individual drugs) and dz_sig_used.csv (signature genes used for drug prediction). LINCS also provides the imputed expression of the whole transcriptome based on the 978 genes. We will add it in the future when its usage is fully evaluated. There is no good way available to choose an optimal sRGES threshold, but empirically < -0.2 is good to go
 
 ```{r eval=FALSE} 
-data("res_example",package='octad.db') #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
+data("res_example") #load differential expression example for HCC vs adjacent liver tissue computed in diffExp() function from previous step
 res=subset(res_example,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset
 sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE)
-
+#please note, if \code{output = TRUE}, \code{outputFolder} variable must be specified, otherwise it will be written to \code{tempdir()}
 head(sRGES)
 ```
 ## Validate results using published pharmacogenomics data
@@ -89,11 +92,13 @@ As the pharmacogenomic database CTRPv2 consists of efficacy data of 481 drugs in
 
 ```{r eval=TRUE} 
 cell_line_computed=computeCellLine(case_id=case_id,source='octad.small')
+#please note, if \code{output = TRUE}, \code{outputFolder} variable must be specified, otherwise it will be written to \code{tempdir()}
 head(cell_line_computed)
 ```
 `computeCellLine` will produce an object with correlation scores for every cell line and case samples (stored as CellLineCorrelations.csv). 
 ```{r eval=TRUE} 
-data("sRGES_example",package='octad.db') #load example sRGES from octad.db
+data("sRGES_example") #load example sRGES from octad.db
+#please note, if \code{outputFolder=NULL}, output it will be written to \code{tempdir()}
 topLineEval(topline = 'HEPG2',mysRGES = sRGES_example)
 ```
 `topLineEval` will produce CellLineEval*_drug_sensitivity_insilico_results.txt and two .html documents:
@@ -104,8 +109,9 @@ topLineEval(topline = 'HEPG2',mysRGES = sRGES_example)
 After calculation of sRGES on the LINCS L1000 compound dataset, perform drug enrichment analysis to identify interesting drug classes whose member drugs are significantly enriched at the top of the prediction. Example drug classes include anti-inflammatories, EGFR inhibitors, and dipines (calcium channel blockers). OCTAD provides MESH, CHEMBL, and CHEM_CLUSTER for MeSH term enrichment, target enrichment, and chemical structure enrichment, respectively. The enrichment score is calculated using ssGSEA and its significance is computed by a permutation test. 
 
 ```{r eval=TRUE} 
-data("sRGES_example",package='octad.db') 
+data("sRGES_example") 
 octadDrugEnrichment(sRGES = sRGES_example, target_type='chembl_targets')
+#please note, if \code{outputFolder=NULL}, output it will be written to \code{tempdir()}
 ```
 This analysis provides much information for following candidate selection and experiment design. First, the candidates selected from the same enriched class (i.e., MeSH term, target) are more likely to be true positive than those randomly selected from the top list. Second, when the ideal candidate is not available, it is reasonable to choose an alternative from the same class. Sometimes, it is necessary to choose a new drug for testing (e.g., a second generation of one inhibitor for the same target). Lastly, since many compounds have multiple MOAs, this analysis would help interpret the MOA of promising compounds. 
 
@@ -114,7 +120,7 @@ This analysis provides much information for following candidate selection and ex
 ## Compute DE full dataset and custom expression matrix
 To use the whole OCTAD dataset from octad.counts.and.tpm.h5 as input, make sure the required .h5 file is downloaded and stored in the R working directory or the whole path to the file is specified:
 ```{r eval=FALSE} 
-.eh[['EH7277']]
+get_ExperimentHub_data('EH7277')
 res=diffExp(case_id,control_id,source='octad.whole',
     output=FALSE,n_topGenes=10000,file='octad.counts.and.tpm.h5')
 ```
