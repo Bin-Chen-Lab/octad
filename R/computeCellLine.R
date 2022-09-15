@@ -2,7 +2,11 @@
 #' @importFrom foreach foreach %do%
 #' @importFrom rhdf5 h5read
 #' @importFrom ExperimentHub ExperimentHub
-
+#' @importFrom octad.db get_ExperimentHub_data
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
 ####### computeCellLine #######
 computeCellLine <- function(case_id = case_id, expSet = NULL, LINCS_overlaps = TRUE,
                             source = c("octad.small", "octad.whole", "expSet"), file = NULL, output = TRUE,

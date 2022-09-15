@@ -5,9 +5,11 @@
 #' @importFrom ExperimentHub ExperimentHub
 #' @importFrom S4Vectors mcols
 #' @importFrom AnnotationHub query
+#' @importFrom octad.db get_ExperimentHub_data
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
 
-
-octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL, outputRank = F) {
+octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL, outputRank = FALSE) {
   # require(GSVA)
   if (missing(sRGES)) {
     stop("sRGES input not found")

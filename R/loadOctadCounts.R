@@ -1,5 +1,8 @@
 #' @export
 #' @import rhdf5
+#' @importFrom octad.db get_ExperimentHub_data
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
 #### runsRGES #######
 loadOctadCounts <- function(sample_vector = NULL, type = "tpm", file = NULL) {
   if (missing(sample_vector)) {

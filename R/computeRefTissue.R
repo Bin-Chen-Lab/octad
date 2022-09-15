@@ -3,7 +3,9 @@
 #' @import octad.db stats
 #' @importFrom dplyr select arrange mutate desc
 #' @importFrom ExperimentHub ExperimentHub
-
+#' @importFrom octad.db get_ExperimentHub_data
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
 computeRefTissue <- function(case_id = NULL, adjacent = FALSE, source = "octad", n_varGenes = 500, method = c("varGenes",'random'), expSet = NULL,
                              control_size = length(case_id), outputFolder = NULL, cor_cutoff = "0", output = TRUE) {
   if (missing(case_id)) {

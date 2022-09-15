@@ -6,7 +6,9 @@
 #' @importFrom ExperimentHub ExperimentHub
 #' @importFrom Biobase pData
 #' @importFrom utils globalVariables
-
+#' @importFrom octad.db get_ExperimentHub_data
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
 diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", file = "octad.counts.and.tpm.h5", normalize_samples = TRUE,
                     k = 1, expSet = NULL, n_topGenes = 500, DE_method = c("edgeR",'DESeq2'), parallel_cores = 2, output = FALSE, outputFolder = NULL, annotate = TRUE) {
   

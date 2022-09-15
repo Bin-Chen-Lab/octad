@@ -4,6 +4,9 @@
 #' @importFrom plotly group_by
 #' @import octad.db
 #' @importFrom ExperimentHub ExperimentHub
+#' @importFrom octad.db get_ExperimentHub_data
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
 #### runsRGES #######
 runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_size = 500, cells = NULL, output = FALSE,
                      outputFolder = NULL, weight_cell_line = NULL, permutations = 10000) {
@@ -24,6 +27,7 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     } else if (output==TRUE&dir.exists(outputFolder)){
       warning('Existing directory ', outputFolder, ' found, containtment might be overwritten')
     }
+  }
   
   
   message("Started sRGES computation. Average computation time ~1-3mins.")
@@ -262,4 +266,4 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   }
   message( "Finished computations in", round(Sys.time() - start_time, 2), units(Sys.time() - start_time),",writing output")
   return(pred_merged)
-}
+  }

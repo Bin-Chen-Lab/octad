@@ -5,7 +5,9 @@
 #' @importFrom plotly ggplotly add_annotations layout as_widget
 #' @import octad.db ggplot2
 #' @importFrom ExperimentHub ExperimentHub
-
+#' @importFrom octad.db get_ExperimentHub_data
+#' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
+#' @importFrom grDevices pdf
 ####### topLineEval #######
 topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
   if (missing(mysRGES)) {
