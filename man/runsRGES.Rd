@@ -32,7 +32,7 @@ Besides, a number of additional files in the sourced directory:
 \examples{
 #load differential expression example for HCC 
 #vs adjacent liver tissue computed in diffExp() function
-data("res_example",package='octad.db')
+data("res_example",package='octad')
 res_example=subset(res_example,abs(log2FoldChange)>1&padj<0.001)[1:10,]
 #run sRGES computation
 sRGES=runsRGES(dz_signature=res_example,max_gene_size=100,permutations=1000,output=FALSE)

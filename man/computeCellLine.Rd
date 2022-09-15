@@ -7,7 +7,9 @@
 
 }
 \usage{
- computeCellLine(case_id =case_id,expSet=NULL,LINCS_overlaps = TRUE, source='octad.small',file=NULL,output = FALSE,outputFolder='')
+ computeCellLine(case_id = case_id, expSet = NULL, LINCS_overlaps = TRUE,
+                            source = c("octad.small", "octad.whole", "expSet"), file = NULL, output = TRUE,
+                            outputFolder = NULL)
 }
 \arguments{
  \item{case_id}{vector of ids from octad database. Ids can be obtained from \code{phenoDF}.}
@@ -27,7 +29,7 @@
  \code{\link{runsRGES}}
 }
 \examples{
-phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database
+phenoDF=get_ExperimentHub_data('EH7274') #load data.frame with samples included in the OCTAD database
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases

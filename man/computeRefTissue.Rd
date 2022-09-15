@@ -5,9 +5,8 @@
 Compute reference control samples from OCTAD database using precomputed \code{EncoderDF} models. 
 }
 \usage{
- computeRefTissue(case_id=NULL,adjacent=FALSE,source='octad',n_varGenes = 500,
- method='varGenes',expSet=NULL,control_size = length(case_id),
- outputFolder='',cor_cutoff='0',output=TRUE)
+ computeRefTissue(case_id = NULL, adjacent = FALSE, source = "octad", n_varGenes = 500, method = c("varGenes",'random'), expSet = NULL,
+                             control_size = length(case_id), outputFolder = NULL, cor_cutoff = "0", output = TRUE)
 
 
 }
@@ -35,7 +34,7 @@ Besides, if \code{output=TRUE}, two files are created in the working directory:
 }
 \examples{
 #select data
-phenoDF=.eh[["EH7274"]] #load data.frame with samples included in the OCTAD database
+phenoDF=get_ExperimentHub_data('EH7274') #load data.frame with samples included in the OCTAD database
 HCC_primary=subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
 sample.type == 'primary'&data.source == 'TCGA')
 #select cases

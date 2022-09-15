@@ -27,7 +27,7 @@ The function produces 3 feils in the output directory:
 \examples{
 #load example sRGES computed by runsRGES() function for HCC 
 #vs liver adjacent tissues on octad.small dataset
-data("sRGES_example",package='octad.db') #load example sRGES
+data("sRGES_example",package='octad') #load example sRGES
 #Pick up cell lines
 topLineEval(topline = 'HEPG2',mysRGES = sRGES_example,outputFolder=tempdir())
 

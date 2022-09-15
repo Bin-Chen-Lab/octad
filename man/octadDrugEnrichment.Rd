@@ -5,7 +5,7 @@
 Perform enrichment analysis of drug hits based on chemical structures, drug-targets, and pharmacological classifications. An enrichment score calculated using ssGSEA and a p-value computed through a permutation test are provided. 
 }
 \usage{
-  octadDrugEnrichment(sRGES=NULL,target_type='chembl_targets',enrichFolder='enrichFolder',outputFolder=NULL)
+  octadDrugEnrichment(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL, outputRank = FALSE)
 
 }
 \arguments{
@@ -27,7 +27,7 @@ Following files are created:
   \code{\link{runsRGES}}
 }
 \examples{
-data("sRGES_example",package='octad.db') #load example sRGES
+data("sRGES_example",package='octad') #load example sRGES
 #run drug enrichment 
 octadDrugEnrichment(sRGES = sRGES_example, target_type = c('chembl_targets'))
 
