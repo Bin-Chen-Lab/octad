@@ -13,7 +13,6 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
   if (is.null(dz_signature$Symbol) | is.null(dz_signature$log2FoldChange)) {
     stop("Either Symbol or log2FoldChange collumn in Disease signature is missing")
   }
-<<<<<<< HEAD
   
   #output check
   if (output==TRUE&is.null(outputFolder)) {
@@ -25,11 +24,6 @@ runsRGES <- function(dz_signature = NULL, choose_fda_drugs = FALSE, max_gene_siz
     } else if (output==TRUE&dir.exists(outputFolder)){
       warning('Existing directory ', outputFolder, ' found, containtment might be overwritten')
     }
-=======
-  if (is.null(outputFolder)) {
-    outputFolder <- getwd() #tempdir()
->>>>>>> origin/master
-  }
   
   
   message("Started sRGES computation. Average computation time ~1-3mins.")

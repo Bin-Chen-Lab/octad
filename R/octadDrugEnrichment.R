@@ -18,12 +18,8 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
   options(warn = -1)
 
   if (is.null(outputFolder)) {
-<<<<<<< HEAD
     outputFolder <- tempdir()
     message('outputFolder is NULL, writing output to tempdir()')
-=======
-    outputFolder <- getwd() #tempdir() using current working directory instead of temp folder
->>>>>>> origin/master
   }
 
 
