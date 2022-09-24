@@ -1,0 +1,37 @@
+citHeader("To cite octad.db in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "OCTAD: an open workspace for virtually screening therapeutics targeting precise cancer patient groups using gene expression features",
+  author   = c(person(given = "E.",
+                           family = "Chekalin",
+                           role = c("aut", "cre"),
+                           email = "eygen.chekalin@gmail.com"),
+                    person(given = "S.",
+                           family = "Paithankar",role =c("aut")),
+                    person(given = "B.",
+                           family = "Zeng",role =c("aut")),
+                    person(given = "B.",
+                           family = "Glicksberg",role ="ctb"),
+                    person(given = "P.",
+                           family = "Newbury",role ="ctb"),
+                    person(given = "J.",
+                           family = "Xing",role ="ctb"),
+                    person(given = "K.",
+                           family = "Liu",role ="ctb"),
+                    person(given = "A.",
+                           family = "Wen",role ="ctb"),
+                    person(given = "D.",
+                           family = "Joseph",role ="ctb"),
+                    person(given = "B.",
+                           family = "Chen",
+                           role ="aut",
+                           email = "chenbi12@msu.edu")
+         ),
+  journal  = 'Nature protocols',
+  year     = "2021",
+  number   = "16",
+  pages    = "728-753",
+  url      = "http://octad.org/",
+  textVersion = "Zeng, B., Glickberg, B., Newbury, P, Chekalin, E., Xing, J., Liu, K., Wen, A., Chow, C., Chen, B., OCTAD: an open workspace for virtually screening therapeutics targeting precise cancer patient groups using gene expression features."
+  )
