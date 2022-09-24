@@ -29,7 +29,11 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
     dir.create(file.path(outputFolder, enrichFolder))
   }
   #eh_dataframe <- as.data.frame(S4Vectors::mcols(AnnotationHub::query(.eh, "octad.db")))["title"]
-  data('eh_dataframe',package='octad')
+  #data('eh_dataframe',package='octad')
+  eh_dataframe=data.frame(title=c('cmpd_sets_ChemCluster','cmpd_sets_chembl_targets','cmpd_sets_mesh'))
+  row.names(eh_dataframe)=c('EH7266','EH7267','EH7268')
+  
+  
   random_gsea_score <- get_ExperimentHub_data("EH7275")
   for (target_type_selected in target_type) {
     message(paste("Running enrichment for", target_type_selected, sep = " "), "\n")

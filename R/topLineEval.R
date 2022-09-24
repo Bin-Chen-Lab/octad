@@ -8,6 +8,7 @@
 #' @importFrom octad.db get_ExperimentHub_data
 #' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
 #' @importFrom grDevices pdf
+#' @import graphics
 ####### topLineEval #######
 topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
   if (missing(mysRGES)) {

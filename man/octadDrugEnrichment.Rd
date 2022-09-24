@@ -13,6 +13,7 @@ Perform enrichment analysis of drug hits based on chemical structures, drug-targ
  \item{target_type}{one or several of \code{'chembl_targets','mesh','ChemCluster'} databases selected. By deafult only 'chembl_targets' will be used.}
  \item{enrichFolder}{folder to store output.}
  \item{outputFolder}{path where to store enrichFolder, in case of \code{NULL} will be stored in work directory.}
+ \item{outputRank}{output detailed rank if \code{TRUE}, write sRGES for selected target as vcf.}
 }
 \value{
 Following files are created: 
