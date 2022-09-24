@@ -66,7 +66,7 @@ computeCellLine <- function(case_id = case_id, expSet = NULL, LINCS_overlaps = T
     message("computing correlation between cell lines and selected samples", sep = " ")
   } else if (source == "octad.small") {
     message("loading whole octad expression data for ", length(c(case_id)), " samples", sep = " ")
-    octad.LINCS.counts <- suppressMessages(get_ExperimentHub_data("EH7273"))
+    octad.LINCS.counts <- suppressMessages(octad.db::get_ExperimentHub_data("EH7273"))
     case_counts <- octad.LINCS.counts[, c(case_id)]
     message("computing correlation between cell lines and selected samples", sep = " ")
   } else if (source != "octad"|source != "octad.small" & !missing(expSet)) {
@@ -76,12 +76,12 @@ computeCellLine <- function(case_id = case_id, expSet = NULL, LINCS_overlaps = T
   }
 
   if (LINCS_overlaps == TRUE) {
-    CCLE.overlaps <- get_ExperimentHub_data("EH7262")
+    CCLE.overlaps <- octad.db::get_ExperimentHub_data("EH7262")
     CCLE.median <- apply(CCLE.overlaps, 1, median)
-    CCLE.log2.read.count.matrix <- get_ExperimentHub_data("EH7261")
+    CCLE.log2.read.count.matrix <- octad.db::get_ExperimentHub_data("EH7261")
     CCLE.expressed.gene <- names(CCLE.median)[CCLE.median > 1]
   } else {
-    CCLE.log2.read.count.matrix <- get_ExperimentHub_data("EH7261") # bioconductor addon
+    CCLE.log2.read.count.matrix <- octad.db::get_ExperimentHub_data("EH7261") # bioconductor addon
     CCLE.median <- apply(CCLE.log2.read.count.matrix, 1, median)
     CCLE.expressed.gene <- names(CCLE.median)[CCLE.median > 1]
   }

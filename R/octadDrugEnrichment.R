@@ -7,7 +7,8 @@
 #' @importFrom AnnotationHub query
 #' @importFrom octad.db get_ExperimentHub_data
 #' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
-#' @importFrom grDevices pdf
+#' @importFrom grDevices pdf dev.off
+#' 
 
 octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL, outputRank = FALSE) {
   # require(GSVA)

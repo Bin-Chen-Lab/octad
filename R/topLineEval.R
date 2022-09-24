@@ -3,7 +3,8 @@
 #' @importFrom htmlwidgets saveWidget
 #' @importFrom reshape2 melt
 #' @importFrom plotly ggplotly add_annotations layout as_widget
-#' @import octad.db ggplot2
+#' @import octad.db
+#' @import ggplot2
 #' @importFrom ExperimentHub ExperimentHub
 #' @importFrom octad.db get_ExperimentHub_data
 #' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
@@ -38,7 +39,7 @@ topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
 
   mysRGES$pert_iname <- toupper(mysRGES$pert_iname)
 
-  CTRPv2.ic50 <- data.table::dcast.data.table(get_ExperimentHub_data("EH7264"), drugid ~ cellid,
+  CTRPv2.ic50 <- data.table::dcast.data.table(octad.db::get_ExperimentHub_data("EH7264"), drugid ~ cellid,
     value.var = "ic50_recomputed",
     fun.aggregate = median
   ) # bioconductor replace
