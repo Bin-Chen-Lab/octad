@@ -5,7 +5,8 @@
 Perform enrichment analysis of drug hits based on chemical structures, drug-targets, and pharmacological classifications. An enrichment score calculated using ssGSEA and a p-value computed through a permutation test are provided. 
 }
 \usage{
-  octadDrugEnrichment(sRGES = NULL, target_type = "chembl_targets", enrichFolder = "enrichFolder", outputFolder = NULL, outputRank = FALSE)
+  octadDrugEnrichment(sRGES = NULL, target_type = "chembl_targets",
+  enrichFolder = "enrichFolder", outputFolder = NULL, outputRank = FALSE)
 
 }
 \arguments{

@@ -8,7 +8,8 @@
 }
 \usage{
  computeCellLine(case_id = case_id, expSet = NULL, LINCS_overlaps = TRUE,
-                            source = c("octad.small", "octad.whole", "expSet"), file = NULL, output = TRUE,
+                            source = c("octad.small", "octad.whole", "expSet"),
+                            file = NULL, output = TRUE,
                             outputFolder = NULL)
 }
 \arguments{

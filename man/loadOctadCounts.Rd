@@ -27,7 +27,9 @@ phenoDF=get_ExperimentHub_data('EH7274')
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data
 #case_id=HCC_primary$sample.id #select cases
-#expression_tmp=loadOctadCounts(case_id,type='tpm',file='octad.counts.and.tpm.h5')
-#expression_log2=loadOctadCounts(case_id,type='counts',file='octad.counts.and.tpm.h5')
+#expression_tmp=loadOctadCounts(case_id,type='tpm',
+file='octad.counts.and.tpm.h5')
+#expression_log2=loadOctadCounts(case_id,type='counts',
+file='octad.counts.and.tpm.h5')
 }
 \keyword{diffExp}

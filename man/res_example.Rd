@@ -33,7 +33,7 @@ Differential expression example for HCC vs adjacent liver tissue computed in dif
 \details{
 To generate this dataset use the following code from the octad package
 #load data.frame with samples included in the OCTAD database.  \cr
-\code{phenoDF=.eh[["EH7274"]]} \cr
+\code{phenoDF=.eh[['EH7274']]} \cr
 #select data \cr
 \code{HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&sample.type == 'primary')} \cr
 #select cases \cr

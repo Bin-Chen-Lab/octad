@@ -5,8 +5,11 @@
   Compute differential expression for case vs control samples. Will produce the file \code{computedEmpGenes.csv} listing empiricaly differentially expressed genes used for RNA-Seq normalization.
 }
 \usage{
-  diffExp(case_id = NULL, control_id = NULL, source = "octad.small", file = "octad.counts.and.tpm.h5", normalize_samples = TRUE,
-                    k = 1, expSet = NULL, n_topGenes = 500, DE_method = c("edgeR",'DESeq2'), parallel_cores = 2, output = FALSE, outputFolder = NULL, annotate = TRUE)
+  diffExp(case_id = NULL, control_id = NULL, source = "octad.small",
+  file = "octad.counts.and.tpm.h5", normalize_samples = TRUE,
+                    k = 1, expSet = NULL, n_topGenes = 500,
+                    DE_method = c("edgeR",'DESeq2'), parallel_cores = 2,
+                    output = FALSE, outputFolder = NULL, annotate = TRUE)
   
 }
 \arguments{

@@ -12,7 +12,7 @@
 #' @details 
 #'To generate this dataset use the following code from the octad package
 #'load differential expression example for HCC vs adjacent liver tissue computed in \code{diffExp()} function from \code{res_example}. \cr
-#'\code{data("res_example",package='octad.db')} \cr
+#'\code{data('res_example',package='octad.db')} \cr
 #'\code{res=subset(res_example,abs(log2FoldChange)>1&padj<0.001) #load example expression dataset} \cr
 #'\code{sRGES=runsRGES(res,max_gene_size=100,permutations=1000,output=FALSE)} \cr
 

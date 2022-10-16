@@ -5,8 +5,10 @@
 Compute reference control samples from OCTAD database using precomputed \code{EncoderDF} models. 
 }
 \usage{
- computeRefTissue(case_id = NULL, adjacent = FALSE, source = "octad", n_varGenes = 500, method = c("varGenes",'random'), expSet = NULL,
-                             control_size = length(case_id), outputFolder = NULL, cor_cutoff = "0", output = TRUE)
+ computeRefTissue(case_id = NULL, adjacent = FALSE, source = "octad",
+ n_varGenes = 500, method = c("varGenes",'random'), expSet = NULL,
+control_size = length(case_id),
+outputFolder = NULL, cor_cutoff = "0", output = TRUE)
 
 
 }
