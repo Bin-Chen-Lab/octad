@@ -34,7 +34,8 @@ Besides, if \code{output=TRUE}, two files are created in the working directory:
 }
 \examples{
 #select data
-phenoDF=get_ExperimentHub_data('EH7274') #load data.frame with samples included in the OCTAD database
+#load data.frame with samples included in the OCTAD database
+phenoDF=get_ExperimentHub_data('EH7274') 
 HCC_primary=subset(phenoDF,cancer=='Liver Hepatocellular Carcinoma'&
 sample.type == 'primary'&data.source == 'TCGA')
 #select cases

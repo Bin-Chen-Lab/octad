@@ -33,7 +33,8 @@
   \code{\link{computeRefTissue},\link{runsRGES}}.
 }
 \examples{
-phenoDF=get_ExperimentHub_data('EH7274') #load data.frame with samples included in the OCTAD database
+#load data.frame with samples included in the OCTAD database
+phenoDF=get_ExperimentHub_data('EH7274') 
 HCC_primary=subset(phenoDF,cancer=='liver hepatocellular carcinoma'&
 sample.type == 'primary') #select data
 case_id=HCC_primary$sample.id #select cases

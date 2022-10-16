@@ -37,7 +37,7 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
   
   random_gsea_score <- get_ExperimentHub_data("EH7275")
   for (target_type_selected in target_type) {
-    message(paste("Running enrichment for", target_type_selected, sep = " "), "\n")
+    message("Running enrichment for ", target_type_selected, "\n")
     enrichFolder.n <- file.path(outputFolder, enrichFolder, target_type_selected)
     if (!dir.exists(enrichFolder.n)) {
       dir.create(enrichFolder.n)

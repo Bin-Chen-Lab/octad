@@ -198,7 +198,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
     count_norm <- as.data.frame(count_norm)
     
     
-    pvalues <- sapply(1:nrow(count_norm),function(i){
+    pvalues <- vapply(seq_along(1:nrow(count_norm)),function(i){
       data <- cbind.data.frame(gene=as.numeric(t(count_norm[i,])),conditions = counts_phenotype$sample_type)
       p <- wilcox.test(gene~conditions, data)$p.value
       return(p)
