@@ -8,7 +8,7 @@
   diffExp(case_id = NULL, control_id = NULL, source = "octad.small",
   file = "octad.counts.and.tpm.h5", normalize_samples = TRUE,
                     k = 1, expSet = NULL, n_topGenes = 500,
-                    DE_method = c("edgeR",'DESeq2'), parallel_cores = 2,
+                    DE_method = c("edgeR",'DESeq2','limma','wilcox'),
                     output = FALSE, outputFolder = NULL, annotate = TRUE)
   
 }
@@ -21,8 +21,7 @@
   \item{normalize_samples}{if TRUE, RUVSeq normalization is applied to either EdgeR or DESeq. No normalization needed for limma+voom.}
   \item{k}{eiter k=1 (by default), k=2 or k=3, number of factors used in model matrix construction in RUVSeq normalization if \code{normalize_samples=TRUE}.}
   \item{n_topGenes}{number of empiricaly differentially expressed genes estimated for RUVSeq normalization. Default is 5000. }
-  \item{DE_method}{edgeR, DESeq2 or limma DE analysis.}
-  \item{parallel_cores}{number of cores to be used for parallel computing in DESeq2.}
+  \item{DE_method}{edgeR, DESeq2, limma or wilcox DE analysis.}
   \item{output}{if \code{TRUE}, output files is produced.}
   \item{outputFolder}{path to output folder. By default, the function produces result files in working directory.}
   \item{annotate}{if \code{TRUE}, annotation by ENSEMBL gene is performed. If \code{TRUE}, make sure row.names of the custom input contain ensembl gene ids.}

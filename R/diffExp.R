@@ -10,7 +10,7 @@
 #' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
 #' @importFrom grDevices pdf
 diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", file = "octad.counts.and.tpm.h5",
-    normalize_samples = TRUE, k = 1, expSet = NULL, n_topGenes = 500, DE_method = c("edgeR", "DESeq2"), parallel_cores = 2,
+    normalize_samples = TRUE, k = 1, expSet = NULL, n_topGenes = 500, DE_method = c("edgeR", "DESeq2", 'wilcox', 'limma'),
     output = FALSE, outputFolder = NULL, annotate = TRUE) {
 
     # STOPS
@@ -20,6 +20,10 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
         message("computing DE via DESeq2")
     } else if (DE_method == "edgeR") {
         message("computing DE via edgeR")
+    } else if (DE_method == "limma") {
+        message("computing DE via limma-voom")
+    } else if (DE_method == "wilcox") {
+        message("computing DE via wilcoxon rank-sum test")
     }
 
     if (missing(case_id)) {
@@ -128,11 +132,8 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
             dds <- DESeq2::DESeqDataSetFromMatrix(countData = round(counts), colData = coldata, design = ~sample_type)
         }
         gc()
-        if (parallel_cores > 1) {
-            dds <- DESeq2::DESeq(dds, parallel = TRUE)
-        } else {
-            dds <- DESeq2::DESeq(dds)
-        }
+        dds <- DESeq2::DESeq(dds)
+        
 
         rnms <- DESeq2::resultsNames(dds)
         resRaw <- DESeq2::results(dds, contrast = c("sample_type", "case", "control"))
@@ -174,7 +175,8 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
         group <- counts_phenotype$sample_type
         design <- model.matrix(~0 + group)
         colnames(design) <- gsub("group", "", colnames(design))
-        contr.matrix <- limma::makeContrasts(TumorvsNon = design$case - design$control, levels = colnames(design))
+        design=as.data.frame(design)
+        contr.matrix <- limma::makeContrasts(case - control, levels = colnames(design))
 
         v <- limma::voom(x, design, plot = FALSE)
         vfit <- limma::lmFit(v, design)
@@ -203,7 +205,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
         count_norm <- as.data.frame(count_norm)
 
 
-        pvalues <- vapply(seq(from = 1, to = nrow(count_norm)), function(i) {
+        pvalues <- lapply(seq(from = 1, to = nrow(count_norm)), FUN=function(i) {
             data <- cbind.data.frame(gene = as.numeric(t(count_norm[i, ])), conditions = counts_phenotype$sample_type)
             p <- wilcox.test(gene ~ conditions, data)$p.value
             return(p)
