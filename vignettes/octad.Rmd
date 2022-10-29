@@ -68,7 +68,7 @@ p2
 ## Compute gene differential expression between case and control samples
 Differential expression can be computed via edgeR, limma + voom, or DESeq2. By default, we use edgeR in the analysis. Since the function `diffExp` computes differentially expressed genes between `case_id` and `control_id` within the same data matrix, it can be used to find differentially expressed genes between any two groups of samples. By default, a small dataset containing only 978 genes shared with the LINCS database is used.
 ```{r eval=FALSE} 
-res=diffExp(case_id,control_id,source='octad.small',output=FALSE,DE_method='limma')
+res=diffExp(case_id,control_id,source='octad.small',output=FALSE,DE_method='wilcox')
 #please note, if \code{output = TRUE}, \code{outputFolder} variable must be specified, otherwise it will be written to \code{tempdir()}
 head(res)
 #Use simple subset to filter the DE results:

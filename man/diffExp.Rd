@@ -8,7 +8,7 @@
   diffExp(case_id = NULL, control_id = NULL, source = "octad.small",
   file = "octad.counts.and.tpm.h5", normalize_samples = TRUE,
                     k = 1, expSet = NULL, n_topGenes = 500,
-                    DE_method = c("edgeR",'DESeq2','limma','wilcox'),
+                    DE_method = c("edgeR",'DESeq2','wilcox','limma'),
                     output = FALSE, outputFolder = NULL, annotate = TRUE)
   
 }

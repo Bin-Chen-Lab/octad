@@ -142,10 +142,10 @@ topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
     yaxis <- "AUC"
 
 
-    p <- ggplot(testdf2, aes(x = sRGES, y = medauc)) + ggplot2::geom_point(aes(color = StronglyPredicted,
-        text = paste("Drug: ", testdf2$pert_iname, "<br>sRGES: ", testdf2$sRGES))) + ggplot2::geom_smooth(aes(label = aucrho),
-        method = "lm", se = FALSE, color = "black", size = 0.5) + ggplot2::scale_color_discrete(name = Legend.title) +
-        ggplot2::labs(x = xaxis, y = yaxis, title = Title) + ggplot2::theme(legend.position = "right", legend.background = element_rect(fill = "#F5F5F5"),
+    p <- ggplot(testdf2, aes(x = sRGES, y = medauc)) + ggplot2::geom_point(aes(color = StronglyPredicted, text = paste("Drug: ",
+        testdf2$pert_iname, "<br>sRGES: ", testdf2$sRGES))) + ggplot2::geom_smooth(aes(label = aucrho), method = "lm",
+        se = FALSE, color = "black", size = 0.5) + ggplot2::scale_color_discrete(name = Legend.title) + ggplot2::labs(x = xaxis,
+        y = yaxis, title = Title) + ggplot2::theme(legend.position = "right", legend.background = element_rect(fill = "#F5F5F5"),
         legend.title = element_blank())
 
     p1 <- plotly::ggplotly(p, tooltip = c("text", "label")) %>%
@@ -169,10 +169,7 @@ topLineEval <- function(topline = NULL, mysRGES = NULL, outputFolder = NULL) {
     sink(con, append = TRUE)
     sink(con, append = TRUE, type = "message")
 
-    #print("AUC cortest")
-    #print(AUC.cortest)
-    #print("IC50 cortest")
-    #print(IC50.cortest)
+    # print('AUC cortest') print(AUC.cortest) print('IC50 cortest') print(IC50.cortest)
 
     sink()
     sink(type = "message")

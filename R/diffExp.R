@@ -10,8 +10,8 @@
 #' @importFrom utils write.csv data txtProgressBar read.csv2 head read.csv
 #' @importFrom grDevices pdf
 diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", file = "octad.counts.and.tpm.h5",
-    normalize_samples = TRUE, k = 1, expSet = NULL, n_topGenes = 500, DE_method = c("edgeR", "DESeq2", 'wilcox', 'limma'),
-    output = FALSE, outputFolder = NULL, annotate = TRUE) {
+    normalize_samples = TRUE, k = 1, expSet = NULL, n_topGenes = 500, DE_method = c("edgeR", "DESeq2", "wilcox",
+        "limma"), output = FALSE, outputFolder = NULL, annotate = TRUE) {
 
     # STOPS
     DE_method <- match.arg(DE_method)
@@ -133,7 +133,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
         }
         gc()
         dds <- DESeq2::DESeq(dds)
-        
+
 
         rnms <- DESeq2::resultsNames(dds)
         resRaw <- DESeq2::results(dds, contrast = c("sample_type", "case", "control"))
@@ -175,7 +175,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
         group <- counts_phenotype$sample_type
         design <- model.matrix(~0 + group)
         colnames(design) <- gsub("group", "", colnames(design))
-        design=as.data.frame(design)
+        design <- as.data.frame(design)
         contr.matrix <- limma::makeContrasts(case - control, levels = colnames(design))
 
         v <- limma::voom(x, design, plot = FALSE)
@@ -205,7 +205,7 @@ diffExp <- function(case_id = NULL, control_id = NULL, source = "octad.small", f
         count_norm <- as.data.frame(count_norm)
 
 
-        pvalues <- lapply(seq(from = 1, to = nrow(count_norm)), FUN=function(i) {
+        pvalues <- lapply(seq(from = 1, to = nrow(count_norm)), FUN = function(i) {
             data <- cbind.data.frame(gene = as.numeric(t(count_norm[i, ])), conditions = counts_phenotype$sample_type)
             p <- wilcox.test(gene ~ conditions, data)$p.value
             return(p)
