@@ -118,7 +118,9 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
                     clusternames <- as.character((gsea_p[which(gsea_p$padj <= 0.05), ])$target)
                     if (length(clusternames) != 0) {
                       topclusterlist <- cmpdSets[clusternames]
-                      clusterdf <- read.csv2(paste0(enrichFolder.n, "misc.csv"), header = FALSE)
+                      #clusterdf <- read.csv2(paste0(enrichFolder.n, "misc.csv"), header = FALSE)
+                      clusterdf=as.data.frame(sapply(topclusterlist, toString))
+                      
                       clusterdf$cluster <- clusternames
                       clusterdf$pval <- (gsea_p[which(gsea_p$padj <= 0.05), ])$padj
                       colnames(clusterdf)[1] <- "drugs.in.cluster"

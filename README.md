@@ -1,18 +1,21 @@
 # Web version:
 http://octad.org/
 
-# How to Install
+# How to install
+OCTAD and OCTAD.db is now available on the bioconductor:
 ```
-library(devtools)
-install_github("Bin-Chen-Lab/octad.db")
-install_github("Bin-Chen-Lab/octad")
-
-#After the package will be added to the bioconductor directory:
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("octad")
 ``` 
 
+Latest vestion is available on the github:
+
+``` 
+library(devtools)
+install_github("Bin-Chen-Lab/octad.db")
+install_github("Bin-Chen-Lab/octad")
+``` 
 
 # Additional data
 By default, octad package uses expression data for 978 genes from the LINCS dataset. However, it can influence the result and we advice using whole octad database. To obtatin whole results for DE, downloading of the additional OCTAD database [octad.counts.and.tpm.h5](https://experimenthub.bioconductor.org/fetch/7327) from the AWS link is required.
