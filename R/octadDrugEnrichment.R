@@ -25,9 +25,12 @@ octadDrugEnrichment <- function(sRGES = NULL, target_type = "chembl_targets", en
         outputFolder <- tempdir()
         message("outputFolder is NULL, writing output to tempdir()")
     }
+    
+    if(!dir.exists(outputFolder)){
+      stop('Looks like output path ', outputFolder,' is either non-existent or obstructed. Check outputFolder option.')
+    }
 
-
-    if (!dir.exists(enrichFolder)) {
+    if (!dir.exists(file.path(outputFolder, enrichFolder))) {
         dir.create(file.path(outputFolder, enrichFolder))
     }
     # eh_dataframe <- as.data.frame(S4Vectors::mcols(AnnotationHub::query(.eh, 'octad.db')))['title']
