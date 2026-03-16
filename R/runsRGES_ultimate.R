@@ -1,6 +1,6 @@
 #' @export
 #' @importFrom Rfast colRanks
-#' @importFrom dplyr summarise id desc
+#' @importFrom dplyr summarise desc
 #' @importFrom plotly group_by
 #' @import octad.db
 #' @importFrom ExperimentHub ExperimentHub
