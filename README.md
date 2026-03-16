@@ -2,18 +2,10 @@
 http://octad.org/
 
 # How to install
-OCTAD and OCTAD.db is now available on the bioconductor:
-```
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install("octad")
-``` 
-
 Latest vestion is available on the github:
 
 ``` 
 library(devtools)
-install_github("Bin-Chen-Lab/octad.db")
 install_github("Bin-Chen-Lab/octad")
 ``` 
 
